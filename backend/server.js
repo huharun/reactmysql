@@ -11,6 +11,15 @@ const db = mysql.createConnection({ host: 'localhost', user: 'root', password: '
 // Connect to the database
 db.connect(err => { if (err) { console.error('Database connection failed:', err); return; } console.log('Database connected!'); });
 
+// // when the browser points to localhost:8081/listall
+// app.get('/listall', (request, response) => {
+//   const stmt = "SELECT * FROM Students"
+//   dbconn.query(stmt, (err, data) => {
+//       if(err) return response.json(err)
+//       else return response.json(data)
+//   })
+// });
+
 // Define table names
 const tableNames = [
     'patients', 'appointments', 'doctors', 'medicaltests', 'prescriptions',
