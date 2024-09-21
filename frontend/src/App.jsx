@@ -19,8 +19,19 @@ const TableComponent = () => {
     surgeries: [],
     bills: [],
     nurses: [],
-    wards: []
+    wards: [],
+    patients_with_appointments: [],
+    doctors_with_appointments: [],
+    patients_with_medications: [],
+    doctors_with_surgeries: [],
+    nurses_assigned_to_wards: [],
+    patients_with_bills: [],
+    medications_prescribed_by_doctors: [],
+    appointments_with_medical_tests: [],
+    surgeries_with_medications: [],
+    patients_with_assigned_nurses: []
   });
+  
 
   // State for handling errors
   const [error, setError] = useState(null);
@@ -36,10 +47,15 @@ const TableComponent = () => {
     const fetchData = async () => {
       try {
         // List of table names
-        const tableNames = [
-          'patients', 'appointments', 'doctors', 'medicaltests', 'prescriptions',
-          'medications', 'surgeries', 'bills', 'nurses', 'wards'
+        const tableNames = ['patients', 'appointments', 'doctors', 'medicaltests', 'prescriptions', 
+          'medications', 'surgeries', 'bills', 'nurses', 'wards', 
+          'patients_with_appointments', 'doctors_with_appointments', 
+          'patients_with_medications', 'doctors_with_surgeries', 
+          'nurses_assigned_to_wards', 'patients_with_bills', 
+          'medications_prescribed_by_doctors', 'appointments_with_medical_tests', 
+          'surgeries_with_medications', 'patients_with_assigned_nurses'
         ];
+
 
         // Fetch data for all tables
         const responses = await Promise.all(
@@ -94,7 +110,18 @@ const TableComponent = () => {
       'surgeries': { 'surgery_id': 'Id', 'patient_id': 'Patient Id', 'doctor_id': 'Doctor Id', 'surgery_type': 'Surgery Type', 'surgery_date': 'Date' },
       'bills': { 'bill_id': 'Id', 'patient_id': 'Patient Id', 'total_amount': 'Total Amount', 'bill_date': 'Date', 'status': 'Status' },
       'nurses': { 'nurse_id': 'Id', 'first_name': 'Name', 'department': 'Department' },
-      'wards': { 'ward_id': 'Id', 'ward_name': 'Ward Name', 'capacity': 'Capacity', 'nurse_id': 'Nurse Id' }
+      'wards': { 'ward_id': 'Id', 'ward_name': 'Ward Name', 'capacity': 'Capacity', 'nurse_id': 'Nurse Id' },
+      'patients_with_appointments': { 'patient_name': 'Patient Name', 'doctor_name': 'Doctor Name', 'medication_name': 'Medication Name', 'dosage': 'Dosage' },
+      'doctors_with_appointments': { 'doctor_name': 'Doctor Name', 'appointment_date': 'Appointment Date', 'patient_name': 'Patient Name', 'reason': 'Reason' },
+      'patients_with_medications': { 'patient_name': 'Patient Name', 'medication_name': 'Medication Name', 'dosage': 'Dosage' },
+      'doctors_with_surgeries': { 'doctor_name': 'Doctor Name', 'surgery_type': 'Surgery Type', 'surgery_date': 'Surgery Date', 'patient_name': 'Patient Name' },
+      'nurses_assigned_to_wards': { 'nurse_name': 'Nurse Name', 'ward_name': 'Ward Name' },
+      'patients_with_bills': { 'patient_name': 'Patient Name', 'total_amount': 'Total Amount', 'bill_date': 'Bill Date', 'status': 'Status' },
+      'medications_prescribed_by_doctors': { 'doctor_name': 'Doctor Name', 'medication_name': 'Medication Name', 'dosage': 'Dosage', 'patient_name': 'Patient Name' },
+      'appointments_with_medical_tests': { 'appointment_date': 'Appointment Date', 'reason': 'Reason', 'test_name': 'Test Name', 'results': 'Results' },
+      'surgeries_with_medications': { 'surgery_type': 'Surgery Type', 'medication_name': 'Medication Name', 'dosage': 'Dosage' },
+      'patients_with_assigned_nurses': { 'patient_name': 'Patient Name', 'nurse_name': 'Nurse Name', 'department': 'Department' },
+
     };
 
     // Get column headers and keys for the selected table
