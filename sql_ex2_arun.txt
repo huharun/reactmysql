@@ -1,0 +1,111 @@
+--CSC 6710 Exercise 2
+
+--I used Excercise1 sql queries and data for creating and inserting.
+
+--Execute 10 SELECT statement such that each statement will join at least two tables.
+
+
+### 1. Patients, Doctors, Medications, and Prescriptions:
+
+SELECT CONCAT(P.first_name, ' ', P.last_name) AS patient_name,
+       CONCAT(D.first_name, ' ', D.last_name) AS doctor_name,
+       M.medication_name,
+       PT.dosage
+FROM prescriptions PT
+JOIN patients P ON P.patient_id = PT.patient_id
+JOIN doctors D ON D.doctor_id = PT.doctor_id
+JOIN medications M ON M.medication_id = PT.medication_id;
+
+
+### 2. Doctors and Their Appointments:
+
+SELECT CONCAT(D.first_name, ' ', D.last_name) AS doctor_name,
+       A.appointment_date,
+       CONCAT(P.first_name, ' ', P.last_name) AS patient_name,
+       A.reason
+FROM doctors D
+JOIN appointments A ON D.doctor_id = A.doctor_id
+JOIN patients P ON A.patient_id = P.patient_id;
+
+
+### 3. Patients and Their Medications:
+
+SELECT CONCAT(P.first_name, ' ', P.last_name) AS patient_name,
+       M.medication_name,
+       PR.dosage
+FROM patients P
+JOIN prescriptions PR ON P.patient_id = PR.patient_id
+JOIN medications M ON PR.medication_id = M.medication_id;
+
+
+### 4. Doctors and Surgeries They Performed:
+
+SELECT CONCAT(D.first_name, ' ', D.last_name) AS doctor_name,
+       S.surgery_type,
+       S.surgery_date,
+       CONCAT(P.first_name, ' ', P.last_name) AS patient_name
+FROM doctors D
+JOIN surgeries S ON D.doctor_id = S.doctor_id
+JOIN patients P ON S.patient_id = P.patient_id;
+
+
+### 5. Nurses Assigned to Wards:
+
+SELECT CONCAT(N.first_name, ' ', N.last_name) AS nurse_name,
+       W.ward_name
+FROM nurses N
+JOIN wards W ON N.nurse_id = W.nurse_id;
+
+
+### 6. Patients and Their Bills:
+
+SELECT CONCAT(P.first_name, ' ', P.last_name) AS patient_name,
+       B.total_amount,
+       B.bill_date,
+       B.status
+FROM patients P
+JOIN bills B ON P.patient_id = B.patient_id;
+
+
+### 7. Medications Prescribed by Doctors:
+
+SELECT CONCAT(D.first_name, ' ', D.last_name) AS doctor_name,
+       M.medication_name,
+       PR.dosage,
+       CONCAT(P.first_name, ' ', P.last_name) AS patient_name
+FROM doctors D
+JOIN prescriptions PR ON D.doctor_id = PR.doctor_id
+JOIN medications M ON PR.medication_id = M.medication_id
+JOIN patients P ON PR.patient_id = P.patient_id;
+
+
+### 8. Appointments and Related Medical Tests:
+
+SELECT A.appointment_date,
+       A.reason,
+       M.test_name,
+       M.results
+FROM appointments A
+JOIN medicaltests M ON A.patient_id = M.patient_id
+AND A.doctor_id = M.doctor_id;
+
+
+### 9. Surgeries and the Medications Used:
+
+SELECT S.surgery_type,
+       M.medication_name,
+       PR.dosage
+FROM surgeries S
+JOIN prescriptions PR ON S.patient_id = PR.patient_id
+JOIN medications M ON PR.medication_id = M.medication_id;
+
+
+### 10. Patients and Their Assigned Nurses:
+
+SELECT CONCAT(P.first_name, ' ', P.last_name) AS patient_name,
+       CONCAT(N.first_name, ' ', N.last_name) AS nurse_name,
+       N.department
+FROM patients P
+JOIN surgeries S ON S.patient_id = P.patient_id
+JOIN doctors D ON D.doctor_id = S.doctor_id
+JOIN nurses N ON N.department = D.speciality;  
