@@ -57,6 +57,19 @@ All SQL statements were documented in a file named **`sql_ex2_arun.txt`**.
 ## **Overview**
 In this exercise, I modified both frontend and backend code to display the results of executing various SQL SELECT statements. The main goal was to integrate Node.js with a MySQL database and present the data through a React application.
 
+---
+
+**Open Database and Import SQL File**:  
+   Open your MySQL client and connect to your database server. Create a new database named **`hospital`** if it doesn't exist. Then, import the **`hospital.sql`** file:
+   ```sql
+   CREATE DATABASE hospital;
+   USE hospital;
+   SOURCE path/to/hospital.sql;
+   ```
+   Make sure to replace **`path/to/hospital.sql`** with the actual path to the file inside the **reactmysql** folder.
+
+---
+
 ## **How to Run the Given Sample Code**
 
 1. **Create Project Directory**:  
