@@ -1,9 +1,10 @@
-const express = require('express'); 
-const mysql = require('mysql'); 
-const cors = require('cors');
+const express = require('express');  // Import Express framework for building the web server
+const mysql = require('mysql');      // Import MySQL module for database interaction
+const cors = require('cors');        // Import CORS module to handle cross-origin requests
 
-const app = express(); 
-const port = 8081;
+const app = express();               // Create an Express application instance
+const port = 8081;                   // Define the port where the server will listen for requests
+
 
 // Middleware to enable CORS
 app.use(cors());
