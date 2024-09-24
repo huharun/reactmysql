@@ -59,19 +59,108 @@ In this exercise, I modified both frontend and backend code to display the resul
 
 ## **How to Run the Given Sample Code**
 
-To get the sample project working:
+1. **Create Project Directory**:  
+   Create a directory called **`reactmysql`** as your project directory.
 
-1. **Create Project Directory**: Create a directory called `reactmysql` as your project directory.
-2. **Set Up Backend Directory**: Under `reactmysql`, create a directory named `Backend`.
-3. **Copy Backend Files**: Copy the necessary files into your `Backend` directory.
-4. **Create Database Tables**: Open your MySQL client and create the required **10 tables** in the **hospital** database.
-5. **Insert Sample Data**: Insert sample data into the **10 tables**. You can find the SQL export in the repository.
-6. **Initialize Backend**: Navigate to the `Backend` directory, initialize a new Node.js project, and install the necessary packages.
-7. **Modify package.json**: Modify the scripts section of the `Backend/package.json` to set up the start command.
-8. **Start the Backend**: Run the backend server and access the backend endpoints directly.
-9. **Set Up Frontend**: At the project home directory, create a new Vite project for the frontend.
-10. **Replace Frontend Code**: Replace the `App.jsx` file under `Frontend/src` with the updated code.
-11. **Run Frontend**: Open a new terminal and run the necessary commands to start the frontend application.
+2. **Set Up Backend Directory**:  
+   Under **`reactmysql`**, create a directory named **`Backend`**.
+
+3. **Copy Backend Files**:  
+   Copy the necessary files into your **`Backend`** directory.
+
+4. **Create Database Tables**:  
+   Open your MySQL client and create the required **10 tables** in the **hospital** database.
+
+5. **Insert Sample Data**:  
+   Insert sample data into the **10 tables**. You can find the SQL export in the repository.
+
+6. **Initialize Backend**:  
+   Navigate to the **`Backend`** directory, initialize a new Node.js project, and install the necessary packages:
+   ```bash
+   npm install
+   ```
+
+7. **Modify package.json**:  
+   Modify the scripts section of the **`Backend/package.json`** to set up the start command:
+   ```json
+   "scripts": {
+     "start": "nodemon server.js"
+   }
+   ```
+
+8. **Start the Backend**:  
+   Run the backend server:
+   ```bash
+   npm start
+   ```
+   Access the backend endpoints directly.
+
+9. **Set Up Frontend**:  
+   At the project home directory, create a new Vite project for the frontend:
+   ```bash
+   npm create vite@latest frontend -- --template react
+   ```
+
+10. **Replace Frontend Code**:  
+    Replace the **`App.jsx`** file under **`Frontend/src`** with the updated code from your repository.
+
+11. **Run Frontend**:  
+    Open a new terminal, navigate to the **`Frontend`** directory, and run the necessary commands to start the frontend application:
+    ```bash
+    npm install
+    npm run dev
+    ```
+    You can now access the frontend at **`http://localhost:5173`**.
+
+
+# Cloning the Repository and Running the Project
+
+To clone the repository and get the project up and running, follow these steps:
+
+1. **Clone the Repository**:  
+   Open your terminal or command prompt and run the following command:
+   ```bash
+   git clone https://github.com/huharun/reactmysql.git
+   ```
+
+2. **Navigate to the Project Directory**:  
+   Change to the project directory:
+   ```bash
+   cd reactmysql
+   ```
+
+3. **Install Dependencies**:  
+   Run the following command to install the required packages:
+   ```bash
+   npm install
+   ```
+
+4. **Run the Project**:  
+   Start the project using:
+   ```bash
+   npm run dev
+   ```
+   If you encounter any errors, you can alternatively run:
+   ```bash
+   npx vite
+   ```
+   This will launch the application, and you can access it in your browser at **`http://localhost:5173`**.
+
+5. **Access Backend**:  
+   If applicable, navigate to the **`Backend`** directory and start the backend server:
+   ```bash
+   cd Backend
+   npm start
+   ```
+   Access the backend endpoints directly.
+
+6. **Modify Environment Variables** (if needed):  
+   Ensure any necessary environment variables are set in your **`.env`** file.
+
+7. **Enjoy the Application**:  
+   Your application should now be up and running. Visit **`http://localhost:5173`** to use it!
+
+
 
 ## **Tasks Completed**
 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 05, 2024 at 09:10 PM
+-- Generation Time: Sep 24, 2024 at 05:09 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -72,13 +72,13 @@ CREATE TABLE `bills` (
 INSERT INTO `bills` (`bill_id`, `patient_id`, `total_amount`, `bill_date`, `status`) VALUES
 (1, 1, 500.00, '2024-08-01', 'Paid'),
 (2, 2, 300.00, '2024-08-02', 'Unpaid'),
-(3, 3, 400.00, '2024-08-03', 'Paid'),
+(3, 3, 400.00, '2024-08-03', 'Unpaid'),
 (4, 4, 200.00, '2024-08-04', 'Unpaid'),
 (5, 5, 600.00, '2024-08-05', 'Paid'),
 (6, 6, 350.00, '2024-08-06', 'Unpaid'),
 (7, 7, 450.00, '2024-08-07', 'Paid'),
 (8, 8, 250.00, '2024-08-08', 'Unpaid'),
-(9, 9, 550.00, '2024-08-09', 'Paid'),
+(9, 9, 550.00, '2024-08-09', 'Unpaid'),
 (10, 10, 150.00, '2024-08-10', 'Unpaid');
 
 -- --------------------------------------------------------
@@ -221,7 +221,7 @@ CREATE TABLE `patients` (
 --
 
 INSERT INTO `patients` (`patient_id`, `first_name`, `last_name`, `age`, `dob`, `gender`, `phone`) VALUES
-(1, 'Arun', 'Thangapalam', 24, '1969-08-22', 'male', 313187332),
+(1, 'Arun', 'Thangapalam', 24, '2000-08-22', 'male', 313187332),
 (2, 'Mark', 'De', 24, '2008-05-12', 'male', 2147483647),
 (3, 'Erin', 'Me', 35, '2003-04-22', 'female', 2147483647),
 (4, 'Sel', 'DO', 45, '2004-08-22', 'female', 2147483647),
@@ -302,24 +302,25 @@ INSERT INTO `surgeries` (`surgery_id`, `patient_id`, `doctor_id`, `surgery_type`
 CREATE TABLE `wards` (
   `ward_id` int(11) NOT NULL,
   `ward_name` varchar(50) DEFAULT NULL,
-  `capacity` int(11) DEFAULT NULL
+  `capacity` int(11) DEFAULT NULL,
+  `nurse_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `wards`
 --
 
-INSERT INTO `wards` (`ward_id`, `ward_name`, `capacity`) VALUES
-(1, 'Ward A', 20),
-(2, 'Ward B', 25),
-(3, 'Ward C', 30),
-(4, 'Ward D', 15),
-(5, 'Ward E', 10),
-(6, 'Ward F', 40),
-(7, 'Ward G', 35),
-(8, 'Ward H', 50),
-(9, 'Ward I', 45),
-(10, 'Ward J', 60);
+INSERT INTO `wards` (`ward_id`, `ward_name`, `capacity`, `nurse_id`) VALUES
+(1, 'Ward A', 20, 1),
+(2, 'Ward B', 25, 2),
+(3, 'Ward C', 30, 3),
+(4, 'Ward D', 15, 5),
+(5, 'Ward E', 10, 6),
+(6, 'Ward F', 40, 0),
+(7, 'Ward G', 35, 0),
+(8, 'Ward H', 50, 0),
+(9, 'Ward I', 45, 0),
+(10, 'Ward J', 60, 0);
 
 --
 -- Indexes for dumped tables
