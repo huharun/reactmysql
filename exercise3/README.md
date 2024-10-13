@@ -147,3 +147,5 @@ I updated the `App.css` file to improve the visual layout of the application. Th
 
 ## **SQL Statements**
 All SQL statements used in this exercise are documented in the file named **`sql_ex3_arun.txt`**.
+
+---
