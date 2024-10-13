@@ -1,0 +1,271 @@
+--CSC 6710 Exercise 1
+
+
+--1.Access online SQL at: https://www.programiz.com/sql/online-compiler/
+
+
+--2.Create 10 tables using SQL CREATE table statements;
+
+CREATE TABLE patients(
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(25),
+  last_name VARCHAR(25),
+  age INT,
+  dob DATE,
+  gender VARCHAR(10),
+  phone INT(15)
+  );
+
+CREATE TABLE doctors(
+  doctor_id INT AUTO_INCREMENT PRIMARY KEY,
+  first_name VARCHAR(25),
+  last_name VARCHAR(25),
+  speciality VARCHAR(25),
+  phone INT(15)
+  );
+
+CREATE TABLE Appointments (
+    appointment_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    appointment_date DATETIME,
+    reason VARCHAR(100)
+);
+
+CREATE TABLE Nurses (
+    nurse_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    department VARCHAR(50)
+);
+
+CREATE TABLE Wards (
+    ward_id INT AUTO_INCREMENT PRIMARY KEY,
+    ward_name VARCHAR(50),
+    capacity INT
+);
+
+CREATE TABLE Medications (
+    medication_id INT AUTO_INCREMENT PRIMARY KEY,
+    medication_name VARCHAR(50),
+    dosage VARCHAR(50),
+    side_effects VARCHAR(100)
+);
+
+CREATE TABLE Prescriptions (
+    prescription_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    medication_id INT,
+    dosage VARCHAR(50),
+    prescription_date DATE
+);
+
+CREATE TABLE Surgeries (
+    surgery_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    surgery_type VARCHAR(100),
+    surgery_date DATE
+);
+
+CREATE TABLE Bills (
+    bill_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    total_amount DECIMAL(10, 2),
+    bill_date DATE,
+    status VARCHAR(20)
+);
+
+CREATE TABLE MedicalTests (
+    test_id INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id INT,
+    doctor_id INT,
+    test_name VARCHAR(100),
+    test_date DATE,
+    results VARCHAR(200)
+);
+
+------------ALTER TABLE BEFORE INSERTING-----------------
+
+ALTER TABLE patients RENAME id TO patient_id
+
+
+
+--3.INSERT at least 10 tuples into each of the above table using the INSERT statements;
+
+INSERT INTO patients (patient_id, first_name, last_name, age, dob, gender, phone) 
+VALUES 
+(1, 'Arun', 'Thangapalam', 24, '1969-08-22', 'male', 313187332),
+(2, 'Mark', 'De', 24, '2008-05-12', 'male', 31234187332),
+(3, 'Erin', 'Me', 35, '2003-04-22', 'female', 31318457332),
+(4, 'Sel', 'DO', 45, '2004-08-22', 'female', 31318157332),
+(5, 'Wendy', 'Lu', 22, '1994-08-22', 'female', 31318457332),
+(6, 'Dan', 'Ar', 18, '2000-06-22', 'male', 3131873432),
+(7, 'Cong', 'Ul', 45, '1993-08-22', 'female', 3133187332),
+(8, 'Sunny', 'Lee', 65, '2005-04-22', 'male', 31343187332),
+(9, 'Dong', 'Xi', 22, '2002-08-22', 'male', 31318347332),
+(10, 'Dong', 'Xi', 22, '2002-08-22', 'male', 31318347332);
+
+
+INSERT INTO doctors (doctor_id, first_name, last_name, speciality, phone) VALUES
+(1, 'Emily', 'Clark', 'Cardiology', '555-123-4567'),
+(2,'Robert', 'Smith', 'Neurology', '555-234-5678'),
+(3,'Sophia', 'Johnson', 'Pediatrics', '555-345-6789'),
+(4,'Michael', 'Williams', 'Orthopedics', '555-456-7890'),
+(5,'Olivia', 'Brown', 'Dermatology', '555-567-8901'),
+(6,'Daniel', 'Jones', 'Radiology', '555-678-9012'),
+(7,'Emma', 'Garcia', 'Oncology', '555-789-0123'),
+(8,'James', 'Martinez', 'General Surgery', '555-890-1234'),
+(9,'Isabella', 'Davis', 'Gastroenterology', '555-901-2345'),
+(10,'William', 'Lopez', 'Endocrinology', '555-012-3456');
+
+
+
+INSERT INTO Appointments (patient_id, doctor_id, appointment_date, reason)
+VALUES 
+(1, 1, '2024-08-01 09:00:00', 'General Checkup'),
+(2, 2, '2024-08-03 10:00:00', 'Follow-up Visit'),
+(3, 1, '2024-08-05 11:00:00', 'Consultation'),
+(4, 3, '2024-08-06 12:00:00', 'Therapy'),
+(5, 2, '2024-08-07 13:00:00', 'Routine Checkup'),
+(6, 4, '2024-08-08 14:00:00', 'Skin Rash'),
+(7, 1, '2024-08-09 15:00:00', 'Flu Symptoms'),
+(8, 3, '2024-08-10 16:00:00', 'Back Pain'),
+(9, 4, '2024-08-11 17:00:00', 'Injury Checkup'),
+(10, 2, '2024-08-12 18:00:00', 'Vaccination');
+
+INSERT INTO Nurses (first_name, last_name, department)
+VALUES 
+('Emily', 'Clark', 'Cardiology'),
+('Sarah', 'Jones', 'Neurology'),
+('Robert', 'Miller', 'Pediatrics'),
+('Sophia', 'Taylor', 'Orthopedics'),
+('Daniel', 'Brown', 'Oncology'),
+('Anna', 'Johnson', 'Dermatology'),
+('James', 'Lee', 'Psychiatry'),
+('David', 'Williams', 'Emergency'),
+('Michael', 'Davis', 'ICU'),
+('Laura', 'Wilson', 'Surgery');
+
+
+INSERT INTO Wards (ward_name, capacity)
+VALUES 
+('Ward A', 20),
+('Ward B', 25),
+('Ward C', 30),
+('Ward D', 15),
+('Ward E', 10),
+('Ward F', 40),
+('Ward G', 35),
+('Ward H', 50),
+('Ward I', 45),
+('Ward J', 60);
+
+
+INSERT INTO Medications (medication_name, dosage, side_effects)
+VALUES 
+('Aspirin', '500mg', 'Nausea'),
+('Ibuprofen', '200mg', 'Dizziness'),
+('Metformin', '850mg', 'Stomach Upset'),
+('Paracetamol', '500mg', 'Liver Damage'),
+('Amoxicillin', '250mg', 'Allergic Reaction'),
+('Lisinopril', '10mg', 'Cough'),
+('Atorvastatin', '20mg', 'Muscle Pain'),
+('Hydrochlorothiazide', '25mg', 'Dehydration'),
+('Omeprazole', '40mg', 'Headache'),
+('Simvastatin', '20mg', 'Fatigue');
+
+
+INSERT INTO Prescriptions (patient_id, doctor_id, medication_id, dosage, prescription_date)
+VALUES 
+(1, 1, 1, '500mg', '2024-08-01'),
+(2, 2, 2, '200mg', '2024-08-02'),
+(3, 1, 3, '850mg', '2024-08-03'),
+(4, 3, 4, '500mg', '2024-08-04'),
+(5, 2, 5, '250mg', '2024-08-05'),
+(6, 4, 6, '10mg', '2024-08-06'),
+(7, 1, 7, '20mg', '2024-08-07'),
+(8, 3, 8, '25mg', '2024-08-08'),
+(9, 4, 9, '40mg', '2024-08-09'),
+(10, 2, 10, '20mg', '2024-08-10');
+
+
+INSERT INTO Surgeries (patient_id, doctor_id, surgery_type, surgery_date)
+VALUES 
+(1, 1, 'Appendectomy', '2024-08-01'),
+(2, 2, 'Bypass Surgery', '2024-08-02'),
+(3, 1, 'Cataract Surgery', '2024-08-03'),
+(4, 3, 'Hernia Repair', '2024-08-04'),
+(5, 2, 'Hip Replacement', '2024-08-05'),
+(6, 4, 'Knee Replacement', '2024-08-06'),
+(7, 1, 'Laparoscopy', '2024-08-07'),
+(8, 3, 'Gallbladder Removal', '2024-08-08'),
+(9, 4, 'Tonsillectomy', '2024-08-09'),
+(10, 2, 'Vascular Surgery', '2024-08-10');
+
+
+INSERT INTO Bills (patient_id, total_amount, bill_date, status)
+VALUES 
+(1, 500.00, '2024-08-01', 'Paid'),
+(2, 300.00, '2024-08-02', 'Unpaid'),
+(3, 400.00, '2024-08-03', 'Paid'),
+(4, 200.00, '2024-08-04', 'Unpaid'),
+(5, 600.00, '2024-08-05', 'Paid'),
+(6, 350.00, '2024-08-06', 'Unpaid'),
+(7, 450.00, '2024-08-07', 'Paid'),
+(8, 250.00, '2024-08-08', 'Unpaid'),
+(9, 550.00, '2024-08-09', 'Paid'),
+(10, 150.00, '2024-08-10', 'Unpaid');
+
+
+INSERT INTO MedicalTests (patient_id, doctor_id, test_name, test_date, results)
+VALUES 
+(1, 1, 'Blood Test', '2024-08-01', 'Normal'),
+(2, 2, 'MRI', '2024-08-02', 'Abnormal'),
+(3, 1, 'X-Ray', '2024-08-03', 'Normal'),
+(4, 3, 'CT Scan', '2024-08-04', 'Normal'),
+(5, 2, 'Urine Test', '2024-08-05', 'Normal'),
+(6, 4, 'ECG', '2024-08-06', 'Abnormal'),
+(7, 1, 'Allergy Test', '2024-08-07', 'Positive'),
+(8, 3, 'Biopsy', '2024-08-08', 'Benign'),
+(9, 4, 'Blood Sugar', '2024-08-09', 'High'),
+(10, 2, 'Cholesterol Test', '2024-08-10', 'Borderline');
+
+
+
+
+--4.Execute 10 DELETE statements (for whatever table), each statement should be different from each other;
+
+
+DELETE FROM patients WHERE patient_id = 9;
+DELETE FROM Prescriptions WHERE patient_id = 9;
+DELETE FROM Appointments WHERE patient_id = 9;
+DELETE FROM Bills WHERE patient_id = 9;
+DELETE FROM MedicalTests WHERE patient_id = 9;
+DELETE FROM Surgeries WHERE patient_id = 9;
+DELETE FROM Doctors WHERE doctor_id = 2;
+DELETE FROM Bills WHERE status = 'Unpaid';
+DELETE FROM MedicalTests WHERE test_name = 'Biopsy';
+DELETE FROM Wards WHERE ward_name = 'Ward 3';
+
+
+
+
+--5.Execute 10 UPDATE statements (for whatever table), each statement should be different from each other.
+
+UPDATE Prescriptions SET dosage = '500mg' WHERE patient_id = 8;
+UPDATE Bills SET total_amount = 1000 WHERE status = 'paid';
+UPDATE Appointments SET doctor_id = 3 WHERE patient_id = 1;
+UPDATE Doctors SET first_name = 'Sydney' WHERE first_name = 'Emily';
+UPDATE MedicalTests SET test_name = 'CT Scan';
+UPDATE Medications SET medication_name = 'Sample' WHERE dosage = '500mg';
+UPDATE Nurses SET department = 'Orthopedics' WHERE department = 'Pediatrics';
+UPDATE Patients SET dob = '2000-08-23' WHERE phone = '313187332';
+UPDATE Wards SET ward_name = 'Ward Z' WHERE capacity > 20;
+UPDATE Surgeries SET doctor_id = 1;
+
+
+
+--6.Please explain in voice and show in your video the result of each statement. Submit all SQL statements in a file called sql.txt.
+-----------------------------------------------------------------------------------------------------------------------------------------------------

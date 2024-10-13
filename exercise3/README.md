@@ -1,57 +1,3 @@
-# **CSC 6710 Exercise 1: SQL Database Creation and Manipulation**
-
-## **Overview**
-In this exercise, I created and manipulated a database using SQL. The goal was to demonstrate fluency in SQL through various operations.
-
-## **Tasks Completed**
-
-### **Accessed an Online SQL Compiler**
-Used: **Programiz SQL Online Compiler**
-
-### **Created Tables**
-I created **10 tables**, including **patients**, **doctors**, **appointments**, and others.
-
-### **Inserted Data**
-Inserted at least **10 records** into each table to simulate a healthcare database.
-
-### **Executed DELETE Statements**
-Performed **10 different DELETE operations** to remove records from the tables.
-
-### **Executed UPDATE Statements**
-Carried out **10 different UPDATE operations** to modify existing records.
-
-### **Documentation**
-All SQL statements were documented in a file named **`sql_ex1_arun.txt`**.
-
----
-
-# **CSC 6710 Exercise 2: SQL Database Interaction with XAMPP**
-
-## **Overview**
-In this exercise, I used XAMPP to create and interact with a database. The goal was to demonstrate SQL fluency through various SELECT statements involving multiple tables.
-
-## **Tasks Completed**
-
-### **Downloaded and Installed XAMPP**
-Downloaded XAMPP from the official website and installed it on my Windows PC.
-
-### **Launched XAMPP**
-Opened the XAMPP control panel and started the **Apache** and **MySQL** services.
-
-### **Accessed phpMyAdmin**
-Clicked the **Admin** button in the XAMPP control panel to open phpMyAdmin for SQL operations.
-
-### **Created Tables and Inserted Data**
-Created **10 tables** using SQL CREATE statements and inserted at least **10 records** into each table to build a healthcare database.
-
-### **Executed SELECT Statements**
-Ran **10 SELECT statements** that joined at least two tables, retrieving relevant information from the database.
-
-### **Documentation**
-All SQL statements were documented in a file named **`sql_ex2_arun.txt`**.
-
----
-
 # **CSC 6710 Exercise 3: Node.js and React Application Development**
 
 ## **Overview**
@@ -133,7 +79,7 @@ To clone the repository and get the project up and running, follow these steps:
 1. **Clone the Repository**:  
    Open your terminal or command prompt and run the following command:
    ```bash
-   git clone https://github.com/huharun/reactmysql.git
+   git clone https://github.com/huharun/reactmysql/exercise3.git
    ```
 
 2. **Navigate to the Project Directory**:  
