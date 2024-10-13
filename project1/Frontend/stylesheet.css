@@ -1,0 +1,73 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e9ecef; /* Light gray background color */
+    display: flex; /* Use flexbox to center elements */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    height: 100vh; /* Full height of the viewport */
+}
+
+.table-container {
+    padding: 20px;
+    max-width: 800px; /* Adjusted width for better readability */
+    width: 100%; /* Make it responsive */
+    background-color: #ffffff; /* White background for the container */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+
+.table-header {
+    background-color: #121212; /* Dark gray background color */
+    color: #ffffff; /* White text color */
+    padding: 20px;
+    text-align: center;
+    border-radius: 8px 8px 0 0; /* Rounded corners on top */
+}
+
+label {
+    margin-right: 10px; /* Space between label and input */
+    font-weight: bold; /* Make the label stand out */
+}
+
+input[type="text"] {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc; /* Light gray border */
+    margin-right: 10px; /* Space between input and button */
+    width: calc(100% - 140px); /* Responsive width calculation */
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #121212; /* Dark gray background */
+    color: #ffffff; /* White text color */
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse; /* Remove double borders */
+    margin-top: 20px; /* Space above table */
+}
+
+th, td {
+    border: 1px solid #dee2e6; /* Light gray border for table cells */
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    background-color: #121212; /* Dark gray background for header */
+    color: #ffffff; /* White text for contrast */
+}
+
+#error-message {
+    text-align: center;
+    font-size: 1.2em;
+    color: #dc3545; /* Red for error messages */
+    margin: 20px 0;
+}
