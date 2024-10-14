@@ -1,41 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="stylesheet.css">
-  <title>DB Project 1 new</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="miles.ico.png">
+    <link rel="stylesheet" href="stylesheet.css">
+    <title>DBMS Project 1</title>
 </head>
+
 <body>
-  <main>
-      <label>Name:</label>
-      <input type="text" id="name-input">
-      <button id="add-name-btn">Add Name</button>
- 
-     <br><br><br>
-     <div> 
-        <input placeholder="search by name" id="search-input">
-        <button id="search-btn">Search</button>
-     </div>
+    <header>
+        <h1>DBMS Project 1</h1>
+        <button id="sign-up-btn">Sign Up</button>
+        <button id="sign-in-btn">Sign In</button>
+    </header>
 
+    <!-- Sign Up Modal -->
+<div id="sign-up-modal" class="modal" role="dialog" aria-labelledby="sign-up-title" aria-describedby="sign-up-description">
+    <div class="modal-content">
+        <span class="close" id="close-sign-up">&times;</span>
+        <h2 id="sign-up-title">Sign Up</h2>
+        <p id="sign-up-description">Enter your details to sign up.</p>
+        <form id="sign-up-form">
+            <div class="input-container">
+                <label for="first-name">First Name:</label>
+                <input type="text" id="first-name" >
+            </div>
+            <div class="input-container">
+                <label for="last-name">Last Name:</label>
+                <input type="text" id="last-name" >
+            </div>
+            <div class="input-container">
+                <label for="signup-email">Email:</label>
+                <input type="email" id="signup-email" >
+            </div>
+            <div class="input-container">
+                <label for="signup-password">Password:</label>
+                <input type="password" id="signup-password" >
+            </div>
+            <div class="input-container">
+                <label for="salary">Salary:</label>
+                <input type="number" id="salary" >
+            </div>
+            <div class="input-container">
+                <label for="age">Age:</label>
+                <input type="number" id="age" >
+            </div>
+            <div class="input-container">
+                <label for="dob">Date of Birth:</label>
+                <input type="date" id="dob" >
+            </div>            
+            <div class="button-container">
+                <button type="submit" id="register-btn">Sign Up</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-     <table id="table">
-         <thead>
-             <th>Id</th>
-             <th>Name</th>
-             <th>Date Added</th>
-             <th>Delete</th>
-             <th>Edit</th>  
-         </thead>
-         <tbody></tbody>
-     </table>
+    <!-- Sign In Modal -->
+<div id="sign-in-modal" class="modal" role="dialog" aria-labelledby="sign-in-title" aria-describedby="sign-in-description">
+    <div class="modal-content">
+        <span class="close" id="close-sign-in">&times;</span>
+        <h2 id="sign-in-title">Sign In</h2>
+        <p id="sign-in-description">Please enter your credentials to sign in.</p>
+        <form id="sign-in-form">
+            <div class="input-container">
+                <label for="signin-email">Email:</label>
+                <input type="email" id="signin-email" required>
+            </div>
+            <div class="input-container">
+                <label for="signin-password">Password:</label>
+                <input type="password" id="signin-password" required>
+            </div>
+            <div class="button-container">
+                <button type="submit" id="login-btn">Sign In</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-     <section hidden id="update-row">
-         <label>Name:</label>
-         <input type="text" id="update-name-input">
-         <button id="update-row-btn" value="">Update</button>
-    </section>
-</main>
-<script src="index.js"></script>
+    <main>
+        <h2 style="text-align: center;">Users</h2>
+
+        <!-- Search Section -->
+        <div class="input-container">
+            <label for="search-input">Search:</label>
+            <input type="text" placeholder="Search by name" id="search-input">
+            <button id="search-btn">Search</button>
+        </div>
+
+        <!-- Table Section -->
+        <table id="table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>User ID</th>
+                    <th>Salary</th>
+                    <th>Age</th>
+                    <th>Registration Date</th>
+                    <th>Last Sign-In</th>
+                    <th>Added By</th>
+                    <th>Last edit By</th>
+                    <th>Delete</th>
+                    <th>Edit</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <!-- Update Row Section -->
+        <section hidden id="update-row">
+            <label for="update-name-input">Name:</label>
+            <input type="text" id="update-name-input" placeholder="Enter new name">
+            <button id="update-row-btn">Update</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 DBMS Project 1 - Arun and Sravani.</p>
+    </footer>
+
+    <script src="index.js"></script>
 </body>
+
 </html>

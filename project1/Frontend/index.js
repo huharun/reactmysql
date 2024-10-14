@@ -1,94 +1,151 @@
-
 // This is the frontEnd that modifies the HTML page directly
 // event-based programming,such as document load, click a button
 
-/*
-What is a Promise in Javascript? 
-
-A Promise can be in one of three states:
-
-    - Pending: The initial state; the promise is neither fulfilled nor rejected.
-
-    - Fulfilled: The operation completed successfully, and the promise has a 
-      resulting value.
-
-    - Rejected: The operation failed, and the promise has a reason for the failure.
-
-Promises have two main methods: then and catch.
-
-    - The then method is used to handle the successful fulfillment of a promise. 
-    It takes a callback function that will be called when the promise is resolved, 
-    and it receives the resulting value.
-
-    - The catch method is used to handle the rejection of a promise. It takes a 
-    callback function that will be called when the promise is rejected, and it 
-    receives the reason for the rejection.
-
-What is a promise chain? 
-    The Promise chain starts with some asyncOperation1(), which returns a promise, 
-    and each subsequent ``then`` is used to handle the result of the previous Promise.
-
-    The catch is used at the end to catch any errors that might occur at any point 
-    in the chain.
-
-    Each then returns a new Promise, allowing you to chain additional ``then`` calls to 
-    handle subsequent results.
-
-What is an arrow function?
-
-    An arrow function in JavaScript is a concise way to write anonymous function 
-    expressions.
-
-    Traditional function syntax: 
-        const add = function(x, y) {
-           return x + y;
-        };
-
-    Arrow function syntax:
-        const add = (x, y) => x + y;
-    
-    
-Arrow functions have a few notable features:
-
-    - Shorter Syntax: Arrow functions eliminate the need for the function keyword, 
-      curly braces {}, and the return keyword in certain cases, making the syntax 
-      more concise.
-
-    - Implicit Return: If the arrow function consists of a single expression, it is 
-      implicitly returned without needing the return keyword.
-
-    - Lexical this: Arrow functions do not have their own this context; instead, they 
-      inherit this from the surrounding code. This can be beneficial in certain situations,
-      especially when dealing with callbacks and event handlers.
-*/
-
+//constant for url 
+const API_BASE_URL = 'http://localhost:5050';
 
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
-    // one can point your browser to http://localhost:5050/getAll to check what it returns first.
-    fetch('http://localhost:5050/getAll')     
+    fetch(API_BASE_URL+'/getAll')     
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 });
 
+//listing all data in the table
+function loadHTMLTable(data){
+    debug("index.js: loadHTMLTable called.");
 
-// when the addBtn is clicked
-const addBtn = document.querySelector('#add-name-btn');
-addBtn.onclick = function (){
-    const nameInput = document.querySelector('#name-input');
-    const name = nameInput.value;
-    nameInput.value = "";
+    const table = document.querySelector('table tbody'); 
+    
+    if(data.length === 0){
+        table.innerHTML = "<tr><td class='no-data' colspan='5'>No Data</td></tr>";
+        return;
+    }
 
-    fetch('http://localhost:5050/insert', {
-        headers: {
-            'Content-type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify({name: name})
-    })
-    .then(response => response.json())
-    .then(data => insertRowIntoTable(data['data']));
+    let tableHtml = "";
+    data.forEach(function ({id, first_name, last_name, email, user_id, salary, age, registration_date, last_sign_in, added_by, edited_by}) {
+        tableHtml += "<tr>";
+        tableHtml += `<td>${id}</td>`;
+        tableHtml += `<td>${first_name} ${last_name}</td>`;
+        tableHtml += `<td>${email}</td>`;
+        tableHtml += `<td>${user_id}</td>`;
+        tableHtml += `<td>${salary}</td>`;
+        tableHtml += `<td>${age}</td>`;
+        tableHtml += `<td>${new Date(registration_date).toLocaleString()}</td>`;
+        tableHtml += `<td>${new Date(last_sign_in).toLocaleString()}</td>`;
+        tableHtml += `<td>${added_by}</td>`;
+        tableHtml += `<td>${edited_by}</td>`;
+        tableHtml += `<td><button class="delete-row-btn" data-id=${id}>Delete</button></td>`;
+        tableHtml += `<td><button class="edit-row-btn" data-id=${id}>Edit</button></td>`;
+        tableHtml += "</tr>";
+    });
+    
+    table.innerHTML = tableHtml;
 }
+
+
+//sign-up action
+document.getElementById('sign-up-form').addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Collect data from form fields
+    const firstName = document.getElementById('first-name').value;
+    const lastName = document.getElementById('last-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const salary = document.getElementById('salary').value;
+    const age = document.getElementById('age').value;
+    const dob = document.getElementById('dob').value;
+
+    // if (!firstName || !lastName || !email || !password) {
+    //     alert('Please fill in all required fields.');
+    //     return;
+    // }
+    
+    // // Add email format validation
+    // const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+    // if (!email.match(emailPattern)) {
+    //     alert('Please enter a valid email address.');
+    //     return;
+    // }
+
+    // // Password validation (minimum 8 characters, maximum 12 characters, mix of letters, numbers, and special characters)
+    // const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
+    // if (!password.match(passwordPattern)) {
+    //     alert('Password must be between 8 and 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters.');
+    //     return;
+    // }
+    
+
+    // Create a user object
+    const userData = {
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        password: password,
+        salary: salary,
+        age: age,
+        dob: dob
+    };
+
+    // Alert the user data
+    // alert(JSON.stringify(userData, null, 2));return;
+
+    // Send user data to backend
+    try {
+        const response = await fetch(API_BASE_URL + '/insert', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+
+        const result = await response.json();
+        alert(JSON.stringify(result, null, 2));return;
+        if (response.ok) {
+            alert('Sign up successful!'); // Notify user of success
+            // Optionally close the modal
+            document.getElementById('sign-up-modal').style.display = 'none';
+        } else {
+            alert('Sign up failed: ' + result.error);
+        }
+    } catch (error) {
+        console.error('Error during sign up:', error);
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // when the addBtn is clicked
+// const addBtn = document.querySelector('#add-name-btn');
+// addBtn.onclick = function (){
+//     const nameInput = document.querySelector('#name-input');
+//     const name = nameInput.value;
+//     nameInput.value = "";
+
+//     fetch('http://localhost:5050/insert', {
+//         headers: {
+//             'Content-type': 'application/json'
+//         },
+//         method: 'POST',
+//         body: JSON.stringify({name: name})
+//     })
+//     .then(response => response.json())
+//     .then(data => insertRowIntoTable(data['data']));
+// }
 
 // when the searchBtn is clicked
 const searchBtn =  document.querySelector('#search-btn');
@@ -241,52 +298,41 @@ function insertRowIntoTable(data){
     }
 }
 
-function loadHTMLTable(data){
-    debug("index.js: loadHTMLTable called.");
 
-    const table = document.querySelector('table tbody'); 
-    
-    if(data.length === 0){
-        table.innerHTML = "<tr><td class='no-data' colspan='5'>No Data</td></tr>";
-        return;
+// Get modal elements
+const signUpModal = document.getElementById('sign-up-modal');
+const signInModal = document.getElementById('sign-in-modal');
+const closeSignUp = document.getElementById('close-sign-up');
+const closeSignIn = document.getElementById('close-sign-in');
+const signUpBtn = document.getElementById('sign-up-btn');
+const signInBtn = document.getElementById('sign-in-btn');
+
+// Open the sign-up modal
+signUpBtn.onclick = function() {
+    signUpModal.style.display = "flex"; // Change to flex to center modal
+}
+
+// Open the sign-in modal
+signInBtn.onclick = function() {
+    signInModal.style.display = "flex"; // Change to flex to center modal
+}
+
+// Close the sign-up modal
+closeSignUp.onclick = function() {
+    signUpModal.style.display = "none";
+}
+
+// Close the sign-in modal
+closeSignIn.onclick = function() {
+    signInModal.style.display = "none";
+}
+
+// Close modal when clicking outside of the modal content
+window.onclick = function(event) {
+    if (event.target === signUpModal) {
+        signUpModal.style.display = "none";
     }
-  
-    /*
-    In the following JavaScript code, the forEach method is used to iterate over the 
-    elements of the data array. The forEach method is a higher-order function 
-    that takes a callback function as its argument. The callback function is 
-    executed once for each element in the array.
-    
-    In this case, the callback function takes a single argument, which is an object 
-    destructuring pattern:
-
-
-    function ({id, name, date_added}) {
-        // ... code inside the callback function
+    if (event.target === signInModal) {
+        signInModal.style.display = "none";
     }
-
-    This pattern is used to extract the id, name, and date_added properties from each 
-    element of the data array. The callback function is then executed for each element
-    in the array, and within the function, you can access these properties directly 
-    as variables (id, name, and date_added).
-
-    
-    In summary, the forEach method is a convenient way to iterate over each element in 
-    an array and perform some operation or execute a function for each element. 
-    The provided callback function is what gets executed for each element in the 
-    data array.
-    */
-
-    let tableHtml = "";
-    data.forEach(function ({id, name, date_added}){
-         tableHtml += "<tr>";
-         tableHtml +=`<td>${id}</td>`;
-         tableHtml +=`<td>${name}</td>`;
-         tableHtml +=`<td>${new Date(date_added).toLocaleString()}</td>`;
-         tableHtml +=`<td><button class="delete-row-btn" data-id=${id}>Delete</td>`;
-         tableHtml += `<td><button class="edit-row-btn" data-id=${id}>Edit</td>`;
-         tableHtml += "</tr>";
-    });
-
-    table.innerHTML = tableHtml;
 }

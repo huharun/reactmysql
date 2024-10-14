@@ -2,6 +2,7 @@
 
 
 const express = require('express')
+const session = require('express-session');
 const cors = require ('cors')
 const dotenv = require('dotenv')
 dotenv.config()
@@ -15,22 +16,33 @@ app.use(cors());
 app.use(express.json())
 app.use(express.urlencoded({extended: false}));
 
+app.use(session({
+    secret: 'your_secret_key', // Change this to a secure key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
+}));
+
 // create
 app.post('/insert', (request, response) => {
-    console.log("app: insert a row.");
-    // console.log(request.body); 
+    console.log(request.body); 
 
-    const {name} = request.body;
+    // Destructure all relevant fields from the request body
+    const { first_name, last_name, email, password, salary, age, dob } = request.body;
     const db = dbService.getDbServiceInstance();
 
-    const result = db.insertNewName(name);
+    // Call insertNewName with the correct parameters
+    const result = db.insertNewName(first_name, last_name, email, password, salary, age, dob);
  
-    // note that result is a promise
+    // Note that result is a promise
     result 
-    .then(data => response.json({data: data})) // return the newly added row to frontend, which will show it
-   // .then(data => console.log({data: data})) // debug first before return by response
-   .catch(err => console.log(err));
+        .then(data => response.json({ data: data })) // Return the newly added row to frontend
+        .catch(err => {
+            console.error(err); // Log the error for debugging
+            response.status(500).json({ error: 'Failed to insert data' }); // Send error response
+        });
 });
+ 
 
 
 
@@ -40,7 +52,6 @@ app.get('/getAll', (request, response) => {
     
     const db = dbService.getDbServiceInstance();
 
-    
     const result =  db.getAllData(); // call a DB function
 
     result
