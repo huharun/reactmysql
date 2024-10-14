@@ -1,8 +1,8 @@
 // Backend: application services, accessible by URIs
 
-
 const express = require('express')
 const session = require('express-session');
+const requestIp = require('request-ip');
 const cors = require ('cors')
 const dotenv = require('dotenv')
 dotenv.config()
@@ -11,19 +11,24 @@ const app = express();
 
 const dbService = require('./dbService');
 
-
 app.use(cors());
 app.use(express.json())
 app.use(express.urlencoded({extended: false}));
 
+// Middleware to capture IP address
+app.use(requestIp.mw());
+
+// Session management
 app.use(session({
-    secret: 'your_secret_key', // Change this to a secure key
+    secret: 'your_secret_key', // Change this to a strong secret
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
-// create
+
+//create
+// sign up
 app.post('/insert', async (request, response) => {
     try {
         const { first_name, last_name, email, password, salary, age, dob } = request.body;
@@ -37,6 +42,52 @@ app.post('/insert', async (request, response) => {
         response.status(400).json({ error: err.message }); // Send the error message to the client
     }
 });
+
+
+
+// Sign In
+app.post('/signin', async (request, response) => {
+    // return response.json(request.body);
+
+
+    try {
+        const { email, hashedPassword } = request.body;
+        const db = dbService.getDbServiceInstance();
+
+        // Get user by email
+        const user = await db.getUserByEmail(email);
+
+        if (!user) {
+            return response.status(401).json({ error: "Invalid email or password." });
+        }
+
+        // Check if the password matches the hashed password in the database
+
+        // const isMatch = await bcrypt.compare(password, user.password);
+        // return response.json(user.password+"   "+ hashedPassword);
+
+        if (hashedPassword != user.password) {
+            return response.status(401).json({ error: "Invalid password." });
+        }
+
+        // Successful sign-in
+        // response.json({ message: "Sign in successful!", user });
+        response.json({ data: user }); // Return the newly added row to frontend
+
+    } catch (error) {
+        console.error("Error during sign in:", error);
+        response.status(500).json({ error: "Internal server error." });
+    }
+});
+
+
+// Function to fetch user by email (implement according to your database logic)
+async function getUserByEmail(email) {
+    // Example: Replace with your database query to find user by email
+    const user = await User.findOne({ email }); // Example using Mongoose
+    return user;
+}
+
  
 
 

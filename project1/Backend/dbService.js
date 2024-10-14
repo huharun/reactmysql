@@ -73,6 +73,7 @@ class DbService{
    }
    
    
+   
    async insertNewName(firstName, lastName, email, password, salary, age, dob) {
       try {
          
@@ -125,7 +126,30 @@ class DbService{
          throw error; // Rethrow the error for caller to handle
       }
    }
+
+  
+// Function to get user by email
+async getUserByEmail(email) {
+   return new Promise((resolve, reject) => {
+       const query = "SELECT * FROM `users` WHERE `email` = ?;";
+
+       connection.query(query, [email], (err, results) => {
+           if (err) {
+               reject(err);
+           } else {
+               if (results.length > 0) {
+                   console.log(results[0]);  // Debugging: log the retrieved user
+                   resolve(results[0]); // Return the first matching user
+               } else {
+                   resolve(null); // If no user is found, resolve with null
+               }
+           }
+       });
+   });
+}
+
    
+
    
    
    

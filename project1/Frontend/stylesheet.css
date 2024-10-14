@@ -24,23 +24,12 @@ body {
 main {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
     border-radius: 8px; /* Rounded corners */
-    max-width: 95%; /* Set the maximum width to 75% of the viewport */
     margin: 40px auto; /* Center the container */
     padding: 40px; /* Padding inside the container */
     border: 1px solid black; /* Border around the container */
     flex: 1; /* Allow main to take up the remaining space */
 }
 
-/* Header styling */
-header {
-    text-align: center; /* Center the header text */
-    position: relative; /* Position for absolute positioning of buttons */
-}
-
-header button {
-    position: absolute; /* Position buttons absolutely */
-    top: 10px; /* Align buttons to the top of the header */
-}
 
 .project-title, .section-title {
     text-align: center; /* Center the text */
@@ -56,8 +45,17 @@ header button {
 }
 
 
+header {
+    position: relative; /* Set header to relative for absolute positioning of buttons */
+    display: flex; /* Use flexbox for alignment */
+    justify-content: flex-end; /* Align items to the end (right) */
+    align-items: center; /* Align items to the center vertically */
+    padding: 10px; /* Add some padding around the header */
+}
+
 #sign-up-btn {
-    right: 80px; /* Adjust position of the sign-up button */
+    margin-right: 10px; /* Space between buttons */
+    margin-left: 10px; /* Space between buttons */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
     border-radius: 8px; /* Rounded corners */
     padding: 10px; /* Add some padding */
@@ -65,12 +63,12 @@ header button {
 }
 
 #sign-in-btn {
-    right: 10px; /* Adjust position of the sign-in button */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
     border-radius: 8px; /* Rounded corners */
     padding: 10px; /* Add some padding */
     color: #fff; /* White text color */
 }
+
 
 /* Footer styling */
 footer {
@@ -118,6 +116,8 @@ table {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
     border-radius: 8px; /* Rounded corners */
     width: 100%;
+    overflow-x: auto; /* Add horizontal scroll */
+    display: block; /* Enable scrolling */
     border-collapse: collapse;
     margin-top: 20px;
     text-align: center;
@@ -242,8 +242,8 @@ input[type="date"] {
     top: 20px; /* Position from the top */
     left: 50%;
     transform: translateX(-50%) translateY(-20px); /* Start slightly above */
-    background-color: #fff; /* White background */
-    color: #000; /* Black text */
+    background-color: #fff; /* Default background (will change with classes) */
+    color: #000; /* Default text color */
     padding: 20px 30px; /* Padding for spacing */
     border-radius: 8px; /* Rounded corners */
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4); /* Shadow effect */
@@ -260,6 +260,18 @@ input[type="date"] {
     opacity: 1; /* Fully visible */
     transform: translateX(-50%) translateY(0); /* Move to original position */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); /* Increase shadow on show */
+}
+
+/* Success alert styles */
+.alert-success {
+    background-color: #d4edda; /* Light green background */
+    color: #155724; /* Dark green text */
+}
+
+/* Failure alert styles */
+.alert-failure {
+    background-color: #f8d7da; /* Light red background */
+    color: #721c24; /* Dark red text */
 }
 
 /* Hidden class */
@@ -286,6 +298,8 @@ input[type="date"] {
     color: #ff0000; /* Change color to red on hover */
 }
 
+
+
 /* Responsive adjustments */
 @media (max-width: 400px) {
     .custom-alert {
@@ -293,6 +307,7 @@ input[type="date"] {
         padding: 15px 20px; /* Adjust padding */
     }
 }
+
 
 
 

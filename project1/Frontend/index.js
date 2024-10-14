@@ -1,8 +1,13 @@
 // This is the frontEnd that modifies the HTML page directly
 // event-based programming,such as document load, click a button
 
-//constant for url 
-const API_BASE_URL = 'http://localhost:5050';
+// Constants for API base URLs
+const LOCAL_API_BASE_URL = 'http://localhost:5050';
+const PUBLIC_API_BASE_URL = 'http://35.16.20.72:5050';
+
+// Choose the API base URL based on the environment
+const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_URL : PUBLIC_API_BASE_URL;
+// alert(window.location.hostname)
 
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
@@ -13,6 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Show alert function
 function showAlert(message, type) {
+
     const alertBox = document.getElementById('custom-alert');
     const alertMessage = document.getElementById('alert-message');
     const pageContent = document.getElementById('page-content'); // Get the page content
@@ -20,21 +26,23 @@ function showAlert(message, type) {
     alertMessage.textContent = message; // Set the message
     alertBox.classList.remove('hidden'); // Show the alert
     alertBox.classList.add('show'); // Trigger the show animation
-    pageContent.classList.add('blur'); // Add blur to the page content
+    // pageContent.classList.add('blur'); // Add blur to the page content
 
+    // Clear existing alert type classes
+    alertBox.classList.remove('alert-success', 'alert-failure');
     // Set alert styles based on type (success or failure)
+
+    
     if (type === 'success') {
-        alertBox.style.backgroundColor = '#d4edda'; // Light green background for success
-        alertBox.style.color = '#155724'; // Dark green text for success
+        alertBox.classList.add('alert-success'); // Add success class
     } else if (type === 'failure') {
-        alertBox.style.backgroundColor = '#f8d7da'; // Light red background for failure
-        alertBox.style.color = '#721c24'; // Dark red text for failure
+        alertBox.classList.add('alert-failure'); // Add failure class
     }
 
     // Automatically close the alert after 5 seconds
     setTimeout(() => {
         closeAlert();
-    }, 5000);
+    }, 3000);
 }
 
 function closeAlert() {
@@ -45,9 +53,9 @@ function closeAlert() {
     pageContent.classList.remove('blur'); // Remove blur from the page content
 
     // Reset styles to default after closing
-    alertBox.style.backgroundColor = ''; // Reset background color
-    alertBox.style.color = ''; // Reset text color
+    alertBox.classList.remove('alert-success', 'alert-failure'); // Remove classes
 }
+
 
 
 //listing all data in the table
@@ -82,7 +90,16 @@ function loadHTMLTable(data){
 }
 
 
-//sign-up action
+// Function to hash the password
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Sign-up action
 document.getElementById('sign-up-form').addEventListener('submit', async (event) => {
     event.preventDefault(); // Prevent the default form submission
 
@@ -95,44 +112,39 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
     const age = document.getElementById('age').value;
     const dob = document.getElementById('dob').value;
 
-    // Create a user object
-    const userData = {
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        password: password,
-        salary: salary,
-        age: age,
-        dob: dob
-    };
-
-
-    // showAlert(JSON.stringify(userData, null, 2));return;
-
     // Add validation
     if (!firstName || !lastName || !email || !password || !salary || !age || !dob) {
         showAlert('Please fill in all required fields.', 'failure');
         return;
     }
-    
-    // Add email format validation
+
+    // Email format validation
     const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
     if (!email.match(emailPattern)) {
         showAlert('Please enter a valid email address.', 'failure');
         return;
     }
 
-    // Password validation (minimum 8 characters, maximum 12 characters, mix of letters, numbers, and special characters)
+    // Password validation
     const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
     if (!password.match(passwordPattern)) {
         showAlert('Password must be between 8 and 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters.', 'failure');
         return;
     }
-    
 
-    
-    // Alert the user data
-    // alert(JSON.stringify(userData, null, 2));return;
+    // Hash the password
+    const hashedPassword = await hashPassword(password);
+
+    // Create a user object
+    const userData = {
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        password: hashedPassword, // Store the hashed password
+        salary: salary,
+        age: age,
+        dob: dob
+    };
 
     // Send user data to backend
     try {
@@ -145,7 +157,6 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         });
 
         const result = await response.json();
-        // alert(JSON.stringify(result, null, 2));return;
         if (response.ok) {
             showAlert('Sign up successful!', 'success'); // Notify user of success
             // Optionally close the modal
@@ -157,6 +168,59 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         console.error('Error during sign up:', error);
     }
 });
+
+
+// Sign-in action
+document.getElementById('sign-in-form').addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Collect data from form fields
+    const email = document.getElementById('signin-email').value;
+    const password = document.getElementById('signin-password').value;
+
+    // Hash the password
+    const hashedPassword = await hashPassword(password);
+
+
+    // // Add validation
+    // if (!email || !password) {
+    //     showAlert('Please fill in all required fields.', 'failure');
+    //     return;
+    // }
+
+    // // Email format validation
+    // const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+    // if (!email.match(emailPattern)) {
+    //     showAlert('Please enter a valid email address.', 'failure');
+    //     return;
+    // }
+
+    // Send login request to backend
+    try {
+        const response = await fetch(API_BASE_URL + '/signin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, hashedPassword }) // Send email and plain password
+        });
+
+        const result = await response.json();
+        // alert(JSON.stringify(result, null, 2));
+
+        if (response.ok) {
+            showAlert('Sign in successful!', 'success'); // Notify user of success
+            // Optionally, redirect to another page or perform further actions
+        } else {
+            showAlert('Sign in failed: ' + result.error, 'failure');
+        }
+    } catch (error) {
+        console.error('%cError during sign in:', 'color: red; font-weight: bold;', error);
+    }
+});
+
+
+
 
 
 

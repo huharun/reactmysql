@@ -1,16 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<div id="page-content">
-    <!-- Your page content goes here -->
-</div>
-
-<div id="custom-alert" class="custom-alert hidden">
-    <button class="close-btn" onclick="closeAlert()">✖</button>
-    <div id="alert-message">This is an alert message!</div>
-</div>
-
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,63 +15,66 @@
         <button id="sign-up-btn">Sign Up</button>
         <button id="sign-in-btn">Sign In</button>
     </header>
-    
+
+    <div id="custom-alert" class="custom-alert hidden">
+    <button class="close-btn" onclick="closeAlert()">✖</button>
+    <div id="alert-message">This is an alert message!</div>
+</div>
+
     <!-- Sign Up Modal -->
     <div id="sign-up-modal" class="modal" role="dialog" aria-labelledby="sign-up-title" aria-describedby="sign-up-description">
         <div class="modal-content">
             <span class="close" id="close-sign-up">&times;</span>
             <h2 style="text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); text-align: center; padding-bottom: 50px;" id="sign-up-title">Sign Up</h2>
-            <!-- <p style="text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); padding-bottom: 10px;" id="sign-up-description">Enter your details to sign up.</p> -->
             <form id="sign-up-form">
                 <div class="input-container">
                     <label for="first-name">First Name:</label>
-                    <input type="text" id="first-name" >
+                    <input type="text" id="first-name">
                 </div>
                 <div class="input-container">
                     <label for="last-name">Last Name:</label>
-                    <input type="text" id="last-name" >
+                    <input type="text" id="last-name">
                 </div>
                 <div class="input-container">
                     <label for="signup-email">Email:</label>
-                    <input type="email" id="signup-email" >
+                    <input type="email" id="signup-email">
                 </div>
                 <div class="input-container">
                     <label for="signup-password">Password:</label>
-                    <input type="password" id="signup-password" >
+                    <input type="password" id="signup-password">
                 </div>
                 <div class="input-container">
                     <label for="salary">Salary:</label>
-                    <input type="number" id="salary" >
+                    <input type="number" id="salary">
                 </div>
                 <div class="input-container">
                     <label for="age">Age:</label>
-                    <input type="number" id="age" >
+                    <input type="number" id="age">
                 </div>
                 <div class="input-container">
                     <label for="dob">Date of Birth:</label>
-                    <input type="date" id="dob" >
-                </div>            
+                    <input type="date" id="dob">
+                </div>
                 <div class="button-container">
                     <button type="submit" id="register-btn">Sign Up</button>
                 </div>
             </form>
         </div>
     </div>
-    
+
     <!-- Sign In Modal -->
     <div id="sign-in-modal" class="modal" role="dialog" aria-labelledby="sign-in-title" aria-describedby="sign-in-description">
         <div class="modal-content">
             <span class="close" id="close-sign-in">&times;</span>
             <h2 style="text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); text-align: center; padding-bottom: 50px;" id="sign-in-title">Sign In</h2>
-            <!-- <p style="text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); padding-bottom: 20px;" id="sign-in-description">Please enter your credentials to sign in.</p> -->
             <form id="sign-in-form">
                 <div class="input-container">
                     <label for="signin-email">Email:</label>
-                    <input type="email" id="signin-email" required>
+                    <input type="email" id="signin-email">
                 </div>
                 <div class="input-container">
                     <label for="signin-password">Password:</label>
-                    <input type="password" id="signin-password" required>
+                    <input type="password" id="signin-password">
                 </div>
                 <div class="button-container">
                     <button type="submit" id="login-btn">Sign In</button>
@@ -89,12 +82,10 @@
             </form>
         </div>
     </div>
-    
+
     <main>
         <h2 class="section-title">Users</h2>
-        
-        
-        
+
         <!-- Search Section -->
         <div class="input-container">
             <button id="add-btn">Add</button>
@@ -102,7 +93,7 @@
             <input type="text" placeholder="Search by name" id="search-input">
             <button id="search-btn">Search</button>
         </div>
-        
+
         <!-- Table Section -->
         <table id="table">
             <thead>
@@ -115,14 +106,14 @@
                     <th>Registration Date</th>
                     <th>Last Sign-In</th>
                     <th>Added By</th>
-                    <th>Last edit By</th>
+                    <th>Last Edit By</th>
                     <th>Delete</th>
                     <th>Edit</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
-        
+
         <!-- Update Row Section -->
         <section hidden id="update-row">
             <label for="update-name-input">Name:</label>
@@ -130,11 +121,11 @@
             <button id="update-row-btn">Update</button>
         </section>
     </main>
-    
+
     <footer>
         <p>&copy; 2024 DBMS Project 1 - Arun and Sravani.</p>
     </footer>
-    
+
     <script src="index.js"></script>
 </body>
 
