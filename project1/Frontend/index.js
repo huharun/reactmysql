@@ -9,36 +9,26 @@ const PUBLIC_API_BASE_URL = 'http://35.16.20.72:5050';
 const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_URL : PUBLIC_API_BASE_URL;
 // alert(window.location.hostname)
 
-// fetch call is to call the backend
-document.addEventListener('DOMContentLoaded', function() {
-    fetch(API_BASE_URL+'/getAll')     
-    .then(response => response.json())
-    .then(data => loadHTMLTable(data['data']));
-});
-
 // Show alert function
 function showAlert(message, type) {
-
     const alertBox = document.getElementById('custom-alert');
     const alertMessage = document.getElementById('alert-message');
     const pageContent = document.getElementById('page-content'); // Get the page content
-
+    
     alertMessage.textContent = message; // Set the message
     alertBox.classList.remove('hidden'); // Show the alert
     alertBox.classList.add('show'); // Trigger the show animation
-    // pageContent.classList.add('blur'); // Add blur to the page content
-
+    
     // Clear existing alert type classes
     alertBox.classList.remove('alert-success', 'alert-failure');
-    // Set alert styles based on type (success or failure)
-
+    
     
     if (type === 'success') {
         alertBox.classList.add('alert-success'); // Add success class
     } else if (type === 'failure') {
         alertBox.classList.add('alert-failure'); // Add failure class
     }
-
+    
     // Automatically close the alert after 5 seconds
     setTimeout(() => {
         closeAlert();
@@ -51,24 +41,32 @@ function closeAlert() {
     alertBox.classList.remove('show'); // Hide the alert
     alertBox.classList.add('hidden'); // Add hidden class
     pageContent.classList.remove('blur'); // Remove blur from the page content
-
+    
     // Reset styles to default after closing
     alertBox.classList.remove('alert-success', 'alert-failure'); // Remove classes
 }
 
 
+// fetch call is to call the backend
+document.addEventListener('DOMContentLoaded', function() {
+    fetch(API_BASE_URL+'/getAll')     
+    .then(response => response.json())
+    .then(data => loadHTMLTable(data['data']));
+});
+
+document.getElementById('sign-out-btn').style.display = 'none';
 
 //listing all data in the table
 function loadHTMLTable(data){
     debug("index.js: loadHTMLTable called.");
-
+    
     const table = document.querySelector('table tbody'); 
     
     if(data.length === 0){
         table.innerHTML = "<tr><td class='no-data' colspan='5'>No Data</td></tr>";
         return;
     }
-
+    
     let tableHtml = "";
     data.forEach(function ({id, first_name, last_name, email, user_id, salary, age, registration_date, last_sign_in, added_by, edited_by}) {
         tableHtml += "<tr>";
@@ -89,7 +87,6 @@ function loadHTMLTable(data){
     table.innerHTML = tableHtml;
 }
 
-
 // Function to hash the password
 async function hashPassword(password) {
     const encoder = new TextEncoder();
@@ -102,7 +99,7 @@ async function hashPassword(password) {
 // Sign-up action
 document.getElementById('sign-up-form').addEventListener('submit', async (event) => {
     event.preventDefault(); // Prevent the default form submission
-
+    
     // Collect data from form fields
     const firstName = document.getElementById('first-name').value;
     const lastName = document.getElementById('last-name').value;
@@ -111,30 +108,30 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
     const salary = document.getElementById('salary').value;
     const age = document.getElementById('age').value;
     const dob = document.getElementById('dob').value;
-
+    
     // Add validation
     if (!firstName || !lastName || !email || !password || !salary || !age || !dob) {
         showAlert('Please fill in all required fields.', 'failure');
         return;
     }
-
+    
     // Email format validation
     const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
     if (!email.match(emailPattern)) {
         showAlert('Please enter a valid email address.', 'failure');
         return;
     }
-
+    
     // Password validation
     const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
     if (!password.match(passwordPattern)) {
         showAlert('Password must be between 8 and 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters.', 'failure');
         return;
     }
-
+    
     // Hash the password
     const hashedPassword = await hashPassword(password);
-
+    
     // Create a user object
     const userData = {
         first_name: firstName,
@@ -145,7 +142,7 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         age: age,
         dob: dob
     };
-
+    
     // Send user data to backend
     try {
         const response = await fetch(API_BASE_URL + '/insert', {
@@ -155,7 +152,7 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
             },
             body: JSON.stringify(userData)
         });
-
+        
         const result = await response.json();
         if (response.ok) {
             showAlert('Sign up successful!', 'success'); // Notify user of success
@@ -173,28 +170,28 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
 // Sign-in action
 document.getElementById('sign-in-form').addEventListener('submit', async (event) => {
     event.preventDefault(); // Prevent the default form submission
-
+    
     // Collect data from form fields
     const email = document.getElementById('signin-email').value;
     const password = document.getElementById('signin-password').value;
-
+    
     // Hash the password
     const hashedPassword = await hashPassword(password);
-
-
-    // // Add validation
-    // if (!email || !password) {
-    //     showAlert('Please fill in all required fields.', 'failure');
-    //     return;
-    // }
-
+    
+    
+    // Add validation
+    if (!email || !password) {
+        showAlert('Please fill in all required fields.', 'failure');
+        return;
+    }
+    
     // // Email format validation
     // const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
     // if (!email.match(emailPattern)) {
     //     showAlert('Please enter a valid email address.', 'failure');
     //     return;
     // }
-
+    
     // Send login request to backend
     try {
         const response = await fetch(API_BASE_URL + '/signin', {
@@ -204,18 +201,26 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
             },
             body: JSON.stringify({ email, hashedPassword }) // Send email and plain password
         });
-
+        
         const result = await response.json();
         // alert(JSON.stringify(result, null, 2));
-
+        
         if (response.ok) {
             showAlert('Sign in successful!', 'success'); // Notify user of success
+            
+            document.getElementById('sign-in-modal').style.display = 'none';
+            document.getElementById('sign-up-btn').style.display = 'none';
+            document.getElementById('sign-in-btn').style.display = 'none';
+            document.getElementById('sign-out-btn').style.display = 'block';
+            
             // Optionally, redirect to another page or perform further actions
         } else {
             showAlert('Sign in failed: ' + result.error, 'failure');
         }
     } catch (error) {
         console.error('%cError during sign in:', 'color: red; font-weight: bold;', error);
+        showAlert("An error occurred during sign in. Please try again.", "failure");
+        
     }
 });
 
@@ -249,7 +254,7 @@ searchBtn.onclick = function (){
     const searchInput = document.querySelector('#search-input');
     const searchValue = searchInput.value;
     searchInput.value = "";
-
+    
     fetch(API_BASE_URL+'/search/' + searchValue)
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
@@ -259,9 +264,9 @@ let rowToDelete;
 
 // when the delete button is clicked, since it is not part of the DOM tree, we need to do it differently
 document.querySelector('table tbody').addEventListener('click', 
-      function(event){
+    function(event){
         if(event.target.className === "delete-row-btn"){
-
+            
             deleteRowById(event.target.dataset.id);   
             rowToDelete = event.target.parentNode.parentNode.rowIndex;    
             debug("delete which one:");
@@ -270,24 +275,24 @@ document.querySelector('table tbody').addEventListener('click',
         if(event.target.className === "edit-row-btn"){
             showEditRowInterface(event.target.dataset.id); // display the edit row interface
         }
-      }
+    }
 );
 
 function deleteRowById(id){
     // debug(id);
     fetch('http://localhost:5050/delete/' + id,
-       { 
-        method: 'DELETE'
-       }
+        { 
+            method: 'DELETE'
+        }
     )
     .then(response => response.json())
     .then(
-         data => {
-             if(data.success){
+        data => {
+            if(data.success){
                 document.getElementById("table").deleteRow(rowToDelete);
                 // location.reload();
-             }
-         }
+            }
+        }
     );
 }
 
@@ -315,20 +320,20 @@ updateBtn.onclick = function(){
     debug(updateBtn.value);
     
     const updatedNameInput = document.querySelector('#update-name-input');
-
+    
     fetch('http://localhost:5050/update',
-          {
+        {
             headers: {
                 'Content-type': 'application/json'
             },
             method: 'PATCH',
             body: JSON.stringify(
-                  {
+                {
                     id: idToUpdate,
                     name: updatedNameInput.value
-                  }
+                }
             )
-          }
+        }
     ) 
     .then(response => response.json())
     .then(data => {
@@ -336,7 +341,7 @@ updateBtn.onclick = function(){
             location.reload();
         }
         else 
-           debug("no update occurs");
+        debug("no update occurs");
     })
 }
 
@@ -354,41 +359,41 @@ function debug(data)
 }
 
 function insertRowIntoTable(data){
-
-   debug("index.js: insertRowIntoTable called: ");
-   debug(data);
-
-   const table = document.querySelector('table tbody');
-   debug(table);
-
-   const isTableData = table.querySelector('.no-data');
-
-  // debug(isTableData);
-
-   let tableHtml = "<tr>";
-   
-   for(var key in data){ // iterating over the each property key of an object data
-      if(data.hasOwnProperty(key)){   // key is a direct property for data
+    
+    debug("index.js: insertRowIntoTable called: ");
+    debug(data);
+    
+    const table = document.querySelector('table tbody');
+    debug(table);
+    
+    const isTableData = table.querySelector('.no-data');
+    
+    // debug(isTableData);
+    
+    let tableHtml = "<tr>";
+    
+    for(var key in data){ // iterating over the each property key of an object data
+        if(data.hasOwnProperty(key)){   // key is a direct property for data
             if(key === 'dateAdded'){  // the property is 'dataAdded'
                 data[key] = new Date(data[key]).toLocaleString(); // format to javascript string
             }
             tableHtml += `<td>${data[key]}</td>`;
-      }
-   }
-
-   tableHtml +=`<td><button class="delete-row-btn" data-id=${data.id}>Delete</td>`;
-   tableHtml += `<td><button class="edit-row-btn" data-id=${data.id}>Edit</td>`;
-
-   tableHtml += "</tr>";
-
+        }
+    }
+    
+    tableHtml +=`<td><button class="delete-row-btn" data-id=${data.id}>Delete</td>`;
+    tableHtml += `<td><button class="edit-row-btn" data-id=${data.id}>Edit</td>`;
+    
+    tableHtml += "</tr>";
+    
     if(isTableData){
-       debug("case 1");
-       table.innerHTML = tableHtml;
+        debug("case 1");
+        table.innerHTML = tableHtml;
     }
     else {
         debug("case 2");
         // debug(tableHtml);
-
+        
         const newrow = table.insertRow();
         newrow.innerHTML = tableHtml;
     }

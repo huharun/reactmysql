@@ -282,13 +282,14 @@ input[type="date"] {
 /* Close button styling */
 .close-btn {
     background: none; /* No background */
+    background-color: #000;
     border: none; /* No border */
-    color: #000; /* Black color */
+    color: #fff; /* Black color */
     font-size: 15px; /* Slightly larger font size */
     cursor: pointer; /* Pointer cursor */
     position: absolute; /* Position for the close button */
-    top: 16px; /* Distance from the top */
-    right: 5px; /* Distance from the right */
+    top: 20px; /* Distance from the top */
+    right: 15px; /* Distance from the right */
     padding: 5px; /* Added padding for better click area */
     transition: color 0.3s; /* Smooth transition for hover effect */
 }

@@ -72,6 +72,27 @@ class DbService{
       }
    }
    
+   async insertLoginData(userId, loginTime, loginStatus, ipAddress) {
+      return new Promise((resolve, reject) => {
+          const query = `
+              INSERT INTO user_login (user_id, login_time, status, ip_address) 
+              VALUES (?, ?, ?, ?);
+          `;
+          const values = [userId, loginTime, loginStatus, ipAddress];
+  
+          connection.query(query, values, (err, results) => {
+              if (err) {
+                  reject(err); // Reject the promise if an error occurs
+              } else {
+                  resolve(results); // Resolve with the results of the insert operation
+              }
+          });
+      });
+  }
+  
+  
+  
+   
    
    
    async insertNewName(firstName, lastName, email, password, salary, age, dob) {
