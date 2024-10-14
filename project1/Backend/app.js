@@ -24,23 +24,18 @@ app.use(session({
 }));
 
 // create
-app.post('/insert', (request, response) => {
-    console.log(request.body); 
+app.post('/insert', async (request, response) => {
+    try {
+        const { first_name, last_name, email, password, salary, age, dob } = request.body;
+        const db = dbService.getDbServiceInstance();
 
-    // Destructure all relevant fields from the request body
-    const { first_name, last_name, email, password, salary, age, dob } = request.body;
-    const db = dbService.getDbServiceInstance();
-
-    // Call insertNewName with the correct parameters
-    const result = db.insertNewName(first_name, last_name, email, password, salary, age, dob);
- 
-    // Note that result is a promise
-    result 
-        .then(data => response.json({ data: data })) // Return the newly added row to frontend
-        .catch(err => {
-            console.error(err); // Log the error for debugging
-            response.status(500).json({ error: 'Failed to insert data' }); // Send error response
-        });
+        // Call insertNewName with the correct parameters
+        const result = await db.insertNewName(first_name, last_name, email, password, salary, age, dob);
+        response.json({ data: result }); // Return the newly added row to frontend
+    } catch (err) {
+        console.error(err); // Log the error for debugging
+        response.status(400).json({ error: err.message }); // Send the error message to the client
+    }
 });
  
 

@@ -11,6 +11,45 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(data => loadHTMLTable(data['data']));
 });
 
+// Show alert function
+function showAlert(message, type) {
+    const alertBox = document.getElementById('custom-alert');
+    const alertMessage = document.getElementById('alert-message');
+    const pageContent = document.getElementById('page-content'); // Get the page content
+
+    alertMessage.textContent = message; // Set the message
+    alertBox.classList.remove('hidden'); // Show the alert
+    alertBox.classList.add('show'); // Trigger the show animation
+    pageContent.classList.add('blur'); // Add blur to the page content
+
+    // Set alert styles based on type (success or failure)
+    if (type === 'success') {
+        alertBox.style.backgroundColor = '#d4edda'; // Light green background for success
+        alertBox.style.color = '#155724'; // Dark green text for success
+    } else if (type === 'failure') {
+        alertBox.style.backgroundColor = '#f8d7da'; // Light red background for failure
+        alertBox.style.color = '#721c24'; // Dark red text for failure
+    }
+
+    // Automatically close the alert after 5 seconds
+    setTimeout(() => {
+        closeAlert();
+    }, 5000);
+}
+
+function closeAlert() {
+    const alertBox = document.getElementById('custom-alert');
+    const pageContent = document.getElementById('page-content'); // Get the page content
+    alertBox.classList.remove('show'); // Hide the alert
+    alertBox.classList.add('hidden'); // Add hidden class
+    pageContent.classList.remove('blur'); // Remove blur from the page content
+
+    // Reset styles to default after closing
+    alertBox.style.backgroundColor = ''; // Reset background color
+    alertBox.style.color = ''; // Reset text color
+}
+
+
 //listing all data in the table
 function loadHTMLTable(data){
     debug("index.js: loadHTMLTable called.");
@@ -28,7 +67,6 @@ function loadHTMLTable(data){
         tableHtml += `<td>${id}</td>`;
         tableHtml += `<td>${first_name} ${last_name}</td>`;
         tableHtml += `<td>${email}</td>`;
-        tableHtml += `<td>${user_id}</td>`;
         tableHtml += `<td>${salary}</td>`;
         tableHtml += `<td>${age}</td>`;
         tableHtml += `<td>${new Date(registration_date).toLocaleString()}</td>`;
@@ -57,26 +95,6 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
     const age = document.getElementById('age').value;
     const dob = document.getElementById('dob').value;
 
-    // if (!firstName || !lastName || !email || !password) {
-    //     alert('Please fill in all required fields.');
-    //     return;
-    // }
-    
-    // // Add email format validation
-    // const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
-    // if (!email.match(emailPattern)) {
-    //     alert('Please enter a valid email address.');
-    //     return;
-    // }
-
-    // // Password validation (minimum 8 characters, maximum 12 characters, mix of letters, numbers, and special characters)
-    // const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
-    // if (!password.match(passwordPattern)) {
-    //     alert('Password must be between 8 and 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters.');
-    //     return;
-    // }
-    
-
     // Create a user object
     const userData = {
         first_name: firstName,
@@ -88,6 +106,31 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         dob: dob
     };
 
+
+    // showAlert(JSON.stringify(userData, null, 2));return;
+
+    // Add validation
+    if (!firstName || !lastName || !email || !password || !salary || !age || !dob) {
+        showAlert('Please fill in all required fields.', 'failure');
+        return;
+    }
+    
+    // Add email format validation
+    const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+    if (!email.match(emailPattern)) {
+        showAlert('Please enter a valid email address.', 'failure');
+        return;
+    }
+
+    // Password validation (minimum 8 characters, maximum 12 characters, mix of letters, numbers, and special characters)
+    const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
+    if (!password.match(passwordPattern)) {
+        showAlert('Password must be between 8 and 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters.', 'failure');
+        return;
+    }
+    
+
+    
     // Alert the user data
     // alert(JSON.stringify(userData, null, 2));return;
 
@@ -102,13 +145,13 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         });
 
         const result = await response.json();
-        alert(JSON.stringify(result, null, 2));return;
+        // alert(JSON.stringify(result, null, 2));return;
         if (response.ok) {
-            alert('Sign up successful!'); // Notify user of success
+            showAlert('Sign up successful!', 'success'); // Notify user of success
             // Optionally close the modal
             document.getElementById('sign-up-modal').style.display = 'none';
         } else {
-            alert('Sign up failed: ' + result.error);
+            showAlert('Sign up failed: ' + result.error, 'failure');
         }
     } catch (error) {
         console.error('Error during sign up:', error);

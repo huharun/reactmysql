@@ -75,6 +75,23 @@ class DbService{
    
    async insertNewName(firstName, lastName, email, password, salary, age, dob) {
       try {
+         
+         // Check if email already exists
+         const emailExists = await new Promise((resolve, reject) => {
+            const query = "SELECT COUNT(*) AS count FROM `users` WHERE `email` = ?;";
+            connection.query(query, [email], (err, result) => {
+               if (err) {
+                  reject(new Error(err.message));
+               } else {
+                  resolve(result[0].count > 0); // Resolve with true if email exists
+               }
+            });
+         });
+         
+         if (emailExists) {
+            throw new Error("Email already exists."); // Throw an error if email is found
+         }
+         
          const registrationDate = new Date().toISOString();
          const lastSignIn = new Date().toISOString();
          const addedBy = 1;
@@ -97,14 +114,15 @@ class DbService{
             id: insertId,
             firstName: firstName,
             lastName: lastName,
-            email: email, 
-            salary: salary,  
-            age: age,  
-            dob: dob,  
+            email: email,
+            salary: salary,
+            age: age,
+            dob: dob,
             dateAdded: registrationDate
          };     
       } catch (error) {
          console.error("Error inserting new name:", error);
+         throw error; // Rethrow the error for caller to handle
       }
    }
    
