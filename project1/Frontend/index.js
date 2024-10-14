@@ -161,17 +161,6 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 // // when the addBtn is clicked
 // const addBtn = document.querySelector('#add-name-btn');
 // addBtn.onclick = function (){
@@ -197,7 +186,7 @@ searchBtn.onclick = function (){
     const searchValue = searchInput.value;
     searchInput.value = "";
 
-    fetch('http://localhost:5050/search/' + searchValue)
+    fetch(API_BASE_URL+'/search/' + searchValue)
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 }
