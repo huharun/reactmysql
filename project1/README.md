@@ -13,7 +13,7 @@ To clone the repository and get the project up and running, follow these steps:
 2. **Navigate to the Project Directory and Backend**:  
    Change to the project directory:
    ```bash
-   cd dbms1_project1/backend
+   cd project1/backend
    ```
 
 3. **Run the Project**:  
