@@ -5,7 +5,9 @@ const session = require('express-session');
 const requestIp = require('request-ip');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const CryptoJS = require('crypto-js');
 dotenv.config();
+
 
 const app = express();
 const dbService = require('./dbService');
@@ -20,6 +22,16 @@ app.use(requestIp.mw());
 app.use((req, res, next) => {
     console.log(`Request IP: ${req.clientIp}`); // Log user IP
     next();
+});
+
+app.post('/hashPassword', (request, response) => {
+    const { password } = request.body; // Extract password from request body
+    console.log(password);
+    
+    // Hash the password
+    const hashedPassword = CryptoJS.SHA256(password).toString(); // Convert to string
+    
+    response.json({ hashedPassword: hashedPassword });
 });
 
 // Session management
@@ -162,13 +174,30 @@ app.get('/search/:name', (request, response) => {
     .catch(err => console.log(err));
 });
 
+// Autocomplete search
+app.post('/autocomplete', async (request, response) => {
+    const { searchValue, searchType } = request.body;
+    
+    const db = dbService.getDbServiceInstance(); // Assuming you have a db service instance
+    let result;
+    
+    try {
+        result = await db.getAutocompleteResults(searchValue, searchType); // Call the DB function
+        response.json(result); // Send back results as JSON
+    } catch (err) {
+        console.log(err);
+        response.status(500).json({ error: 'Database query error' });
+    }
+});
+
+
 // Update
 app.patch('/update', (request, response) => {
     console.log("app: update is called");
     const { id, name, email, salary, age } = request.body;
     console.log(id);
     console.log(name);
-
+    
     const [first_name, last_name] = name.split(" ");
     console.log("First Name:", first_name);
     console.log("Last Name:", last_name);
@@ -179,7 +208,7 @@ app.patch('/update', (request, response) => {
     const db = dbService.getDbServiceInstance();
     
     const result = db.updateNameById(id, first_name, last_name, email, salary, age);
-
+    
     result.then(data => {
         response.json({ success: true, result: data });
     })
@@ -195,7 +224,7 @@ app.delete('/delete/:id', (request, response) => {
     const { id } = request.params;
     console.log("delete", id); // combined logs for clarity
     const db = dbService.getDbServiceInstance();
-
+    
     const result = db.deleteRowById(id);
     result.then(data => {
         if (data) {

@@ -3,8 +3,8 @@
 
 // Constants for API base URLs
 const LOCAL_API_BASE_URL = 'http://localhost:5050';
-const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
-// const PUBLIC_API_BASE_URL = 'http://35.16.20.72:5050';
+// const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
+const PUBLIC_API_BASE_URL = 'http://35.16.20.72:5050';
 
 
 // Choose the API base URL based on the environment
@@ -65,7 +65,7 @@ function loadHTMLTable(data){
     const table = document.querySelector('table tbody'); 
     
     if(data.length === 0){
-        table.innerHTML = "<tr><td class='no-data' colspan='5'>No Data</td></tr>";
+        table.innerHTML = "<tr><td class='no-data' colspan='11'>No Data</td></tr>";
         return;
     }
     
@@ -87,16 +87,55 @@ function loadHTMLTable(data){
     });
     
     table.innerHTML = tableHtml;
+    
+    // Initialize sorting
+    initializeTableSorting('table');
 }
 
-// Function to hash the password
-async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// Function to initialize sorting for the table
+function initializeTableSorting(tableId) {
+    const table = document.getElementById(tableId);
+    const headers = table.querySelectorAll('th');
+    const tbody = table.tBodies[0];
+    const sortStates = Array(headers.length).fill(true); // true for ascending
+    
+    headers.forEach((header, index) => {
+        // Skip last two headers (Delete and Edit)
+        if (index >= headers.length - 2) return;
+        
+        header.addEventListener('click', () => {
+            const ascending = sortStates[index];
+            const rows = Array.from(tbody.rows).sort((a, b) => {
+                const aValue = isNaN(a.cells[index].innerText) ? a.cells[index].innerText : parseFloat(a.cells[index].innerText);
+                const bValue = isNaN(b.cells[index].innerText) ? b.cells[index].innerText : parseFloat(b.cells[index].innerText);
+                return ascending ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
+            });
+            rows.forEach(row => tbody.appendChild(row));
+            sortStates[index] = !ascending;
+            headers.forEach((hdr, i) => {
+                const sortIcon = hdr.querySelector('.sort-icon');
+                if (i < headers.length - 2 && sortIcon) { // Ensure it's not the last two headers
+                    sortIcon.innerHTML = i === index ? (sortStates[index] ? '▲' : '▼') : '';
+                }
+            });
+        });
+    });
 }
+
+// // Function to hash the password
+async function hashPassword(password) {
+    const response = await fetch(API_BASE_URL + '/hashPassword', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password }) 
+    });
+    
+    const data = await response.json();
+    return data.hashedPassword; 
+}
+
 
 // Sign-up action
 document.getElementById('sign-up-form').addEventListener('submit', async (event) => {
@@ -132,7 +171,8 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
     }
     
     // Hash the password
-    const hashedPassword = await hashPassword(password);
+    const hashedPassword = await hashPassword(password); 
+    // alert(hashedPassword); return;
     
     // Create a user object
     const userData = {
@@ -225,7 +265,6 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
     }
 });
 
-
 // // when the addBtn is clicked
 // const addBtn = document.querySelector('#add-name-btn');
 // addBtn.onclick = function (){
@@ -255,6 +294,61 @@ searchBtn.onclick = function (){
     .then(response => response.json())
     .then(data => loadHTMLTable(data['data']));
 }
+
+document.getElementById('dropdown').addEventListener('change', function() {
+    const selectedValue = this.value; // Get the selected option value
+    const inputField = document.getElementById('search-input'); // Get the input field
+    inputField.removeAttribute('disabled'); 
+    
+    switch (selectedValue) {
+        case 'all':
+        inputField.setAttribute('disabled', 'true');
+        break;
+        case 'id':
+        inputField.placeholder = 'Search by Id';
+        break;
+        case 'name':
+        inputField.placeholder = 'Search by Name';
+        break;
+        case 'email':
+        inputField.placeholder = 'Search by Email'; 
+        break;
+        case 'salary':
+        inputField.placeholder = 'Search by Salary';
+        break;
+        case 'age':
+        inputField.placeholder = 'Search by Age';
+        break;
+        default:
+        inputField.placeholder = 'Select All';
+    }
+});
+
+
+document.getElementById('search-input').addEventListener('input', async function () {
+    const searchInput = this.value;
+    const dropdown = document.getElementById('dropdown');
+    const selectedOption = dropdown.value;
+        
+    const response = await fetch(API_BASE_URL+'/autocomplete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ searchValue: searchInput, searchType: selectedOption }),
+    });
+    
+    const results = await response.json();
+    displayResults(results);
+});
+
+
+function displayResults(results) {
+    if(results){
+    loadHTMLTable(results);
+    }
+}
+
+
+
 
 let rowToDelete; 
 

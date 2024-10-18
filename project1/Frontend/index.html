@@ -1,6 +1,6 @@
     <!DOCTYPE html>
     <html lang="en">
-
+    
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +8,7 @@
         <link rel="stylesheet" href="stylesheet.css">
         <title>DBMS Project 1</title>
     </head>
-
+    
     <body>
         <header>
             <h1 class="project-title">DBMS Project 1</h1>
@@ -125,23 +125,32 @@
             <div class="input-container">
                 <!-- <button id="add-btn">Add</button> -->
                 <label for="search-input">Search:</label>
-                <input type="text" placeholder="Search by name" id="search-input">
-                <button id="search-btn">Search</button>
+                <select id="dropdown" class="search-dropdown">
+                    <option value="all">------Select All------</option>
+                    <option value="id">Id</option>
+                    <option selected value="name">Name</option>
+                    <option value="email">Email</option>
+                    <option value="salary">Salary</option>
+                    <option value="age">Age</option>
+                </select>
+                <input type="text" placeholder="Search by Name" id="search-input" class="1">
+                <input type="text" placeholder="" id="search-input1" class="2" hidden>
+                <button id="search-btn" hidden>Search</button>
             </div>
             
             <!-- Table Section -->
             <table id="table">
                 <thead>
                     <tr>
-                        <th>Id</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Salary</th>
-                        <th>Age</th>
-                        <th>Registration Date</th>
-                        <th>Last Sign-In</th>
-                        <th>Added By</th>
-                        <th>Last Edit By</th>
+                        <th data-column="id">Id <span class="sort-icon"></span></th>
+                        <th data-column="name">Name <span class="sort-icon"></span></th>
+                        <th data-column="email">Email <span class="sort-icon"></span></th>
+                        <th data-column="salary">Salary <span class="sort-icon"></span></th>
+                        <th data-column="age">Age <span class="sort-icon"></span></th>
+                        <th data-column="registrationDate">Registration Date <span class="sort-icon"></span></th>
+                        <th data-column="lastSignIn">Last Sign-In <span class="sort-icon"></span></th>
+                        <th data-column="addedBy">Added By <span class="sort-icon"></span></th>
+                        <th data-column="lastEditBy">Last Edit By <span class="sort-icon"></span></th>
                         <th>Delete</th>
                         <th>Edit</th>
                     </tr>
@@ -167,5 +176,6 @@
         
         <script src="index.js"></script>
     </body>
-
+    
     </html>
+    

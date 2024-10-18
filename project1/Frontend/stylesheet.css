@@ -72,7 +72,9 @@ header {
 
 /* Footer styling */
 footer {
-    text-align: center; /* Center the footer text */
+    position: relative;
+    display: flex; /* Use flexbox */
+    justify-content: center; /* Align items to the end (right) */
     padding: 10px; /* Padding around the footer */
     background-color: #f9f9f9; /* Light background color for footer */
     border-top: 1px solid black; /* Light border above the footer */
@@ -93,12 +95,22 @@ input[type="date"] {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
     border-radius: 8px; /* Rounded corners */
     padding: 10px;
-    border: 1px solid black; /* Black border */
-    flex: 1; /* Allow input to take available space */
     margin-right: 10px; /* Space between input and button */
-    margin-left: 10px; /* Space between input and label */
+    margin-left: 10px; /* Space between input and button */
+    flex: 2; /* Allow input to take available space */
+    border: 1px solid #ccc; /* Light border for inputs */
+    border-radius: 4px; /* Rounded corners */
 }
 
+.search-dropdown{
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    text-align: center;
+    padding: 10px;
+    flex: 0.4; /* Allow input to take available space */
+    border: 0px solid #ccc; /* Light border for inputs */
+    border-radius: 4px; /* Rounded corners */
+}
 /* Button styles */
 button {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
@@ -132,6 +144,7 @@ th, td {
 th {
     background-color: black; /* Dark background for header cells */
     color: white; /* White text for header cells */
+    cursor: pointer; 
 }
 
 /* Update row section */
@@ -203,17 +216,6 @@ label {
     min-width: 120px; /* Set a minimum width for consistency */
     text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
 
-}
-
-input[type="text"],
-input[type="number"],
-input[type="email"],
-input[type="password"],
-input[type="date"] {
-    flex: 2; /* Allow input to take available space */
-    padding: 10px; /* Padding inside inputs */
-    border: 1px solid #ccc; /* Light border for inputs */
-    border-radius: 4px; /* Rounded corners */
 }
 
 .button-container {
