@@ -3,7 +3,9 @@
 
 // Constants for API base URLs
 const LOCAL_API_BASE_URL = 'http://localhost:5050';
-const PUBLIC_API_BASE_URL = 'http://35.16.20.72:5050';
+const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
+// const PUBLIC_API_BASE_URL = 'http://35.16.20.72:5050';
+
 
 // Choose the API base URL based on the environment
 const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_URL : PUBLIC_API_BASE_URL;
@@ -269,7 +271,7 @@ document.querySelector('table tbody').addEventListener('click',
             debug(rowToDelete);
         }   
         if(event.target.className === "edit-row-btn"){
-            // alert(JSON.stringify(event.target.dataset));
+            // alert(JSON.stringify(event.target.dataset));return
             const id = event.target.dataset.id
             const first_name = event.target.dataset.first_name
             const last_name = event.target.dataset.last_name
@@ -305,6 +307,7 @@ function deleteRowById(id){
 let idToUpdate = 0;
 
 function showEditRowInterface(id, first_name, last_name, email, salary, age) {
+    
     debug("id clicked: ");
     debug(id);
     
@@ -331,6 +334,7 @@ function showEditRowInterface(id, first_name, last_name, email, salary, age) {
 const updateBtn = document.querySelector('#update-row-btn');
 
 updateBtn.onclick = function() {
+    event.preventDefault(); //prevent from update
     debug("update clicked");
     debug("got the id: ");
     debug(updateBtn.value);
@@ -345,10 +349,11 @@ updateBtn.onclick = function() {
         showAlert('All fields must be filled out.', 'failure');
         return;
     }
-
+    // alert(updatedEmailInput.value);return;
+    
     // Email format validation
     const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
-    if (!updatedEmailInput.match(emailPattern)) {
+    if (!updatedEmailInput.value.match(emailPattern)) {
         showAlert('Please enter a valid email address.', 'failure');
         return;
     }
@@ -369,10 +374,11 @@ updateBtn.onclick = function() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // alert(JSON.stringify(data));return;
             debug("Update successful!");
             location.reload();
         } else {
-            // alert("Update failed: " + JSON.stringify(data));
+            showAlert("Update failed: " + JSON.stringify(data), 'failure');
             debug("no update occurs");
             
         }
