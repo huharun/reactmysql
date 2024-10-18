@@ -342,7 +342,14 @@ updateBtn.onclick = function() {
     
     // Check for empty fields (optional)
     if (!updatedNameInput.value || !updatedEmailInput.value || !updatedSalaryInput.value || !updatedAgeInput.value) {
-        alert("All fields must be filled out.");
+        showAlert('All fields must be filled out.', 'failure');
+        return;
+    }
+
+    // Email format validation
+    const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+    if (!updatedEmailInput.match(emailPattern)) {
+        showAlert('Please enter a valid email address.', 'failure');
         return;
     }
     
