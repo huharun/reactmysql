@@ -1,6 +1,5 @@
-<h1 style="font-size: 50px; color: red;">UNDER DEVELOPMENT</h1>
-
-# Project 1
+# **UNDER DEVELOPMENT**
+<!-- # Project 1
 
 # Cloning the Repository and Running the Project
 
@@ -31,4 +30,4 @@ To clone the repository and get the project up and running, follow these steps:
    Feel free to access some of the Backend endpoints directly such as **`http://localhost:5050/getAll`**. You will only receive JSON data without nice rendering.
 
    Now you can interact with the Frontend http://localhost/dbms1_project1/Frontend/index.html.
-
+ -->
