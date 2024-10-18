@@ -2,10 +2,10 @@
 
 const express = require('express');
 const session = require('express-session');
-const requestIp = require('request-ip');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const CryptoJS = require('crypto-js');
+const requestIp = require('request-ip'); // ip-address
+const CryptoJS = require('crypto-js');// hashing
 dotenv.config();
 
 
@@ -34,47 +34,47 @@ app.post('/hashPassword', (request, response) => {
     response.json({ hashedPassword: hashedPassword });
 });
 
-// Session management
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'arun_key', // Move to environment variable for security
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
-}));
+// // Session management
+// app.use(session({
+//     secret: process.env.SESSION_SECRET || 'arun_key', // Move to environment variable for security
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: { secure: false } // Set to true if using HTTPS
+// }));
 
-// Session retrieval route
-app.get('/session', (request, response) => {
-    response.json(request.session.user || { message: "No user is logged in." });
-});
+// // Session retrieval route
+// app.get('/session', (request, response) => {
+    //     response.json(request.session.user || { message: "No user is logged in." });
+// });
 
-// Dashboard route
-app.get('/dashboard', (req, res) => {
-    if (req.session.user) {
-        console.log('Session data:', req.session.user);
-        res.json({ message: "Welcome to your dashboard", user: req.session.user });
-    } else {
-        res.status(401).json({ message: "Unauthorized: Please sign in first." });
-    }
-});
+// // Dashboard route
+// app.get('/dashboard', (req, res) => {
+    //     if (req.session.user) {
+//         console.log('Session data:', req.session.user);
+//         res.json({ message: "Welcome to your dashboard", user: req.session.user });
+//     } else {
+//         res.status(401).json({ message: "Unauthorized: Please sign in first." });
+//     }
+// });
 
-// Profile route
-app.get('/profile', (req, res) => {
-    if (req.session.user) {
-        res.json({ message: "Profile data", user: req.session.user });
-    } else {
-        res.status(401).json({ message: "Unauthorized: Please sign in first." });
-    }
-});
+// // Profile route
+// app.get('/profile', (req, res) => {
+    //     if (req.session.user) {
+//         res.json({ message: "Profile data", user: req.session.user });
+//     } else {
+//         res.status(401).json({ message: "Unauthorized: Please sign in first." });
+//     }
+// });
 
-// Logout route
-app.post('/logout', (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            return res.status(500).json({ error: "Failed to log out." });
-        }
-        res.json({ message: "Logged out successfully." });
-    });
-});
+// // Logout route
+// app.post('/logout', (req, res) => {
+    //     req.session.destroy(err => {
+        //         if (err) {
+//             return res.status(500).json({ error: "Failed to log out." });
+//         }
+//         res.json({ message: "Logged out successfully." });
+//     });
+// });
 
 // Sign-up route
 app.post('/insert', async (request, response) => {
@@ -157,22 +157,22 @@ app.get('/getAll', (request, response) => {
     .catch(err => console.log(err));
 });
 
-// Search by name
-app.get('/search/:name', (request, response) => {
-    const { name } = request.params;
-    console.log(name);
-    
-    const db = dbService.getDbServiceInstance();
-    let result;
-    if (name === "all") // in case we want to search all
-    result = db.getAllData();
-    else
-    result = db.searchByName(name); // call a DB function
-    
-    result
-    .then(data => response.json({ data: data }))
-    .catch(err => console.log(err));
-});
+// // Search by name
+// app.get('/search/:name', (request, response) => {
+    //     const { name } = request.params;
+//     console.log(name);
+
+//     const db = dbService.getDbServiceInstance();
+//     let result;
+//     if (name === "all") // in case we want to search all
+//     result = db.getAllData();
+//     else
+//     result = db.searchByName(name); // call a DB function
+
+//     result
+//     .then(data => response.json({ data: data }))
+//     .catch(err => console.log(err));
+// });
 
 // Autocomplete search
 app.post('/autocomplete', async (request, response) => {
@@ -247,6 +247,7 @@ app.post('/debug', (request, response) => {
     console.log(debug);
     return response.json({ debug });
 });
+
 
 // Test DB function for debugging
 app.get('/testdb', (request, response) => {

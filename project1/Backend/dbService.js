@@ -29,7 +29,6 @@ connection.connect((err) => {
 });
 
 // the following are database functions, 
-
 class DbService{
    static getDbServiceInstance(){ // only one instance is sufficient
       return instance? instance: new DbService();
@@ -235,48 +234,48 @@ class DbService{
    }
    
    
-   async searchByName(name){
+   //    async searchByName(name){
+   //       try{
+   //          const dateAdded = new Date();
+   //          // use await to call an asynchronous function
+   //          const response = await new Promise((resolve, reject) => 
+      //             {
+   //             const query = "SELECT * FROM users where name = ?;";
+   //             connection.query(query, [name], (err, results) => {
+      //                if(err) reject(new Error(err.message));
+   //                else resolve(results);
+   //             });
+   //          }
+   //       );
+   
+   //       // console.log(response);  // for debugging to see the result of select
+   //       return response;
+   
+   //    }  catch(error){
+   //       console.log(error);
+   //    }
+   // }
+   
+   async deleteRowById(id){
       try{
-         const dateAdded = new Date();
+         id = parseInt(id, 10);
          // use await to call an asynchronous function
          const response = await new Promise((resolve, reject) => 
             {
-            const query = "SELECT * FROM users where name = ?;";
-            connection.query(query, [name], (err, results) => {
+            const query = "UPDATE users Set is_deleted = 1 WHERE id = ?;";
+            connection.query(query, [id], (err, result) => {
                if(err) reject(new Error(err.message));
-               else resolve(results);
+               else resolve(result.affectedRows);
             });
          }
       );
       
-      // console.log(response);  // for debugging to see the result of select
-      return response;
+      console.log(response);  // for debugging to see the result of select
+      return response === 1? true: false;
       
    }  catch(error){
       console.log(error);
    }
-}
-
-async deleteRowById(id){
-   try{
-      id = parseInt(id, 10);
-      // use await to call an asynchronous function
-      const response = await new Promise((resolve, reject) => 
-         {
-         const query = "UPDATE users Set is_deleted = 1 WHERE id = ?;";
-         connection.query(query, [id], (err, result) => {
-            if(err) reject(new Error(err.message));
-            else resolve(result.affectedRows);
-         });
-      }
-   );
-   
-   console.log(response);  // for debugging to see the result of select
-   return response === 1? true: false;
-   
-}  catch(error){
-   console.log(error);
-}
 }
 
 

@@ -284,16 +284,16 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
 // }
 
 // when the searchBtn is clicked
-const searchBtn =  document.querySelector('#search-btn');
-searchBtn.onclick = function (){
-    const searchInput = document.querySelector('#search-input');
-    const searchValue = searchInput.value;
-    searchInput.value = "";
-    
-    fetch(API_BASE_URL+'/search/' + searchValue)
-    .then(response => response.json())
-    .then(data => loadHTMLTable(data['data']));
-}
+// const searchBtn =  document.querySelector('#search-btn');
+// searchBtn.onclick = function (){
+//     const searchInput = document.querySelector('#search-input');
+//     const searchValue = searchInput.value;
+//     searchInput.value = "";
+
+//     fetch(API_BASE_URL+'/search/' + searchValue)
+//     .then(response => response.json())
+//     .then(data => loadHTMLTable(data['data']));
+// }
 
 document.getElementById('dropdown').addEventListener('change', function() {
     const selectedValue = this.value; // Get the selected option value
@@ -329,7 +329,7 @@ document.getElementById('search-input').addEventListener('input', async function
     const searchInput = this.value;
     const dropdown = document.getElementById('dropdown');
     const selectedOption = dropdown.value;
-        
+    
     const response = await fetch(API_BASE_URL+'/autocomplete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -343,7 +343,7 @@ document.getElementById('search-input').addEventListener('input', async function
 
 function displayResults(results) {
     if(results){
-    loadHTMLTable(results);
+        loadHTMLTable(results);
     }
 }
 
@@ -380,6 +380,7 @@ document.querySelector('table tbody').addEventListener('click',
     }
 );
 
+//not exactly deleting
 function deleteRowById(id){
     debug(id);
     fetch(API_BASE_URL + '/delete/' + id, { 
@@ -483,7 +484,6 @@ updateBtn.onclick = function() {
 }
 
 
-
 // this function is used for debugging only, and should be deleted afterwards
 function debug(data)
 {
@@ -496,48 +496,51 @@ function debug(data)
     })
 }
 
-function insertRowIntoTable(data){
-    
-    debug("index.js: insertRowIntoTable called: ");
-    debug(data);
-    
-    const table = document.querySelector('table tbody');
-    debug(table);
-    
-    const isTableData = table.querySelector('.no-data');
-    
-    // debug(isTableData);
-    
-    let tableHtml = "<tr>";
-    
-    for(var key in data){ // iterating over the each property key of an object data
-        if(data.hasOwnProperty(key)){   // key is a direct property for data
-            if(key === 'dateAdded'){  // the property is 'dataAdded'
-                data[key] = new Date(data[key]).toLocaleString(); // format to javascript string
-            }
-            tableHtml += `<td>${data[key]}</td>`;
-        }
-    }
-    
-    tableHtml +=`<td><button class="delete-row-btn" data-id=${data.id}>Delete</td>`;
-    tableHtml += `<td><button class="edit-row-btn" data-id=${data.id}>Edit</td>`;
-    
-    tableHtml += "</tr>";
-    
-    if(isTableData){
-        debug("case 1");
-        table.innerHTML = tableHtml;
-    }
-    else {
-        debug("case 2");
-        // debug(tableHtml);
-        
-        const newrow = table.insertRow();
-        newrow.innerHTML = tableHtml;
-    }
-}
+
+// function insertRowIntoTable(data){
+
+//     debug("index.js: insertRowIntoTable called: ");
+//     debug(data);
+
+//     const table = document.querySelector('table tbody');
+//     debug(table);
+
+//     const isTableData = table.querySelector('.no-data');
+
+//     // debug(isTableData);
+
+//     let tableHtml = "<tr>";
+
+//     for(var key in data){ // iterating over the each property key of an object data
+//         if(data.hasOwnProperty(key)){   // key is a direct property for data
+//             if(key === 'dateAdded'){  // the property is 'dataAdded'
+//                 data[key] = new Date(data[key]).toLocaleString(); // format to javascript string
+//             }
+//             tableHtml += `<td>${data[key]}</td>`;
+//         }
+//     }
+
+//     tableHtml +=`<td><button class="delete-row-btn" data-id=${data.id}>Delete</td>`;
+//     tableHtml += `<td><button class="edit-row-btn" data-id=${data.id}>Edit</td>`;
+
+//     tableHtml += "</tr>";
+
+//     if(isTableData){
+//         debug("case 1");
+//         table.innerHTML = tableHtml;
+//     }
+//     else {
+//         debug("case 2");
+//         // debug(tableHtml);
+
+//         const newrow = table.insertRow();
+//         newrow.innerHTML = tableHtml;
+//     }
+// }
 
 
+
+//for pop-ups
 // Get modal elements
 const signUpModal = document.getElementById('sign-up-modal');
 const signInModal = document.getElementById('sign-in-modal');
