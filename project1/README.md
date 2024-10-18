@@ -1,4 +1,4 @@
-<h1 style="font-size: 50px; color: red;">UNDER DEVELOPMENT</h1>
+<h1 style="font-size: 20; color: red;">UNDER DEVELOPMENT</h1>
 
 # Project 1
 
