@@ -165,33 +165,58 @@ app.get('/search/:name', (request, response) => {
 // Update
 app.patch('/update', (request, response) => {
     console.log("app: update is called");
-    const { id, name } = request.body;
+    const { id, name, email, salary, age } = request.body;
     console.log(id);
     console.log(name);
+
+    const [first_name, last_name] = name.split(" ");
+    console.log("First Name:", first_name);
+    console.log("Last Name:", last_name);
+    console.log(email);
+    console.log(salary);
+    console.log(age);
+    
     const db = dbService.getDbServiceInstance();
     
-    const result = db.updateNameById(id, name);
-    result.then(data => response.json({ success: true }))
-    .catch(err => console.log(err));
+    const result = db.updateNameById(id, first_name, last_name, email, salary, age);
+
+    result.then(data => {
+        response.json({ success: true, result: data });
+    })
+    .catch(err => {
+        console.error("Error updating user:", err);
+        response.status(500).json({ success: false, message: "Update failed", error: err.message });
+    });
 });
+
 
 // Delete service
 app.delete('/delete/:id', (request, response) => {
     const { id } = request.params;
-    console.log("delete");
-    console.log(id);
+    console.log("delete", id); // combined logs for clarity
     const db = dbService.getDbServiceInstance();
-    
+
     const result = db.deleteRowById(id);
-    result.then(data => response.json({ success: true }))
-    .catch(err => console.log(err));
+    result.then(data => {
+        if (data) {
+            // Assuming 'data' confirms deletion success
+            response.json({ success: true });
+        } else {
+            response.json({ success: false });
+        }
+    })
+    .catch(err => {
+        console.log(err);
+        response.status(500).json({ success: false, error: err.message });
+    });
 });
+
 
 // Debug function, will be deleted later
 app.post('/debug', (request, response) => {
     const { debug } = request.body;
     console.log(debug);
-    return response.json({ success: true });
+    return response.json({ debug });
 });
 
 // Test DB function for debugging

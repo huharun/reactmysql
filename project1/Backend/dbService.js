@@ -54,7 +54,7 @@ class DbService{
                 FROM 
                     users 
                 WHERE 
-                    1;`;
+                    is_deleted = 0;`;
             
             connection.query(query, (err, results) => {
                if (err) reject(new Error(err.message));
@@ -92,7 +92,7 @@ class DbService{
   
   
   
-   
+
    
    
    async insertNewName(firstName, lastName, email, password, salary, age, dob) {
@@ -203,7 +203,7 @@ async deleteRowById(id){
       // use await to call an asynchronous function
       const response = await new Promise((resolve, reject) => 
          {
-         const query = "DELETE FROM names WHERE id = ?;";
+         const query = "UPDATE users Set is_deleted = 1 WHERE id = ?;";
          connection.query(query, [id], (err, result) => {
             if(err) reject(new Error(err.message));
             else resolve(result.affectedRows);
@@ -220,29 +220,36 @@ async deleteRowById(id){
 }
 
 
-async updateNameById(id, newName){
-   try{
-      console.log("dbService: ");
-      console.log(id);
-      console.log(newName);
-      id = parseInt(id, 10);
-      // use await to call an asynchronous function
-      const response = await new Promise((resolve, reject) => 
-         {
-         const query = "UPDATE names SET name = ? WHERE id = ?;";
-         connection.query(query, [newName, id], (err, result) => {
-            if(err) reject(new Error(err.message));
-            else resolve(result.affectedRows);
-         });
-      }
-   );
-   
-   // console.log(response);  // for debugging to see the result of select
-   return response === 1? true: false;
-}  catch(error){
-   console.log(error);
+async updateNameById(id, first_name, last_name, email, salary, age) {
+   try {
+       console.log("dbService: ");
+       console.log(id, first_name, last_name, email, salary, age);
+
+       // Parse the ID to an integer
+       id = parseInt(id, 10);
+
+       const response = await new Promise((resolve, reject) => {
+           // Intentionally incorrect SQL query for testing error handling
+           const query = "UPDATE users SET first_name = ?, last_name = ?, email = ?, salary = ?, age = ? WHERE id = ?;";
+
+           connection.query(query, [first_name, last_name, email, salary, age, id], (err, result) => {
+               if (err) {
+                   console.error("Database error:", err.message);
+                   return reject(new Error(err.message)); // Reject if there's an error
+               }
+               console.log("Rows affected:", result.affectedRows);
+               resolve(result.affectedRows); // Resolve with the number of affected rows
+           });
+       });
+
+       return response === 1; // Return true if one row was affected, otherwise false
+   } catch (error) {
+       console.error("Caught error:", error.message);
+       throw error; // Re-throw the error for higher-level handling
+   }
 }
-}
+
+
 }
 
 module.exports = DbService;

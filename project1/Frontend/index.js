@@ -46,7 +46,6 @@ function closeAlert() {
     alertBox.classList.remove('alert-success', 'alert-failure'); // Remove classes
 }
 
-
 // fetch call is to call the backend
 document.addEventListener('DOMContentLoaded', function() {
     fetch(API_BASE_URL+'/getAll')     
@@ -54,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(data => loadHTMLTable(data['data']));
 });
 
+//sign-out hidden
 document.getElementById('sign-out-btn').style.display = 'none';
 
 //listing all data in the table
@@ -80,7 +80,7 @@ function loadHTMLTable(data){
         tableHtml += `<td>${added_by}</td>`;
         tableHtml += `<td>${edited_by}</td>`;
         tableHtml += `<td><button class="delete-row-btn" data-id=${id}>Delete</button></td>`;
-        tableHtml += `<td><button class="edit-row-btn" data-id=${id}>Edit</button></td>`;
+        tableHtml += `<td><button class="edit-row-btn" data-id=${id} data-first_name=${first_name} data-last_name=${last_name} data-email=${email} data-salary=${salary} data-age=${age} >Edit</button></td>`;
         tableHtml += "</tr>";
     });
     
@@ -166,7 +166,6 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
     }
 });
 
-
 // Sign-in action
 document.getElementById('sign-in-form').addEventListener('submit', async (event) => {
     event.preventDefault(); // Prevent the default form submission
@@ -225,11 +224,6 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
 });
 
 
-
-
-
-
-
 // // when the addBtn is clicked
 // const addBtn = document.querySelector('#add-name-btn');
 // addBtn.onclick = function (){
@@ -266,90 +260,127 @@ let rowToDelete;
 document.querySelector('table tbody').addEventListener('click', 
     function(event){
         if(event.target.className === "delete-row-btn"){
+            // alert(event.target.dataset.id);return
             
-            deleteRowById(event.target.dataset.id);   
+            const id = event.target.dataset.id
+            deleteRowById(id);   
             rowToDelete = event.target.parentNode.parentNode.rowIndex;    
             debug("delete which one:");
             debug(rowToDelete);
         }   
         if(event.target.className === "edit-row-btn"){
-            showEditRowInterface(event.target.dataset.id); // display the edit row interface
+            // alert(JSON.stringify(event.target.dataset));
+            const id = event.target.dataset.id
+            const first_name = event.target.dataset.first_name
+            const last_name = event.target.dataset.last_name
+            const email = event.target.dataset.email
+            const salary = event.target.dataset.salary
+            const age = event.target.dataset.age
+            
+            
+            showEditRowInterface(id, first_name, last_name, email, salary, age); // display the edit row interface
+            
         }
     }
 );
 
 function deleteRowById(id){
-    // debug(id);
-    fetch('http://localhost:5050/delete/' + id,
-        { 
-            method: 'DELETE'
-        }
-    )
+    debug(id);
+    fetch(API_BASE_URL + '/delete/' + id, { 
+        method: 'DELETE'
+    })
     .then(response => response.json())
-    .then(
-        data => {
-            if(data.success){
-                document.getElementById("table").deleteRow(rowToDelete);
-                // location.reload();
-            }
+    .then(data => {
+        if (data.success) {
+            // Reload the page upon successful deletion
+            location.reload();
+        } else {
+            console.log("Error deleting row");
         }
-    );
+    })
+    .catch(error => console.log("Error: ", error));
 }
+
 
 let idToUpdate = 0;
 
-function showEditRowInterface(id){
+function showEditRowInterface(id, first_name, last_name, email, salary, age) {
     debug("id clicked: ");
     debug(id);
-    document.querySelector('#update-name-input').value = ""; // clear this field
-    const updateSetction = document.querySelector("#update-row");  
-    updateSetction.hidden = false;
-    // we assign the id to the update button as its id attribute value
+    
+    // Populate the input fields with the current row values
+    document.querySelector('#update-id-input').value = id; // Set the ID (read-only)
+    document.querySelector('#update-name-input').value = first_name + ' ' + last_name; // Set the name
+    document.querySelector('#update-email-input').value = email; // Set the email
+    document.querySelector('#update-salary-input').value = salary; // Set the salary
+    document.querySelector('#update-age-input').value = age; // Set the age
+    
+    // Show the update modal
+    const updateModal = document.querySelector('#update-row-modal');  
+    updateModal.style.display = "flex"; // or updateModal.hidden = false; to show the modal
+    
+    // Assign the id to the update button (if needed)
     idToUpdate = id;
     debug("id set!");
-    debug(idToUpdate+"");
+    debug(idToUpdate + "");
 }
+
 
 
 // when the update button on the update interface is clicked
 const updateBtn = document.querySelector('#update-row-btn');
 
-updateBtn.onclick = function(){
+updateBtn.onclick = function() {
     debug("update clicked");
     debug("got the id: ");
     debug(updateBtn.value);
     
     const updatedNameInput = document.querySelector('#update-name-input');
+    const updatedEmailInput = document.querySelector('#update-email-input');
+    const updatedSalaryInput = document.querySelector('#update-salary-input');
+    const updatedAgeInput = document.querySelector('#update-age-input');
     
-    fetch('http://localhost:5050/update',
-        {
-            headers: {
-                'Content-type': 'application/json'
-            },
-            method: 'PATCH',
-            body: JSON.stringify(
-                {
-                    id: idToUpdate,
-                    name: updatedNameInput.value
-                }
-            )
-        }
-    ) 
+    // Check for empty fields (optional)
+    if (!updatedNameInput.value || !updatedEmailInput.value || !updatedSalaryInput.value || !updatedAgeInput.value) {
+        alert("All fields must be filled out.");
+        return;
+    }
+    
+    fetch(API_BASE_URL + '/update', {
+        headers: {
+            'Content-type': 'application/json'
+        },
+        method: 'PATCH',
+        body: JSON.stringify({
+            id: idToUpdate,
+            name: updatedNameInput.value,
+            email: updatedEmailInput.value,
+            salary: updatedSalaryInput.value,
+            age: updatedAgeInput.value
+        })
+    })
     .then(response => response.json())
     .then(data => {
-        if(data.success){
+        if (data.success) {
+            debug("Update successful!");
             location.reload();
+        } else {
+            // alert("Update failed: " + JSON.stringify(data));
+            debug("no update occurs");
+            
         }
-        else 
-        debug("no update occurs");
     })
+    .catch(error => {
+        console.error("Error during fetch:", error);
+    });
 }
+
 
 
 // this function is used for debugging only, and should be deleted afterwards
 function debug(data)
 {
-    fetch('http://localhost:5050/debug', {
+    fetch(API_BASE_URL + '/debug', {
         headers: {
             'Content-type': 'application/json'
         },
@@ -407,15 +438,23 @@ const closeSignUp = document.getElementById('close-sign-up');
 const closeSignIn = document.getElementById('close-sign-in');
 const signUpBtn = document.getElementById('sign-up-btn');
 const signInBtn = document.getElementById('sign-in-btn');
+const updateModal = document.getElementById('update-row-modal');
+const closeUpdateRow = document.getElementById('close-update-row');
+
+
+//close for update
+closeUpdateRow.onclick = function() {
+    updateModal.style.display = "none"; 
+}
 
 // Open the sign-up modal
 signUpBtn.onclick = function() {
-    signUpModal.style.display = "flex"; // Change to flex to center modal
+    signUpModal.style.display = "flex"; 
 }
 
 // Open the sign-in modal
 signInBtn.onclick = function() {
-    signInModal.style.display = "flex"; // Change to flex to center modal
+    signInModal.style.display = "flex"; 
 }
 
 // Close the sign-up modal
@@ -435,5 +474,8 @@ window.onclick = function(event) {
     }
     if (event.target === signInModal) {
         signInModal.style.display = "none";
+    }
+    if (event.target === updateModal) {
+        updateModal.style.display = "none";
     }
 }
