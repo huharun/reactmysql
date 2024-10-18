@@ -1,4 +1,4 @@
-# Project 3
+# Project 1
 
 # Cloning the Repository and Running the Project
 
