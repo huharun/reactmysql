@@ -396,7 +396,7 @@ async function handleSalaryInput() {
         showAlert(`Error: ${errorDetails.details}`, 'failure');
         return; // Exit the function if the response is not OK
     }
-
+    
     const results = await response.json();
     displayResults(results);
 }
