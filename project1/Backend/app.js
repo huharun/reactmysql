@@ -176,17 +176,22 @@ app.get('/getAll', (request, response) => {
 
 // Autocomplete search
 app.post('/autocomplete', async (request, response) => {
-    const { searchValue, searchType } = request.body;
-    
-    const db = dbService.getDbServiceInstance(); // Assuming you have a db service instance
-    let result;
+    const { searchValue, searchType, minSalary, maxSalary, minAge, maxAge } = request.body;
+    const db = dbService.getDbServiceInstance();
     
     try {
-        result = await db.getAutocompleteResults(searchValue, searchType); // Call the DB function
-        response.json(result); // Send back results as JSON
+        const result = await db.getAutocompleteResults(
+            searchValue,
+            searchType,
+            minSalary,
+            maxSalary,
+            minAge,
+            maxAge
+        );
+        response.json(result);
     } catch (err) {
-        console.log(err);
-        response.status(500).json({ error: 'Database query error' });
+        console.error("Database query error:", err);
+        response.status(500).json({ error: 'Database query error', details: err.message });
     }
 });
 

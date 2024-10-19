@@ -34,7 +34,7 @@ function showAlert(message, type) {
     // Automatically close the alert after 5 seconds
     setTimeout(() => {
         closeAlert();
-    }, 3000);
+    }, 5000);
 }
 
 function closeAlert() {
@@ -297,12 +297,25 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
 
 document.getElementById('dropdown').addEventListener('change', function() {
     const selectedValue = this.value; // Get the selected option value
-    const inputField = document.getElementById('search-input'); // Get the input field
-    inputField.removeAttribute('disabled'); 
+    const inputField = document.getElementById('search-input'); // First input field
+    const searchInput1 = document.getElementById("search-input1"); // Second input field
+    
+    // Reset fields initially
+    inputField.removeAttribute('disabled'); // Enable the input field
+    inputField.placeholder = ''; // Clear placeholder
+    inputField.type = 'text'; // Default to text type
+    searchInput1.hidden = true; // Hide second input
     
     switch (selectedValue) {
         case 'all':
-        inputField.setAttribute('disabled', 'true');
+        inputField.setAttribute('disabled', 'true'); // Disable input for 'all'
+        break;
+        case 'salary':
+        inputField.placeholder = 'Min Salary'; // Placeholder for Min Salary
+        inputField.type = 'number'; // Change type to number for Min Salary
+        searchInput1.placeholder = 'Max Salary'; // Placeholder for Max Salary
+        searchInput1.type = 'number'; // Change type to number for Max Salary
+        searchInput1.hidden = false; // Show the Max Salary input
         break;
         case 'id':
         inputField.placeholder = 'Search by Id';
@@ -313,32 +326,86 @@ document.getElementById('dropdown').addEventListener('change', function() {
         case 'email':
         inputField.placeholder = 'Search by Email'; 
         break;
-        case 'salary':
-        inputField.placeholder = 'Search by Salary';
-        break;
         case 'age':
-        inputField.placeholder = 'Search by Age';
+        inputField.placeholder = 'Min Age';
+        inputField.type = 'number';
+        searchInput1.placeholder = 'Max Age';
+        searchInput1.type = 'number';
+        searchInput1.hidden = false;
         break;
+        
         default:
         inputField.placeholder = 'Select All';
     }
 });
 
 
-document.getElementById('search-input').addEventListener('input', async function () {
-    const searchInput = this.value;
+// Function to handle input changes for both salary fields
+async function handleSalaryInput() {
+    const searchInput = document.getElementById('search-input').value;
+    const searchInput1 = document.getElementById('search-input1').value;
     const dropdown = document.getElementById('dropdown');
     const selectedOption = dropdown.value;
     
-    const response = await fetch(API_BASE_URL+'/autocomplete', {
+    let bodyData;
+    if (selectedOption === 'salary') {
+        let minSalary = searchInput.trim() === '' ? 0 : parseFloat(searchInput);
+        let maxSalary = searchInput1.trim() === '' ? Infinity : parseFloat(searchInput1);
+        
+        if (isNaN(minSalary) || isNaN(maxSalary)) {
+            showAlert('Please enter valid numeric values for both salaries.', 'failure');
+            return;
+        }
+        
+        if (minSalary >= maxSalary) {
+            showAlert('Min Salary must be less than Max Salary.', 'failure');
+            return;
+        }
+        
+        bodyData = { minSalary, maxSalary, searchType: selectedOption };
+    }
+    else if (selectedOption === 'age') {
+        let minAge = searchInput.trim() === '' ? 0 : parseInt(searchInput, 10);
+        let maxAge = searchInput1.trim() === '' ? Infinity : parseInt(searchInput1, 10);
+        
+        if (isNaN(minAge) || isNaN(maxAge)) {
+            showAlert('Please enter valid numeric values for both ages.', 'failure');
+            return;
+        }
+        
+        if (minAge >= maxAge) {
+            showAlert('Min Age must be less than Max Age.', 'failure');
+            return;
+        }
+        
+        bodyData = { minAge, maxAge, searchType: selectedOption };
+    }
+    else {
+        bodyData = { searchValue: searchInput, searchType: selectedOption };
+    }
+    
+    const response = await fetch(API_BASE_URL + '/autocomplete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ searchValue: searchInput, searchType: selectedOption }),
+        body: JSON.stringify(bodyData),
     });
     
+    // Check if response is OK
+    if (!response.ok) {
+        const errorDetails = await response.json();
+        showAlert(`Error: ${errorDetails.details}`, 'failure');
+        return; // Exit the function if the response is not OK
+    }
+
     const results = await response.json();
     displayResults(results);
-});
+}
+
+
+// Add event listeners to both input fields
+document.getElementById('search-input').addEventListener('input', handleSalaryInput);
+document.getElementById('search-input1').addEventListener('input', handleSalaryInput);
+
 
 
 function displayResults(results) {

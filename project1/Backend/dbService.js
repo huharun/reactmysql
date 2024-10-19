@@ -148,66 +148,55 @@ class DbService{
    }
    
    // Function to get autocomplete results
-   async getAutocompleteResults(searchValue, searchType) {
+   async getAutocompleteResults(searchValue, searchType, minSalary, maxSalary, minAge, maxAge) {
       return new Promise((resolve, reject) => {
          const searchPattern = `%${searchValue}%`; // Define the search pattern
          let query;
+         let params = []; // Array to hold query parameters
          
-         // Check if the searchType is name and adjust the query accordingly
-         if (searchType === 'name') {
-            query = `
-               SELECT 
-                   id, 
-                   first_name, 
-                   last_name, 
-                   email, 
-                   salary, 
-                   age, 
-                   registration_date, 
-                   last_sign_in, 
-                   (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = added_by) AS added_by,
-                   (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = edited_by) AS edited_by
-               FROM 
-                   users 
-               WHERE 
-                   (first_name LIKE ? OR last_name LIKE ?)
-                   AND is_deleted = 0
-           `;
-            connection.query(query, [searchPattern, searchPattern], (error, results) => {
-               if (error) {
-                  reject(new Error(error.message));
-               } else {
-                  resolve(results);
-               }
-            });
+         // Base query with common condition
+         const baseQuery = `
+              SELECT 
+                  id, 
+                  first_name, 
+                  last_name, 
+                  email, 
+                  salary, 
+                  age, 
+                  registration_date, 
+                  last_sign_in, 
+                  (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = added_by) AS added_by,
+                  (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = edited_by) AS edited_by
+              FROM 
+                  users 
+              WHERE 
+                  is_deleted = 0
+          `;
+         
+         // Determine the search condition based on searchType
+         if (searchType === 'salary') {
+            query = `${baseQuery} AND salary BETWEEN ? AND ?`;
+            params = [minSalary, maxSalary];
+         } else if (searchType === 'age') {
+            query = `${baseQuery} AND age BETWEEN ? AND ?`;
+            params = [minAge, maxAge];
+         } else if (searchType === 'name') {
+            query = `${baseQuery} AND (first_name LIKE ? OR last_name LIKE ?)`;
+            params = [searchPattern, searchPattern];
          } else {
-            // For other search types, use the generic query
-            query = `
-               SELECT 
-                   id, 
-                   first_name, 
-                   last_name, 
-                   email, 
-                   salary, 
-                   age, 
-                   registration_date, 
-                   last_sign_in, 
-                   (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = added_by) AS added_by,
-                   (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = edited_by) AS edited_by
-               FROM 
-                   users 
-               WHERE 
-                   ${searchType} LIKE ?
-                   AND is_deleted = 0
-           `;
-            connection.query(query, [searchPattern], (error, results) => {
-               if (error) {
-                  reject(new Error(error.message));
-               } else {
-                  resolve(results);
-               }
-            });
+            query = `${baseQuery} AND ${searchType} LIKE ?`;
+            params = [searchPattern];
          }
+         
+         // Execute the query
+         connection.query(query, params, (error, results) => {
+            if (error) {
+               console.error("Query error:", error); // Log the specific error
+               reject(new Error(error.message));
+            } else {
+               resolve(results);
+            }
+         });
       });
    }
    
