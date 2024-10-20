@@ -103,11 +103,19 @@ If you need to update the API URL in your frontend code, locate the index.js fil
    - I also implemented a search for users who registered on the same day as Arun.
 
 6. **Today's Registrations**
-   - Finally, I developed functionality to return a list of users who registered today.
+   - I developed functionality to return a list of users who registered today.
+   
+7. ### **Additional Features**
 
+   1. **Sorting Functionality**
+      - I implemented a feature that allows users to sort the table of users by various column details, making it easier to view and manage user information.
+
+   2. **Session Management**
+      - I developed session functionality to temporarily store user details, enhancing the user experience during interactions with the application.
 
 ## **SQL Statements**
-All SQL statements used in this exercise are documented in the file named **`sql_pr1_arun.txt`**.
+
+   All SQL statements used in this exercise are documented in the file named **`sql_pr1_arun.txt`**.
 
 ---
 
