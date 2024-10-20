@@ -105,7 +105,7 @@ If you need to update the API URL in your frontend code, locate the index.js fil
 6. **Today's Registrations**
    - I developed functionality to return a list of users who registered today.
    
-7. ### **Additional Features**
+### **Additional Features**
 
    1. **Sorting Functionality**
       - I implemented a feature that allows users to sort the table of users by various column details, making it easier to view and manage user information.
