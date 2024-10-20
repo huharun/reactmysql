@@ -20,8 +20,6 @@
         credentials: true, // Allow cookies to be sent
     }));
     
-    
-    
     app.use(express.json());
     app.use(express.urlencoded({ extended: false }));
     
@@ -79,7 +77,6 @@
         }
     });
     
-    
     // Logout route
     app.post('/logout', (req, res) => {
         req.session.destroy(err => {
@@ -90,8 +87,6 @@
             res.json({ message: "Logged out successfully.", loggedOut: true });
         });
     });
-    
-    
     
     // Test session route
     app.get('/test-session', (req, res) => {
@@ -153,7 +148,6 @@
         }
     });
     
-    
     // Get all data route
     app.get('/getAll', async (req, res) => {
         try {
@@ -187,11 +181,12 @@
         }
     });
     
+    // update
     app.patch('/update', async (req, res) => {
         const { id, first_name, last_name, email, salary, age, sessionUserid } = req.body;
-    
+        
         const db = dbService.getDbServiceInstance();
-    
+        
         try {
             const result = await db.updateNameById(id, first_name, last_name, email, salary, age, sessionUserid);
             if (result) {
@@ -204,7 +199,6 @@
             res.status(500).json({ success: false, message: "Update failed", error: err.message });
         }
     });
-    
     
     // Delete route
     app.delete('/delete/:id/:sessionUserid', async (req, res) => {

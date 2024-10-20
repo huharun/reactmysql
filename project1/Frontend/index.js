@@ -14,20 +14,20 @@ const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_U
 function showAlert(message, type) {
     const alertBox = document.getElementById('custom-alert');
     const alertMessage = document.getElementById('alert-message');
-    const pageContent = document.getElementById('page-content'); // Get the page content
+    const pageContent = document.getElementById('page-content'); 
     
-    alertMessage.textContent = message; // Set the message
-    alertBox.classList.remove('hidden'); // Show the alert
-    alertBox.classList.add('show'); // Trigger the show animation
+    alertMessage.textContent = message; 
+    alertBox.classList.remove('hidden'); 
+    alertBox.classList.add('show'); 
     
     // Clear existing alert type classes
     alertBox.classList.remove('alert-success', 'alert-failure');
     
     
     if (type === 'success') {
-        alertBox.classList.add('alert-success'); // Add success class
+        alertBox.classList.add('alert-success'); 
     } else if (type === 'failure') {
-        alertBox.classList.add('alert-failure'); // Add failure class
+        alertBox.classList.add('alert-failure');
     }
     
     // Automatically close the alert after 5 seconds
@@ -38,14 +38,15 @@ function showAlert(message, type) {
 
 function closeAlert() {
     const alertBox = document.getElementById('custom-alert');
-    const pageContent = document.getElementById('page-content'); // Get the page content
-    alertBox.classList.remove('show'); // Hide the alert
-    alertBox.classList.add('hidden'); // Add hidden class
+    const pageContent = document.getElementById('page-content'); 
+    alertBox.classList.remove('show'); 
+    alertBox.classList.add('hidden'); 
     
     // Reset styles to default after closing
-    alertBox.classList.remove('alert-success', 'alert-failure'); // Remove classes
+    alertBox.classList.remove('alert-success', 'alert-failure');
 }
 
+//show password
 document.addEventListener('DOMContentLoaded', () => {
     const togglePasswordVisibility = (inputId, iconElement) => {
         const passwordInput = document.getElementById(inputId);
@@ -61,11 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-
+//getAll
 document.addEventListener('DOMContentLoaded', function() {
     fetch(API_BASE_URL + '/getAll', {
         method: 'GET',
-        credentials: 'include' // Include credentials (cookies) in the request
+        credentials: 'include' 
     })
     .then(response => {
         if (!response.ok) {
@@ -76,9 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
     .then(data => loadHTMLTable(data['data']))
     .catch(error => console.error('Failed to fetch data:', error));
 });
-
-
-
 
 //listing all data in the table
 function loadHTMLTable(data){
@@ -158,7 +156,6 @@ async function hashPassword(password) {
     return data.hashedPassword; 
 }
 
-
 // Sign-up action
 document.getElementById('sign-up-form').addEventListener('submit', async (event) => {
     event.preventDefault(); // Prevent the default form submission
@@ -201,7 +198,7 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         first_name: firstName,
         last_name: lastName,
         email: email,
-        password: hashedPassword, // Store the hashed password
+        password: hashedPassword,
         salary: salary,
         age: age,
         dob: dob
@@ -221,8 +218,7 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         // alert(JSON.stringify(result));return
         
         if (response.ok) {
-            showAlert('Sign up successful!', 'success'); // Notify user of success
-            // Optionally close the modal
+            showAlert('Sign up successful!', 'success'); 
             document.getElementById('sign-up-modal').style.display = 'none';
         } else {
             showAlert('Sign up failed: ' + result.error, 'failure');
@@ -257,10 +253,10 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email, hashedPassword }) // Send email and hashed password
+            body: JSON.stringify({ email, hashedPassword }) 
         });
         
-        console.log('Response:', response); // Debugging line
+        console.log('Response:', response);
         
         const result = await response.json();
         
@@ -285,7 +281,7 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
     }
 });
 
-
+//sign-out action
 document.getElementById('sign-out-btn').addEventListener('click', async () => {
     try {
         const response = await fetch(API_BASE_URL + '/logout', {
@@ -301,15 +297,15 @@ document.getElementById('sign-out-btn').addEventListener('click', async () => {
             console.log(result); // Log the response data
             
             // Handle successful logout
-            sessionStorage.removeItem('user'); // Clear user data
-            sessionStorage.removeItem('isLoggedIn'); // Clear login status
-            document.getElementById('sign-out-btn').style.display = 'none'; // Hide sign-out button
-            document.getElementById('sign-up-btn').style.display = 'block'; // Show sign-in button
-            document.getElementById('sign-in-btn').style.display = 'block'; // Show sign-in button
-            showAlert(result.message, 'success'); // Notify user of successful logout
+            sessionStorage.removeItem('user'); 
+            sessionStorage.removeItem('isLoggedIn'); 
+            document.getElementById('sign-out-btn').style.display = 'none'; 
+            document.getElementById('sign-up-btn').style.display = 'block'; 
+            document.getElementById('sign-in-btn').style.display = 'block'; 
+            showAlert(result.message, 'success'); 
         } else {
             // Handle HTTP error response
-            const errorData = await response.json(); // Parse the error message if available
+            const errorData = await response.json(); 
             console.error('Logout error:', errorData);
             showAlert('Logout failed. Please try again.', 'failure');
         }
@@ -319,23 +315,22 @@ document.getElementById('sign-out-btn').addEventListener('click', async () => {
     }
 });
 
-
-
-
+//dropdown change
 document.getElementById('dropdown').addEventListener('change', function() {
-    const selectedValue = this.value; // Get the selected option value
-    const inputField = document.getElementById('search-input'); // First input field
-    const searchInput1 = document.getElementById("search-input1"); // Second input field
+    const selectedValue = this.value; 
+    const inputField = document.getElementById('search-input'); 
+    const searchInput1 = document.getElementById("search-input1"); 
     
     // Reset fields initially
-    inputField.removeAttribute('disabled'); // Enable the input field
-    inputField.placeholder = ''; // Clear placeholder
-    inputField.type = 'text'; // Default to text type
-    searchInput1.hidden = true; // Hide second input
+    inputField.removeAttribute('disabled'); 
+    inputField.placeholder = ''; 
+    inputField.type = 'text'; 
+    searchInput1.hidden = true; 
     
     switch (selectedValue) {
         case 'all':
         inputField.setAttribute('disabled', 'true'); // Disable input for 'all'
+        fetchUsers('all');
         break;
         case 'id':
         inputField.placeholder = 'Search by Id';
@@ -352,6 +347,13 @@ document.getElementById('dropdown').addEventListener('change', function() {
         searchInput1.placeholder = 'Max Salary'; // Placeholder for Max Salary
         searchInput1.type = 'number'; // Change type to number for Max Salary
         searchInput1.hidden = false; // Show the Max Salary input
+        break;
+        case 'age':
+        inputField.placeholder = 'Min Age';
+        inputField.type = 'number';
+        searchInput1.placeholder = 'Max Age';
+        searchInput1.type = 'number';
+        searchInput1.hidden = false;
         break;
         case 'after':
         inputField.placeholder = 'Search by After the Id'; 
@@ -373,19 +375,11 @@ document.getElementById('dropdown').addEventListener('change', function() {
         inputField.disabled = true;
         fetchUsers('todayReg');
         break;
-        case 'age':
-        inputField.placeholder = 'Min Age';
-        inputField.type = 'number';
-        searchInput1.placeholder = 'Max Age';
-        searchInput1.type = 'number';
-        searchInput1.hidden = false;
-        break;
         
         default:
         inputField.placeholder = 'Select All';
     }
 });
-
 
 // Function to handle input changes for both salary fields
 async function handleInput() {
@@ -441,7 +435,7 @@ async function handleInput() {
     if (!response.ok) {
         const errorDetails = await response.json();
         showAlert(`Error: ${errorDetails.details}`, 'failure');
-        return; // Exit the function if the response is not OK
+        return; 
     }
     
     const results = await response.json();
@@ -450,18 +444,16 @@ async function handleInput() {
 
 // Function to handle fetching users based on selected option
 async function fetchUsers(type, searchValue = null) {
-    let bodyData = { searchType: type }; // Set the search type
+    let bodyData = { searchType: type }; 
     
-    // If searchValue is provided, include it in the bodyData
     if (searchValue) {
         bodyData.searchValue = searchValue;
     }
     
-    // Send the request to the same endpoint
     const response = await fetch(API_BASE_URL + '/autocomplete', {
-        method: 'POST', // Use POST for sending data
+        method: 'POST', 
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyData), // Send the body data
+        body: JSON.stringify(bodyData), 
     });
     
     if (!response.ok) {
@@ -474,13 +466,9 @@ async function fetchUsers(type, searchValue = null) {
     displayResults(results);
 }
 
-
-
 // Add event listeners to both input fields
 document.getElementById('search-input').addEventListener('input', handleInput);
 document.getElementById('search-input1').addEventListener('input', handleInput);
-
-
 
 function displayResults(results) {
     if(results){
@@ -488,11 +476,7 @@ function displayResults(results) {
     }
 }
 
-
-
-
 let rowToDelete; 
-
 // when the delete button is clicked, since it is not part of the DOM tree, we need to do it differently
 document.querySelector('table tbody').addEventListener('click', 
     function(event){
@@ -519,7 +503,7 @@ document.querySelector('table tbody').addEventListener('click',
             const age = event.target.dataset.age
             
             
-            showEditRowInterface(id, first_name, last_name, email, salary, age); // display the edit row interface
+            showEditRowInterface(id, first_name, last_name, email, salary, age); 
             
         }
     }
@@ -543,32 +527,29 @@ function deleteRowById(id,sessionUserid){
     .catch(error => console.log("Error: ", error));
 }
 
-
 let idToUpdate = 0;
-
+// update pop up
 function showEditRowInterface(id, first_name, last_name, email, salary, age) {
     
     debug("id clicked: ");
     debug(id);
     
     // Populate the input fields with the current row values
-    document.querySelector('#update-id-input').value = id; // Set the ID (read-only)
-    document.querySelector('#update-name-input').value = first_name + ' ' + last_name; // Set the name
-    document.querySelector('#update-email-input').value = email; // Set the email
-    document.querySelector('#update-salary-input').value = salary; // Set the salary
-    document.querySelector('#update-age-input').value = age; // Set the age
+    document.querySelector('#update-id-input').value = id; 
+    document.querySelector('#update-name-input').value = first_name + ' ' + last_name; 
+    document.querySelector('#update-email-input').value = email; 
+    document.querySelector('#update-salary-input').value = salary; 
+    document.querySelector('#update-age-input').value = age; 
     
     // Show the update modal
     const updateModal = document.querySelector('#update-row-modal');  
-    updateModal.style.display = "flex"; // or updateModal.hidden = false; to show the modal
+    updateModal.style.display = "flex"; 
     
     // Assign the id to the update button (if needed)
     idToUpdate = id;
     debug("id set!");
     debug(idToUpdate + "");
 }
-
-
 
 // when the update button on the update interface is clicked
 const updateBtn = document.querySelector('#update-row-btn');
@@ -637,7 +618,6 @@ updateBtn.onclick = function() {
     });
 }
 
-
 // this function is used for debugging only, and should be deleted afterwards
 function debug(data)
 {
@@ -649,7 +629,6 @@ function debug(data)
         body: JSON.stringify({debug: data})
     })
 }
-
 
 // Get modal elements
 const signUpModal = document.getElementById('sign-up-modal');
@@ -710,7 +689,6 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleSignInStatus(); // Update the UI based on sign-in status
 });
 
-// You might also want to include logic to set isSignedIn to true when the user logs in
 // Example when the user logs in successfully:
 const handleLogin = () => {
     // Assuming the login is successful, set the isLoggedIn flag

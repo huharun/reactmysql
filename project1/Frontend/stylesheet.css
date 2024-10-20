@@ -30,7 +30,6 @@ main {
     flex: 1; /* Allow main to take up the remaining space */
 }
 
-
 .project-title, .section-title {
     text-align: center; /* Center the text */
     margin: 15px 0; /* Add margin above and below the heading */
@@ -43,7 +42,6 @@ main {
     margin-left: auto; /* Center horizontally */
     margin-right: auto; /* Center horizontally */
 }
-
 
 header {
     position: relative; /* Set header to relative for absolute positioning of buttons */
@@ -69,7 +67,6 @@ header {
     color: #fff; /* White text color */
 }
 
-
 /* Footer styling */
 footer {
     position: relative;
@@ -85,6 +82,7 @@ footer {
     display: flex; /* Use flexbox */
     align-items: center; /* Align items vertically center */
     margin-bottom: 10px; /* Space between input sections */
+    margin-top: 20px; /* Space between input sections */
 }
 
 input[type="text"],
@@ -227,7 +225,6 @@ label {
     margin-top: 40px; /* Add some spacing above the buttons */
 }
 
-
 /* Optional: Fade-in animation */
 @keyframes fadeIn {
     from {
@@ -235,6 +232,26 @@ label {
     }
     to {
         opacity: 1; /* End fully visible */
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 400px) {
+    .custom-alert {
+        width: 90%; /* Make it responsive */
+        padding: 15px 20px; /* Adjust padding */
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
     }
 }
 
@@ -281,6 +298,11 @@ label {
     display: none; /* Start hidden */
 }
 
+.disabled {
+    pointer-events: none; /* Prevent interactions */
+    opacity: 0.5; /* Make it look disabled */
+}
+
 /* Close button styling */
 .close-btn {
     background: none; /* No background */
@@ -301,22 +323,13 @@ label {
     color: #ff0000; /* Change color to red on hover */
 }
 
-
-
-/* Responsive adjustments */
-@media (max-width: 400px) {
-    .custom-alert {
-        width: 90%; /* Make it responsive */
-        padding: 15px 20px; /* Adjust padding */
-    }
-}
-
 /* Guest Section Styles */
 #guest-section {
     background-color: #ffebee; /* Light red background for emphasis */
     color: #c62828; /* Dark red text color */
     text-align: center; /* Center-align text */
     margin-bottom: 10px;
+    animation: pulse 1.5s infinite; /* Pulsing effect */
 }
 
 .welcome-message {

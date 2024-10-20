@@ -20,12 +20,12 @@
       port: process.env.DB_PORT
    });
    
-   
+   // to see if the DB is connected or not
    connection.connect((err) => {
       if(err){
          console.log(err.message);
       }
-      console.log('db ' + connection.state);    // to see if the DB is connected or not
+      console.log('db ' + connection.state);    
    });
    
    // the following are database functions, 
@@ -34,6 +34,7 @@
          return instance? instance: new DbService();
       }
       
+      // getAll
       async getAllData(){
          try{
             // use await to call an asynchronous function
@@ -53,7 +54,6 @@
                });
             });
             
-            
             // console.log("dbServices.js: search result:");
             // console.log(response);  // for debugging to see the result of select
             return response;
@@ -63,6 +63,7 @@
          }
       }
       
+      // insert login data
       async insertLoginData(userId, loginTime, loginStatus, ipAddress) {
          return new Promise((resolve, reject) => {
             const insertQuery = `
@@ -81,24 +82,22 @@
             // First, perform the insert operation
             connection.query(insertQuery, insertValues, (err, insertResults) => {
                if (err) {
-                  return reject(err); // Reject the promise if an error occurs during insert
+                  return reject(err); 
                }
                
                // Then, perform the update operation
                connection.query(updateQuery, updateValues, (err, updateResults) => {
                   if (err) {
-                     return reject(err); // Reject the promise if an error occurs during update
+                     return reject(err);
                   }
                   
-                  resolve({ insertResults, updateResults }); // Resolve with results of both operations
+                  resolve({ insertResults, updateResults }); 
                });
             });
          });
       }
       
-      
-      
-      
+      //sign-up
       async insertNewName(firstName, lastName, email, password, salary, age, dob) {
          try {
             
@@ -135,7 +134,7 @@
                });
             });
             
-            console.log(insertId);  // Debugging: see the result of the insert
+            console.log(insertId);  
             return {
                id: insertId,
                firstName: firstName,
@@ -155,9 +154,9 @@
       // Function to get autocomplete results
       async getAutocompleteResults(searchValue, searchType, minSalary, maxSalary, minAge, maxAge) {
          return new Promise((resolve, reject) => {
-            const searchPattern = `%${searchValue}%`; // Define the search pattern
+            const searchPattern = `%${searchValue}%`; 
             let query;
-            let params = []; // Array to hold query parameters
+            let params = []; 
             
             // Base query with common condition
             const baseQuery = `
@@ -168,41 +167,39 @@
                LEFT JOIN users added ON u.added_by = added.id 
                LEFT JOIN users edited ON u.edited_by = edited.id 
                WHERE u.is_deleted = 0`;
-      
+            
             // Determine the search condition based on searchType
             switch (searchType) {
-               case 'salary':
-                  query = `${baseQuery} AND u.salary BETWEEN ? AND ?`; // Use 'u' for salary
-                  params = [minSalary, maxSalary];
-                  break;
-               case 'age':
-                  query = `${baseQuery} AND u.age BETWEEN ? AND ?`; // Use 'u' for age
-                  params = [minAge, maxAge];
-                  break;
                case 'name':
-                  query = `${baseQuery} AND (u.first_name LIKE ? OR u.last_name LIKE ?)`; // Use 'u' for name
-                  params = [searchPattern, searchPattern];
-                  break;
+               query = `${baseQuery} AND (u.first_name LIKE ? OR u.last_name LIKE ?)`; 
+               params = [searchPattern, searchPattern];
+               break;
+               case 'salary':
+               query = `${baseQuery} AND u.salary BETWEEN ? AND ?`; 
+               params = [minSalary, maxSalary];
+               break;
+               case 'age':
+               query = `${baseQuery} AND u.age BETWEEN ? AND ?`; 
+               params = [minAge, maxAge];
+               break;
                case 'after':
-                  query = `${baseQuery} AND (u.id > ?)`; // Specify the alias
-                  params = [searchValue];
-                  break;
+               query = `${baseQuery} AND (u.id > ?)`; 
+               params = [searchValue];
+               break;
                case 'never':
-                  query = `${baseQuery} AND u.id NOT IN (SELECT user_id FROM user_login)`; // Specify the alias
-                  // No params needed here
-                  break;
+               query = `${baseQuery} AND u.id NOT IN (SELECT user_id FROM user_login)`; 
+               break;
                case 'sameReg':
-                  query = `${baseQuery} AND DATE(u.registration_date) = (SELECT DATE(registration_date) FROM users WHERE id = ?)`; // Use 'u'
-                  params = [searchValue];
-                  break;
+               query = `${baseQuery} AND DATE(u.registration_date) = (SELECT DATE(registration_date) FROM users WHERE id = ?)`; 
+               params = [searchValue];
+               break;
                case 'todayReg':
-                  query = `${baseQuery} AND DATE(u.registration_date) = CURDATE()`; // Use 'u'
-                  // No params needed here
-                  break;
+               query = `${baseQuery} AND DATE(u.registration_date) = CURDATE()`; 
+               break;
                default:
-                  query = `${baseQuery} AND u.${searchType} LIKE ?`; // Use 'u'
-                  params = [searchPattern];
-                  break;
+               query = `${baseQuery} AND u.${searchType} LIKE ?`; 
+               params = [searchPattern];
+               break;
             }
             
             // Execute the query
@@ -217,9 +214,6 @@
          });
       }
       
-      
-      
-      
       // Function to get user by email
       async getUserByEmail(email) {
          return new Promise((resolve, reject) => {
@@ -230,7 +224,7 @@
                   reject(err);
                } else {
                   if (results.length > 0) {
-                     console.log(results[0]);  // Debugging: log the retrieved user
+                     console.log(results[0]);  
                      resolve(results[0]); // Return the first matching user
                   } else {
                      resolve(null); // If no user is found, resolve with null
@@ -240,29 +234,7 @@
          });
       }
       
-      
-      //    async searchByName(name){
-      //       try{
-      //          const dateAdded = new Date();
-      //          // use await to call an asynchronous function
-      //          const response = await new Promise((resolve, reject) => 
-         //             {
-      //             const query = "SELECT * FROM users where name = ?;";
-      //             connection.query(query, [name], (err, results) => {
-         //                if(err) reject(new Error(err.message));
-      //                else resolve(results);
-      //             });
-      //          }
-      //       );
-      
-      //       // console.log(response);  // for debugging to see the result of select
-      //       return response;
-      
-      //    }  catch(error){
-      //       console.log(error);
-      //    }
-      // }
-      
+      // update is_deleted to keep info
       async deleteRowById(id,sessionUserid){
          try{
             id = parseInt(id, 10);
@@ -278,7 +250,7 @@
             }
          );
          
-         console.log(response);  // for debugging to see the result of select
+         console.log(response);  
          return response === 1? true: false;
          
       }  catch(error){
@@ -286,39 +258,37 @@
       }
    }
    
-   
+   // update
    async updateNameById(id, first_name, last_name, email, salary, age, sessionUserid) {
       try {
-          console.log("dbService: ");
-          console.log(id, first_name, last_name, email, salary, age, sessionUserid);
-          
-          // Parse the ID to an integer
-          id = parseInt(id, 10);
-          sessionUserid = parseInt(sessionUserid, 10);
-          
-          const response = await new Promise((resolve, reject) => {
-              // Correctly using the database column names
-              const query = "UPDATE users SET first_name = ?, last_name = ?, email = ?, salary = ?, age = ?, edited_by = ? WHERE id = ?;";
-              console.log("Executing query:", query, [first_name, last_name, email, salary, age, sessionUserid, id]); // Log the query
-  
-              connection.query(query, [first_name, last_name, email, salary, age, sessionUserid, id], (err, result) => {
-                  if (err) {
-                      console.error("Database error:", err.message);
-                      return reject(new Error(err.message)); // Reject if there's an error
-                  }
-                  console.log("Rows affected:", result.affectedRows);
-                  resolve(result.affectedRows); // Resolve with the number of affected rows
-              });
-          });
-          
-          return response === 1; // Return true if one row was affected, otherwise false
+         console.log("dbService: ");
+         console.log(id, first_name, last_name, email, salary, age, sessionUserid);
+         
+         // Parse the ID to an integer
+         id = parseInt(id, 10);
+         sessionUserid = parseInt(sessionUserid, 10);
+         
+         const response = await new Promise((resolve, reject) => {
+            // Correctly using the database column names
+            const query = "UPDATE users SET first_name = ?, last_name = ?, email = ?, salary = ?, age = ?, edited_by = ? WHERE id = ?;";
+            console.log("Executing query:", query, [first_name, last_name, email, salary, age, sessionUserid, id]); // Log the query
+            
+            connection.query(query, [first_name, last_name, email, salary, age, sessionUserid, id], (err, result) => {
+               if (err) {
+                  console.error("Database error:", err.message);
+                  return reject(new Error(err.message)); 
+               }
+               console.log("Rows affected:", result.affectedRows);
+               resolve(result.affectedRows);
+            });
+         });
+         
+         return response === 1; 
       } catch (error) {
-          console.error("Caught error:", error.message);
-          throw error; // Re-throw the error for higher-level handling
+         console.error("Caught error:", error.message);
+         throw error; 
       }
-  }
-  
-   
+   }
    
 }
 
