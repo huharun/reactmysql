@@ -67,12 +67,12 @@ If you need to update the API URL in your frontend code, locate the index.js fil
    ```
 
 2. **Frontend Folder**  
-Next, set up a folder for your frontend. In this folder, include the following files:
-- `index.html`: This is your main HTML file for the frontend.
-- `index.js`: This file contains your frontend JavaScript logic.
-- `stylesheet.css`: This file holds all your styles to make everything look nice.
+   Next, set up a folder for your frontend. In this folder, include the following files:
+   - `index.html`: This is your main HTML file for the frontend.
+   - `index.js`: This file contains your frontend JavaScript logic.
+   - `stylesheet.css`: This file holds all your styles to make everything look nice.
 
-Your frontend folder structure should look like this:
+   Your frontend folder structure should look like this:
    ```bash
    frontend/
    ├── index.html
