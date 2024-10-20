@@ -44,11 +44,13 @@ If you need to update the API URL in your frontend code, locate the index.js fil
 ### **Installed Necessary Packages** (if needed)
 1. I began by installing Node.js and npm on my system. Then, I installed the following packages: **``npm install express mysql cors nodemon dotenv`**
 2. Make sure the scripts section of the Backend/package.json as follows:
+
    ```bash
     "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js"
   }, 
+
    ```
 
 ### **Setting Up the Environment**
