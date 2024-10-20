@@ -329,7 +329,9 @@ document.getElementById('dropdown').addEventListener('change', function() {
     
     switch (selectedValue) {
         case 'all':
-        inputField.setAttribute('disabled', 'true'); // Disable input for 'all'
+        inputField.disabled = true;
+        inputField.placeholder = 'Showing All';
+        inputField.value = '';
         fetchUsers('all');
         break;
         case 'id':
@@ -361,8 +363,8 @@ document.getElementById('dropdown').addEventListener('change', function() {
         break;
         case 'never':
         inputField.placeholder = 'Users never Signed In'; 
-        inputField.type = 'number'; 
         inputField.disabled = true;
+        inputField.value = '';
         fetchUsers('never');
         break;
         case 'sameReg':
@@ -371,8 +373,8 @@ document.getElementById('dropdown').addEventListener('change', function() {
         break;
         case 'todayReg':
         inputField.placeholder = 'Users Registered on Today'; 
-        inputField.type = 'number'; 
         inputField.disabled = true;
+        inputField.value = '';
         fetchUsers('todayReg');
         break;
         

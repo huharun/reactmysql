@@ -171,12 +171,13 @@
             // Determine the search condition based on searchType
             switch (searchType) {
                case 'name':
-               query = `${baseQuery} AND (u.first_name LIKE ? OR u.last_name LIKE ?)`; 
-               params = [searchPattern, searchPattern];
+               query = `${baseQuery} AND ((u.first_name LIKE ?) OR (u.last_name LIKE ?) OR (u.first_name LIKE CONCAT('%', SUBSTRING_INDEX(?, ' ', 1), '%') 
+         AND u.last_name LIKE CONCAT('%', SUBSTRING_INDEX(?, ' ', -1), '%')))`; 
+               params = [searchPattern, searchPattern, searchPattern, searchPattern];
                break;
                case 'salary':
-               query = `${baseQuery} AND u.salary BETWEEN ? AND ?`; 
-               params = [minSalary, maxSalary];
+               query = `${baseQuery} AND (u.salary BETWEEN ? AND ?)`; 
+               params = [minSalary, maxSalary, minSalary, maxSalary];
                break;
                case 'age':
                query = `${baseQuery} AND u.age BETWEEN ? AND ?`; 
@@ -195,6 +196,9 @@
                break;
                case 'todayReg':
                query = `${baseQuery} AND DATE(u.registration_date) = CURDATE()`; 
+               break;
+               case 'all':
+               query = `${baseQuery}`; 
                break;
                default:
                query = `${baseQuery} AND u.${searchType} LIKE ?`; 
