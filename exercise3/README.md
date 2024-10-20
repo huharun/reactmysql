@@ -123,7 +123,7 @@ To clone the repository and get the project up and running, follow these steps:
 
 # **Tasks Completed**
 
-### **Installed Necessary Packages**
+### **Installed Necessary Packages**(if needed)
 I began by installing Node.js and npm on my system. Then, I installed the following packages:
 - **Express** for creating the server.
 - **MySQL** for database interaction.

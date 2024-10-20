@@ -60,11 +60,9 @@ If you need to update the API URL in your frontend code, locate the index.js fil
 
    Your backend folder structure should look like this:
 
-   ```bash
 backend/
 ├── app.js
 └── dbService.js
-   ```
 
 2. **Frontend Folder**  
 Next, set up a folder for your frontend. In this folder, include the following files:
@@ -74,12 +72,10 @@ Next, set up a folder for your frontend. In this folder, include the following f
 
 Your frontend folder structure should look like this:
 
-   ```bash
 frontend/
 ├── index.html
 ├── index.js
 └── stylesheet.css
-   ```
 
  
 
