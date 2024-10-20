@@ -6,7 +6,6 @@ const LOCAL_API_BASE_URL = 'http://localhost:5050';
 // const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
 const PUBLIC_API_BASE_URL = 'http://35.16.20.72:5050';
 
-
 // Choose the API base URL based on the environment
 const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_URL : PUBLIC_API_BASE_URL;
 // alert(window.location.hostname)
@@ -42,21 +41,44 @@ function closeAlert() {
     const pageContent = document.getElementById('page-content'); // Get the page content
     alertBox.classList.remove('show'); // Hide the alert
     alertBox.classList.add('hidden'); // Add hidden class
-    pageContent.classList.remove('blur'); // Remove blur from the page content
     
     // Reset styles to default after closing
     alertBox.classList.remove('alert-success', 'alert-failure'); // Remove classes
 }
 
-// fetch call is to call the backend
-document.addEventListener('DOMContentLoaded', function() {
-    fetch(API_BASE_URL+'/getAll')     
-    .then(response => response.json())
-    .then(data => loadHTMLTable(data['data']));
+document.addEventListener('DOMContentLoaded', () => {
+    const togglePasswordVisibility = (inputId, iconElement) => {
+        const passwordInput = document.getElementById(inputId);
+        passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
+        iconElement.textContent = passwordInput.type === 'text' ? '🙈' : '👁️';
+    };
+    
+    // Event listeners for toggle icons
+    ['toggle-signup-password', 'toggle-signin-password'].forEach(id => {
+        document.getElementById(id).addEventListener('click', function () {
+            togglePasswordVisibility(id === 'toggle-signup-password' ? 'signup-password' : 'signin-password', this);
+        });
+    });
 });
 
-//sign-out hidden
-document.getElementById('sign-out-btn').style.display = 'none';
+
+document.addEventListener('DOMContentLoaded', function() {
+    fetch(API_BASE_URL + '/getAll', {
+        method: 'GET',
+        credentials: 'include' // Include credentials (cookies) in the request
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok ' + response.statusText);
+        }
+        return response.json();
+    })
+    .then(data => loadHTMLTable(data['data']))
+    .catch(error => console.error('Failed to fetch data:', error));
+});
+
+
+
 
 //listing all data in the table
 function loadHTMLTable(data){
@@ -196,6 +218,8 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         });
         
         const result = await response.json();
+        // alert(JSON.stringify(result));return
+        
         if (response.ok) {
             showAlert('Sign up successful!', 'success'); // Notify user of success
             // Optionally close the modal
@@ -219,81 +243,84 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
     // Hash the password
     const hashedPassword = await hashPassword(password);
     
-    
     // Add validation
     if (!email || !password) {
         showAlert('Please fill in all required fields.', 'failure');
         return;
     }
     
-    // // Email format validation
-    // const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
-    // if (!email.match(emailPattern)) {
-    //     showAlert('Please enter a valid email address.', 'failure');
-    //     return;
-    // }
-    
     // Send login request to backend
     try {
         const response = await fetch(API_BASE_URL + '/signin', {
             method: 'POST',
+            credentials: 'include', 
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ email, hashedPassword }) // Send email and plain password
+            body: JSON.stringify({ email, hashedPassword }) // Send email and hashed password
         });
         
+        console.log('Response:', response); // Debugging line
+        
         const result = await response.json();
-        // alert(JSON.stringify(result, null, 2));
         
         if (response.ok) {
-            showAlert('Sign in successful!', 'success'); // Notify user of success
+            isSignedIn = true; // Set the sign-in status to true
+            // showAlert('Sign in successful!', 'success'); // Notify user of success
+            
+            // Store user data in session storage
+            sessionStorage.setItem('user', JSON.stringify(result.user)); // Save user data
             
             document.getElementById('sign-in-modal').style.display = 'none';
             document.getElementById('sign-up-btn').style.display = 'none';
             document.getElementById('sign-in-btn').style.display = 'none';
             document.getElementById('sign-out-btn').style.display = 'block';
-            
-            // Optionally, redirect to another page or perform further actions
+            toggleSignInStatus(); // Update sign-in status UI
         } else {
             showAlert('Sign in failed: ' + result.error, 'failure');
         }
     } catch (error) {
-        console.error('%cError during sign in:', 'color: red; font-weight: bold;', error);
+        console.error('Error during sign in:', error);
         showAlert("An error occurred during sign in. Please try again.", "failure");
-        
     }
 });
 
-// // when the addBtn is clicked
-// const addBtn = document.querySelector('#add-name-btn');
-// addBtn.onclick = function (){
-//     const nameInput = document.querySelector('#name-input');
-//     const name = nameInput.value;
-//     nameInput.value = "";
 
-//     fetch('http://localhost:5050/insert', {
-//         headers: {
-//             'Content-type': 'application/json'
-//         },
-//         method: 'POST',
-//         body: JSON.stringify({name: name})
-//     })
-//     .then(response => response.json())
-//     .then(data => insertRowIntoTable(data['data']));
-// }
+document.getElementById('sign-out-btn').addEventListener('click', async () => {
+    try {
+        const response = await fetch(API_BASE_URL + '/logout', {
+            method: 'POST',
+            credentials: 'include', // Ensure cookies are sent
+        });
+        
+        // Debugging: Log the response to see what's being returned
+        console.log('Logout response:', response);
+        
+        if (response.ok) {
+            const result = await response.json(); // Parse the response data
+            console.log(result); // Log the response data
+            
+            // Handle successful logout
+            sessionStorage.removeItem('user'); // Clear user data
+            sessionStorage.removeItem('isLoggedIn'); // Clear login status
+            document.getElementById('sign-out-btn').style.display = 'none'; // Hide sign-out button
+            document.getElementById('sign-up-btn').style.display = 'block'; // Show sign-in button
+            document.getElementById('sign-in-btn').style.display = 'block'; // Show sign-in button
+            showAlert(result.message, 'success'); // Notify user of successful logout
+        } else {
+            // Handle HTTP error response
+            const errorData = await response.json(); // Parse the error message if available
+            console.error('Logout error:', errorData);
+            showAlert('Logout failed. Please try again.', 'failure');
+        }
+    } catch (error) {
+        console.error('Error during logout:', error);
+        showAlert("An error occurred during logout. Please try again.", "failure");
+    }
+});
 
-// when the searchBtn is clicked
-// const searchBtn =  document.querySelector('#search-btn');
-// searchBtn.onclick = function (){
-//     const searchInput = document.querySelector('#search-input');
-//     const searchValue = searchInput.value;
-//     searchInput.value = "";
 
-//     fetch(API_BASE_URL+'/search/' + searchValue)
-//     .then(response => response.json())
-//     .then(data => loadHTMLTable(data['data']));
-// }
+
 
 document.getElementById('dropdown').addEventListener('change', function() {
     const selectedValue = this.value; // Get the selected option value
@@ -310,13 +337,6 @@ document.getElementById('dropdown').addEventListener('change', function() {
         case 'all':
         inputField.setAttribute('disabled', 'true'); // Disable input for 'all'
         break;
-        case 'salary':
-        inputField.placeholder = 'Min Salary'; // Placeholder for Min Salary
-        inputField.type = 'number'; // Change type to number for Min Salary
-        searchInput1.placeholder = 'Max Salary'; // Placeholder for Max Salary
-        searchInput1.type = 'number'; // Change type to number for Max Salary
-        searchInput1.hidden = false; // Show the Max Salary input
-        break;
         case 'id':
         inputField.placeholder = 'Search by Id';
         break;
@@ -325,6 +345,33 @@ document.getElementById('dropdown').addEventListener('change', function() {
         break;
         case 'email':
         inputField.placeholder = 'Search by Email'; 
+        break;
+        case 'salary':
+        inputField.placeholder = 'Min Salary'; // Placeholder for Min Salary
+        inputField.type = 'number'; // Change type to number for Min Salary
+        searchInput1.placeholder = 'Max Salary'; // Placeholder for Max Salary
+        searchInput1.type = 'number'; // Change type to number for Max Salary
+        searchInput1.hidden = false; // Show the Max Salary input
+        break;
+        case 'after':
+        inputField.placeholder = 'Search by After the Id'; 
+        inputField.type = 'number';
+        break;
+        case 'never':
+        inputField.placeholder = 'Users never Signed In'; 
+        inputField.type = 'number'; 
+        inputField.disabled = true;
+        fetchUsers('never');
+        break;
+        case 'sameReg':
+        inputField.placeholder = 'Users Registered on Same Day'; 
+        inputField.type = 'number'; 
+        break;
+        case 'todayReg':
+        inputField.placeholder = 'Users Registered on Today'; 
+        inputField.type = 'number'; 
+        inputField.disabled = true;
+        fetchUsers('todayReg');
         break;
         case 'age':
         inputField.placeholder = 'Min Age';
@@ -341,7 +388,7 @@ document.getElementById('dropdown').addEventListener('change', function() {
 
 
 // Function to handle input changes for both salary fields
-async function handleSalaryInput() {
+async function handleInput() {
     const searchInput = document.getElementById('search-input').value;
     const searchInput1 = document.getElementById('search-input1').value;
     const dropdown = document.getElementById('dropdown');
@@ -401,10 +448,37 @@ async function handleSalaryInput() {
     displayResults(results);
 }
 
+// Function to handle fetching users based on selected option
+async function fetchUsers(type, searchValue = null) {
+    let bodyData = { searchType: type }; // Set the search type
+    
+    // If searchValue is provided, include it in the bodyData
+    if (searchValue) {
+        bodyData.searchValue = searchValue;
+    }
+    
+    // Send the request to the same endpoint
+    const response = await fetch(API_BASE_URL + '/autocomplete', {
+        method: 'POST', // Use POST for sending data
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData), // Send the body data
+    });
+    
+    if (!response.ok) {
+        const errorDetails = await response.json();
+        showAlert(`Error: ${errorDetails.details}`, 'failure');
+        return;
+    }
+    
+    const results = await response.json();
+    displayResults(results);
+}
+
+
 
 // Add event listeners to both input fields
-document.getElementById('search-input').addEventListener('input', handleSalaryInput);
-document.getElementById('search-input1').addEventListener('input', handleSalaryInput);
+document.getElementById('search-input').addEventListener('input', handleInput);
+document.getElementById('search-input1').addEventListener('input', handleInput);
 
 
 
@@ -422,11 +496,15 @@ let rowToDelete;
 // when the delete button is clicked, since it is not part of the DOM tree, we need to do it differently
 document.querySelector('table tbody').addEventListener('click', 
     function(event){
+        const userData = sessionStorage.getItem('user');
+        const sessionUserid = JSON.parse(userData);
+        
+        
         if(event.target.className === "delete-row-btn"){
             // alert(event.target.dataset.id);return
             
             const id = event.target.dataset.id
-            deleteRowById(id);   
+            deleteRowById(id,sessionUserid.id);   
             rowToDelete = event.target.parentNode.parentNode.rowIndex;    
             debug("delete which one:");
             debug(rowToDelete);
@@ -448,9 +526,9 @@ document.querySelector('table tbody').addEventListener('click',
 );
 
 //not exactly deleting
-function deleteRowById(id){
+function deleteRowById(id,sessionUserid){
     debug(id);
-    fetch(API_BASE_URL + '/delete/' + id, { 
+    fetch(API_BASE_URL + '/delete/' + id + '/' + sessionUserid, { 
         method: 'DELETE'
     })
     .then(response => response.json())
@@ -505,6 +583,9 @@ updateBtn.onclick = function() {
     const updatedEmailInput = document.querySelector('#update-email-input');
     const updatedSalaryInput = document.querySelector('#update-salary-input');
     const updatedAgeInput = document.querySelector('#update-age-input');
+    const userData = sessionStorage.getItem('user');
+    const sessionUserid = JSON.parse(userData);
+    
     
     // Check for empty fields (optional)
     if (!updatedNameInput.value || !updatedEmailInput.value || !updatedSalaryInput.value || !updatedAgeInput.value) {
@@ -520,6 +601,10 @@ updateBtn.onclick = function() {
         return;
     }
     
+    const nameParts = updatedNameInput.value.split(" ");
+    const first_name = nameParts[0];
+    const last_name = nameParts[1] || ""; // Handle case if no last name is provided
+    
     fetch(API_BASE_URL + '/update', {
         headers: {
             'Content-type': 'application/json'
@@ -527,10 +612,12 @@ updateBtn.onclick = function() {
         method: 'PATCH',
         body: JSON.stringify({
             id: idToUpdate,
-            name: updatedNameInput.value,
+            first_name: first_name,
+            last_name: last_name,
             email: updatedEmailInput.value,
             salary: updatedSalaryInput.value,
-            age: updatedAgeInput.value
+            age: updatedAgeInput.value,
+            sessionUserid: sessionUserid.id
         })
     })
     .then(response => response.json())
@@ -564,50 +651,6 @@ function debug(data)
 }
 
 
-// function insertRowIntoTable(data){
-
-//     debug("index.js: insertRowIntoTable called: ");
-//     debug(data);
-
-//     const table = document.querySelector('table tbody');
-//     debug(table);
-
-//     const isTableData = table.querySelector('.no-data');
-
-//     // debug(isTableData);
-
-//     let tableHtml = "<tr>";
-
-//     for(var key in data){ // iterating over the each property key of an object data
-//         if(data.hasOwnProperty(key)){   // key is a direct property for data
-//             if(key === 'dateAdded'){  // the property is 'dataAdded'
-//                 data[key] = new Date(data[key]).toLocaleString(); // format to javascript string
-//             }
-//             tableHtml += `<td>${data[key]}</td>`;
-//         }
-//     }
-
-//     tableHtml +=`<td><button class="delete-row-btn" data-id=${data.id}>Delete</td>`;
-//     tableHtml += `<td><button class="edit-row-btn" data-id=${data.id}>Edit</td>`;
-
-//     tableHtml += "</tr>";
-
-//     if(isTableData){
-//         debug("case 1");
-//         table.innerHTML = tableHtml;
-//     }
-//     else {
-//         debug("case 2");
-//         // debug(tableHtml);
-
-//         const newrow = table.insertRow();
-//         newrow.innerHTML = tableHtml;
-//     }
-// }
-
-
-
-//for pop-ups
 // Get modal elements
 const signUpModal = document.getElementById('sign-up-modal');
 const signInModal = document.getElementById('sign-in-modal');
@@ -615,44 +658,64 @@ const closeSignUp = document.getElementById('close-sign-up');
 const closeSignIn = document.getElementById('close-sign-in');
 const signUpBtn = document.getElementById('sign-up-btn');
 const signInBtn = document.getElementById('sign-in-btn');
+const signOutBtn = document.getElementById('sign-out-btn');
 const updateModal = document.getElementById('update-row-modal');
 const closeUpdateRow = document.getElementById('close-update-row');
 
+// Elements for sign-in status
+const signedInSection = document.getElementById('signed-in-section');
+const guestSection = document.getElementById('guest-section');
 
-//close for update
-closeUpdateRow.onclick = function() {
-    updateModal.style.display = "none"; 
-}
+// Track sign-in status
+let isSignedIn = false;
 
-// Open the sign-up modal
-signUpBtn.onclick = function() {
-    signUpModal.style.display = "flex"; 
-}
+// Function to close modals
+const closeModal = (modal) => {
+    modal.style.display = "none";
+};
 
-// Open the sign-in modal
-signInBtn.onclick = function() {
-    signInModal.style.display = "flex"; 
-}
-
-// Close the sign-up modal
-closeSignUp.onclick = function() {
-    signUpModal.style.display = "none";
-}
-
-// Close the sign-in modal
-closeSignIn.onclick = function() {
-    signInModal.style.display = "none";
-}
+// Event listeners for modal buttons
+closeUpdateRow.addEventListener('click', () => closeModal(updateModal));
+signUpBtn.addEventListener('click', () => signUpModal.style.display = "flex");
+signInBtn.addEventListener('click', () => signInModal.style.display = "flex");
+closeSignUp.addEventListener('click', () => closeModal(signUpModal));
+closeSignIn.addEventListener('click', () => closeModal(signInModal));
 
 // Close modal when clicking outside of the modal content
-window.onclick = function(event) {
-    if (event.target === signUpModal) {
-        signUpModal.style.display = "none";
+window.addEventListener('click', (event) => {
+    if (event.target === signUpModal) closeModal(signUpModal);
+    if (event.target === signInModal) closeModal(signInModal);
+    if (event.target === updateModal) closeModal(updateModal);
+});
+
+// Function to toggle sign-in status
+const toggleSignInStatus = () => {
+    const welcomeMessage = document.getElementById('welcome-message');
+    signInBtn.style.display = isSignedIn ? 'none' : 'inline';
+    signOutBtn.style.display = isSignedIn ? 'inline' : 'none';
+    signedInSection.classList.toggle('disabled', !isSignedIn);
+    guestSection.style.display = isSignedIn ? 'none' : 'block';
+    welcomeMessage.hidden = !isSignedIn;
+    
+    if (isSignedIn) {
+        setTimeout(() => {
+            welcomeMessage.hidden = true; // Hide the welcome message after 5 seconds
+        }, 5000);
     }
-    if (event.target === signInModal) {
-        signInModal.style.display = "none";
-    }
-    if (event.target === updateModal) {
-        updateModal.style.display = "none";
-    }
-}
+};
+
+// Initial setup
+document.addEventListener('DOMContentLoaded', () => {
+    isSignedIn = !!localStorage.getItem('isLoggedIn'); // Check login status using localStorage
+    toggleSignInStatus(); // Update the UI based on sign-in status
+});
+
+// You might also want to include logic to set isSignedIn to true when the user logs in
+// Example when the user logs in successfully:
+const handleLogin = () => {
+    // Assuming the login is successful, set the isLoggedIn flag
+    localStorage.setItem('isLoggedIn', 'true'); // Store login status
+    isSignedIn = true; // Update the sign-in status
+    toggleSignInStatus(); // Update UI
+};
+

@@ -1,303 +1,325 @@
-// database services, accessbile by DbService methods.
-
-const mysql = require('mysql');
-const dotenv = require('dotenv');
-dotenv.config(); // read from .env file
-
-let instance = null; 
-
-/* for debugging
-console.log(process.env.HOST);
-console.log(process.env.USER);
-console.log(process.env.PASSWORD);
-*/
-
-const connection = mysql.createConnection({
-   host: process.env.HOST,
-   user: process.env.USER,        
-   password: process.env.PASSWORD,
-   database: process.env.DATABASE,
-   port: process.env.DB_PORT
-});
-
-
-connection.connect((err) => {
-   if(err){
-      console.log(err.message);
-   }
-   console.log('db ' + connection.state);    // to see if the DB is connected or not
-});
-
-// the following are database functions, 
-class DbService{
-   static getDbServiceInstance(){ // only one instance is sufficient
-      return instance? instance: new DbService();
-   }
+   // database services, accessbile by DbService methods.
    
-   async getAllData(){
-      try{
-         // use await to call an asynchronous function
-         const response = await new Promise((resolve, reject) => {
-            const query = `
-                SELECT 
-                    id, 
-                    first_name, 
-                    last_name, 
-                    email, 
-                    salary, 
-                    age, 
-                    registration_date, 
-                    last_sign_in, 
-                    (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = added_by) AS added_by,
-                    (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = edited_by) AS edited_by
-                FROM 
-                    users 
-                WHERE 
-                    is_deleted = 0;`;
+   const mysql = require('mysql');
+   const dotenv = require('dotenv');
+   dotenv.config(); // read from .env file
+   
+   let instance = null; 
+   
+   /* for debugging
+   console.log(process.env.HOST);
+   console.log(process.env.USER);
+   console.log(process.env.PASSWORD);
+   */
+   
+   const connection = mysql.createConnection({
+      host: process.env.HOST,
+      user: process.env.USER,        
+      password: process.env.PASSWORD,
+      database: process.env.DATABASE,
+      port: process.env.DB_PORT
+   });
+   
+   
+   connection.connect((err) => {
+      if(err){
+         console.log(err.message);
+      }
+      console.log('db ' + connection.state);    // to see if the DB is connected or not
+   });
+   
+   // the following are database functions, 
+   class DbService{
+      static getDbServiceInstance(){ // only one instance is sufficient
+         return instance? instance: new DbService();
+      }
+      
+      async getAllData(){
+         try{
+            // use await to call an asynchronous function
+            const response = await new Promise((resolve, reject) => {
+               const query = `
+                  SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+                  CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+                  CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+                  FROM users u 
+                  LEFT JOIN users added ON u.added_by = added.id 
+                  LEFT JOIN users edited ON u.edited_by = edited.id 
+                  WHERE u.is_deleted = 0;`;
+               
+               connection.query(query, (err, results) => {
+                  if (err) reject(new Error(err.message));
+                  else resolve(results);
+               });
+            });
             
-            connection.query(query, (err, results) => {
-               if (err) reject(new Error(err.message));
-               else resolve(results);
+            
+            // console.log("dbServices.js: search result:");
+            // console.log(response);  // for debugging to see the result of select
+            return response;
+            
+         }  catch(error){
+            console.log(error);
+         }
+      }
+      
+      async insertLoginData(userId, loginTime, loginStatus, ipAddress) {
+         return new Promise((resolve, reject) => {
+            const insertQuery = `
+                 INSERT INTO user_login (user_id, login_time, status, ip_address) 
+                 VALUES (?, ?, ?, ?);
+             `;
+            const updateQuery = `
+                 UPDATE users 
+                 SET last_sign_in = ? 
+                 WHERE id = ?;
+             `;
+            
+            const insertValues = [userId, loginTime, loginStatus, ipAddress];
+            const updateValues = [loginTime, userId];
+            
+            // First, perform the insert operation
+            connection.query(insertQuery, insertValues, (err, insertResults) => {
+               if (err) {
+                  return reject(err); // Reject the promise if an error occurs during insert
+               }
+               
+               // Then, perform the update operation
+               connection.query(updateQuery, updateValues, (err, updateResults) => {
+                  if (err) {
+                     return reject(err); // Reject the promise if an error occurs during update
+                  }
+                  
+                  resolve({ insertResults, updateResults }); // Resolve with results of both operations
+               });
             });
          });
+      }
+      
+      
+      
+      
+      async insertNewName(firstName, lastName, email, password, salary, age, dob) {
+         try {
+            
+            // Check if email already exists
+            const emailExists = await new Promise((resolve, reject) => {
+               const query = "SELECT COUNT(*) AS count FROM `users` WHERE `email` = ?;";
+               connection.query(query, [email], (err, result) => {
+                  if (err) {
+                     reject(new Error(err.message));
+                  } else {
+                     resolve(result[0].count > 0); // Resolve with true if email exists
+                  }
+               });
+            });
+            
+            if (emailExists) {
+               throw new Error("Email already exists."); // Throw an error if email is found
+            }
+            
+            const registrationDate = new Date().toISOString();
+            const lastSignIn = new Date().toISOString();
+            const addedBy = 1;
+            const editedBy = 1;
+            const isDeleted = 0;
+            
+            const insertId = await new Promise((resolve, reject) => {
+               const query = "INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `salary`, `age`, `dob`, `registration_date`, `last_sign_in`, `added_by`, `edited_by`, `is_deleted`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+               connection.query(query, [firstName, lastName, email, password, salary, age, dob, registrationDate, lastSignIn, addedBy, editedBy, isDeleted], (err, result) => {
+                  if (err) {
+                     reject(new Error(err.message));
+                  } else {
+                     resolve(result.insertId);
+                  }
+               });
+            });
+            
+            console.log(insertId);  // Debugging: see the result of the insert
+            return {
+               id: insertId,
+               firstName: firstName,
+               lastName: lastName,
+               email: email,
+               salary: salary,
+               age: age,
+               dob: dob,
+               dateAdded: registrationDate
+            };     
+         } catch (error) {
+            console.error("Error inserting new name:", error);
+            throw error; // Rethrow the error for caller to handle
+         }
+      }
+      
+      // Function to get autocomplete results
+      async getAutocompleteResults(searchValue, searchType, minSalary, maxSalary, minAge, maxAge) {
+         return new Promise((resolve, reject) => {
+            const searchPattern = `%${searchValue}%`; // Define the search pattern
+            let query;
+            let params = []; // Array to hold query parameters
+            
+            // Base query with common condition
+            const baseQuery = `
+               SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+                  CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+                  CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+               FROM users u 
+               LEFT JOIN users added ON u.added_by = added.id 
+               LEFT JOIN users edited ON u.edited_by = edited.id 
+               WHERE u.is_deleted = 0`;
+      
+            // Determine the search condition based on searchType
+            switch (searchType) {
+               case 'salary':
+                  query = `${baseQuery} AND u.salary BETWEEN ? AND ?`; // Use 'u' for salary
+                  params = [minSalary, maxSalary];
+                  break;
+               case 'age':
+                  query = `${baseQuery} AND u.age BETWEEN ? AND ?`; // Use 'u' for age
+                  params = [minAge, maxAge];
+                  break;
+               case 'name':
+                  query = `${baseQuery} AND (u.first_name LIKE ? OR u.last_name LIKE ?)`; // Use 'u' for name
+                  params = [searchPattern, searchPattern];
+                  break;
+               case 'after':
+                  query = `${baseQuery} AND (u.id > ?)`; // Specify the alias
+                  params = [searchValue];
+                  break;
+               case 'never':
+                  query = `${baseQuery} AND u.id NOT IN (SELECT user_id FROM user_login)`; // Specify the alias
+                  // No params needed here
+                  break;
+               case 'sameReg':
+                  query = `${baseQuery} AND DATE(u.registration_date) = (SELECT DATE(registration_date) FROM users WHERE id = ?)`; // Use 'u'
+                  params = [searchValue];
+                  break;
+               case 'todayReg':
+                  query = `${baseQuery} AND DATE(u.registration_date) = CURDATE()`; // Use 'u'
+                  // No params needed here
+                  break;
+               default:
+                  query = `${baseQuery} AND u.${searchType} LIKE ?`; // Use 'u'
+                  params = [searchPattern];
+                  break;
+            }
+            
+            // Execute the query
+            connection.query(query, params, (error, results) => {
+               if (error) {
+                  console.error("Query error:", error); // Log the specific error
+                  reject(new Error(error.message));
+               } else {
+                  resolve(results);
+               }
+            });
+         });
+      }
+      
+      
+      
+      
+      // Function to get user by email
+      async getUserByEmail(email) {
+         return new Promise((resolve, reject) => {
+            const query = "SELECT * FROM `users` WHERE `email` = ?;";
+            
+            connection.query(query, [email], (err, results) => {
+               if (err) {
+                  reject(err);
+               } else {
+                  if (results.length > 0) {
+                     console.log(results[0]);  // Debugging: log the retrieved user
+                     resolve(results[0]); // Return the first matching user
+                  } else {
+                     resolve(null); // If no user is found, resolve with null
+                  }
+               }
+            });
+         });
+      }
+      
+      
+      //    async searchByName(name){
+      //       try{
+      //          const dateAdded = new Date();
+      //          // use await to call an asynchronous function
+      //          const response = await new Promise((resolve, reject) => 
+         //             {
+      //             const query = "SELECT * FROM users where name = ?;";
+      //             connection.query(query, [name], (err, results) => {
+         //                if(err) reject(new Error(err.message));
+      //                else resolve(results);
+      //             });
+      //          }
+      //       );
+      
+      //       // console.log(response);  // for debugging to see the result of select
+      //       return response;
+      
+      //    }  catch(error){
+      //       console.log(error);
+      //    }
+      // }
+      
+      async deleteRowById(id,sessionUserid){
+         try{
+            id = parseInt(id, 10);
+            sessionUserid = parseInt(sessionUserid, 10);
+            // use await to call an asynchronous function
+            const response = await new Promise((resolve, reject) => 
+               {
+               const query = "UPDATE users Set is_deleted = 1, edited_by = ? WHERE id = ?;";
+               connection.query(query, [sessionUserid,id], (err, result) => {
+                  if(err) reject(new Error(err.message));
+                  else resolve(result.affectedRows);
+               });
+            }
+         );
          
-         
-         // console.log("dbServices.js: search result:");
-         // console.log(response);  // for debugging to see the result of select
-         return response;
+         console.log(response);  // for debugging to see the result of select
+         return response === 1? true: false;
          
       }  catch(error){
          console.log(error);
       }
    }
    
-   async insertLoginData(userId, loginTime, loginStatus, ipAddress) {
-      return new Promise((resolve, reject) => {
-         const query = `
-              INSERT INTO user_login (user_id, login_time, status, ip_address) 
-              VALUES (?, ?, ?, ?);
-          `;
-         const values = [userId, loginTime, loginStatus, ipAddress];
-         
-         connection.query(query, values, (err, results) => {
-            if (err) {
-               reject(err); // Reject the promise if an error occurs
-            } else {
-               resolve(results); // Resolve with the results of the insert operation
-            }
-         });
-      });
-   }
    
-   
-   
-   
-   
-   
-   async insertNewName(firstName, lastName, email, password, salary, age, dob) {
+   async updateNameById(id, first_name, last_name, email, salary, age, sessionUserid) {
       try {
-         
-         // Check if email already exists
-         const emailExists = await new Promise((resolve, reject) => {
-            const query = "SELECT COUNT(*) AS count FROM `users` WHERE `email` = ?;";
-            connection.query(query, [email], (err, result) => {
-               if (err) {
-                  reject(new Error(err.message));
-               } else {
-                  resolve(result[0].count > 0); // Resolve with true if email exists
-               }
-            });
-         });
-         
-         if (emailExists) {
-            throw new Error("Email already exists."); // Throw an error if email is found
-         }
-         
-         const registrationDate = new Date().toISOString();
-         const lastSignIn = new Date().toISOString();
-         const addedBy = 1;
-         const editedBy = 1;
-         const isDeleted = 0;
-         
-         const insertId = await new Promise((resolve, reject) => {
-            const query = "INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `salary`, `age`, `dob`, `registration_date`, `last_sign_in`, `added_by`, `edited_by`, `is_deleted`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-            connection.query(query, [firstName, lastName, email, password, salary, age, dob, registrationDate, lastSignIn, addedBy, editedBy, isDeleted], (err, result) => {
-               if (err) {
-                  reject(new Error(err.message));
-               } else {
-                  resolve(result.insertId);
-               }
-            });
-         });
-         
-         console.log(insertId);  // Debugging: see the result of the insert
-         return {
-            id: insertId,
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            salary: salary,
-            age: age,
-            dob: dob,
-            dateAdded: registrationDate
-         };     
+          console.log("dbService: ");
+          console.log(id, first_name, last_name, email, salary, age, sessionUserid);
+          
+          // Parse the ID to an integer
+          id = parseInt(id, 10);
+          sessionUserid = parseInt(sessionUserid, 10);
+          
+          const response = await new Promise((resolve, reject) => {
+              // Correctly using the database column names
+              const query = "UPDATE users SET first_name = ?, last_name = ?, email = ?, salary = ?, age = ?, edited_by = ? WHERE id = ?;";
+              console.log("Executing query:", query, [first_name, last_name, email, salary, age, sessionUserid, id]); // Log the query
+  
+              connection.query(query, [first_name, last_name, email, salary, age, sessionUserid, id], (err, result) => {
+                  if (err) {
+                      console.error("Database error:", err.message);
+                      return reject(new Error(err.message)); // Reject if there's an error
+                  }
+                  console.log("Rows affected:", result.affectedRows);
+                  resolve(result.affectedRows); // Resolve with the number of affected rows
+              });
+          });
+          
+          return response === 1; // Return true if one row was affected, otherwise false
       } catch (error) {
-         console.error("Error inserting new name:", error);
-         throw error; // Rethrow the error for caller to handle
+          console.error("Caught error:", error.message);
+          throw error; // Re-throw the error for higher-level handling
       }
-   }
-   
-   // Function to get autocomplete results
-   async getAutocompleteResults(searchValue, searchType, minSalary, maxSalary, minAge, maxAge) {
-      return new Promise((resolve, reject) => {
-         const searchPattern = `%${searchValue}%`; // Define the search pattern
-         let query;
-         let params = []; // Array to hold query parameters
-         
-         // Base query with common condition
-         const baseQuery = `
-              SELECT 
-                  id, 
-                  first_name, 
-                  last_name, 
-                  email, 
-                  salary, 
-                  age, 
-                  registration_date, 
-                  last_sign_in, 
-                  (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = added_by) AS added_by,
-                  (SELECT CONCAT(first_name, ' ', last_name) FROM users WHERE id = edited_by) AS edited_by
-              FROM 
-                  users 
-              WHERE 
-                  is_deleted = 0
-          `;
-         
-         // Determine the search condition based on searchType
-         if (searchType === 'salary') {
-            query = `${baseQuery} AND salary BETWEEN ? AND ?`;
-            params = [minSalary, maxSalary];
-         } else if (searchType === 'age') {
-            query = `${baseQuery} AND age BETWEEN ? AND ?`;
-            params = [minAge, maxAge];
-         } else if (searchType === 'name') {
-            query = `${baseQuery} AND (first_name LIKE ? OR last_name LIKE ?)`;
-            params = [searchPattern, searchPattern];
-         } else {
-            query = `${baseQuery} AND ${searchType} LIKE ?`;
-            params = [searchPattern];
-         }
-         
-         // Execute the query
-         connection.query(query, params, (error, results) => {
-            if (error) {
-               console.error("Query error:", error); // Log the specific error
-               reject(new Error(error.message));
-            } else {
-               resolve(results);
-            }
-         });
-      });
-   }
+  }
+  
    
    
-   
-   // Function to get user by email
-   async getUserByEmail(email) {
-      return new Promise((resolve, reject) => {
-         const query = "SELECT * FROM `users` WHERE `email` = ?;";
-         
-         connection.query(query, [email], (err, results) => {
-            if (err) {
-               reject(err);
-            } else {
-               if (results.length > 0) {
-                  console.log(results[0]);  // Debugging: log the retrieved user
-                  resolve(results[0]); // Return the first matching user
-               } else {
-                  resolve(null); // If no user is found, resolve with null
-               }
-            }
-         });
-      });
-   }
-   
-   
-   //    async searchByName(name){
-   //       try{
-   //          const dateAdded = new Date();
-   //          // use await to call an asynchronous function
-   //          const response = await new Promise((resolve, reject) => 
-      //             {
-   //             const query = "SELECT * FROM users where name = ?;";
-   //             connection.query(query, [name], (err, results) => {
-      //                if(err) reject(new Error(err.message));
-   //                else resolve(results);
-   //             });
-   //          }
-   //       );
-   
-   //       // console.log(response);  // for debugging to see the result of select
-   //       return response;
-   
-   //    }  catch(error){
-   //       console.log(error);
-   //    }
-   // }
-   
-   async deleteRowById(id){
-      try{
-         id = parseInt(id, 10);
-         // use await to call an asynchronous function
-         const response = await new Promise((resolve, reject) => 
-            {
-            const query = "UPDATE users Set is_deleted = 1 WHERE id = ?;";
-            connection.query(query, [id], (err, result) => {
-               if(err) reject(new Error(err.message));
-               else resolve(result.affectedRows);
-            });
-         }
-      );
-      
-      console.log(response);  // for debugging to see the result of select
-      return response === 1? true: false;
-      
-   }  catch(error){
-      console.log(error);
-   }
-}
-
-
-async updateNameById(id, first_name, last_name, email, salary, age) {
-   try {
-      console.log("dbService: ");
-      console.log(id, first_name, last_name, email, salary, age);
-      
-      // Parse the ID to an integer
-      id = parseInt(id, 10);
-      
-      const response = await new Promise((resolve, reject) => {
-         // Intentionally incorrect SQL query for testing error handling
-         const query = "UPDATE users SET first_name = ?, last_name = ?, email = ?, salary = ?, age = ? WHERE id = ?;";
-         
-         connection.query(query, [first_name, last_name, email, salary, age, id], (err, result) => {
-            if (err) {
-               console.error("Database error:", err.message);
-               return reject(new Error(err.message)); // Reject if there's an error
-            }
-            console.log("Rows affected:", result.affectedRows);
-            resolve(result.affectedRows); // Resolve with the number of affected rows
-         });
-      });
-      
-      return response === 1; // Return true if one row was affected, otherwise false
-   } catch (error) {
-      console.error("Caught error:", error.message);
-      throw error; // Re-throw the error for higher-level handling
-   }
-}
-
-
 }
 
 module.exports = DbService;
