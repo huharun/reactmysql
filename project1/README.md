@@ -49,8 +49,7 @@ If you need to update the API URL in your frontend code, locate the index.js fil
     "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js"
-  }, 
-
+    }, 
    ```
 
 ### **Setting Up the Environment**
