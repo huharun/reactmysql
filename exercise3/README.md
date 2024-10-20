@@ -121,7 +121,7 @@ To clone the repository and get the project up and running, follow these steps:
 
 
 
-## **Tasks Completed**
+# **Tasks Completed**
 
 ### **Installed Necessary Packages**
 I began by installing Node.js and npm on my system. Then, I installed the following packages:
