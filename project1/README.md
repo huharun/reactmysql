@@ -80,6 +80,35 @@ If you need to update the API URL in your frontend code, locate the index.js fil
    └── stylesheet.css
    ```
 
- 
+
+### **Project Implementation**
+
+1. **User Registration**
+   - I implemented a user registration feature that allows new users to sign up and securely stores their information in the `users` table.
+
+2. **User Sign-In**
+   - I developed a user sign-in functionality that tracks user activities in the `user_login` table. This includes logging their IP address and whether their sign-in attempt was successful or failed.
+
+3. **Update and Delete**
+   - I added the ability to update and delete user details in the `users` table, ensuring that changes are recorded with information on who made the edits.
+
+4. **User Search**
+   - I enabled the search functionality for users, allowing searches by first name and/or last name.
+   - I also added the capability to search for users by their unique user ID.
+   - Additionally, I implemented searches for users whose salary falls between specified amounts (X and Y) and those whose ages are within a certain range.
+   - I created a feature to find users who registered after a specified user, like Arun.
+
+5. **User Activity**
+   - I introduced a way to identify users who have never signed in.
+   - I also implemented a search for users who registered on the same day as Arun.
+
+6. **Today's Registrations**
+   - Finally, I developed functionality to return a list of users who registered today.
+
+
+## **SQL Statements**
+All SQL statements used in this exercise are documented in the file named **`sql_pr1_arun.txt`**.
+
+---
 
 

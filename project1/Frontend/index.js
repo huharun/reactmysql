@@ -99,7 +99,7 @@ function loadHTMLTable(data){
         tableHtml += `<td>${age}</td>`;
         tableHtml += `<td>${new Date(registration_date).toLocaleString()}</td>`;
         tableHtml += `<td>${new Date(last_sign_in).toLocaleString()}</td>`;
-        tableHtml += `<td>${added_by}</td>`;
+        tableHtml += `<td hidden>${added_by}</td>`;
         tableHtml += `<td>${edited_by}</td>`;
         tableHtml += `<td><button class="delete-row-btn" data-id=${id}>Delete</button></td>`;
         tableHtml += `<td><button class="edit-row-btn" data-id=${id} data-first_name=${first_name} data-last_name=${last_name} data-email=${email} data-salary=${salary} data-age=${age} >Edit</button></td>`;
