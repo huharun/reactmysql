@@ -325,6 +325,7 @@ label {
 
 /* Guest Section Styles */
 #guest-section {
+    border-radius: 8px; /* Rounded corners */
     background-color: #ffebee; /* Light red background for emphasis */
     color: #c62828; /* Dark red text color */
     text-align: center; /* Center-align text */
@@ -333,11 +334,14 @@ label {
 }
 
 .welcome-message {
+    border-radius: 8px; /* Rounded corners */
     color: #2e7d32; /* Dark green text color */
     background-color: #e8f5e9; /* Light green background for signed-in users */
     text-align: center; /* Center-align text */
     margin-bottom: 10px;
 }
+
+
 
 
 

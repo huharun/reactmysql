@@ -703,6 +703,7 @@ const toggleSignInStatus = (isLoggedIn) => {
     guestSection.style.display = isLoggedIn ? 'none' : 'block';
     welcomeMessage.hidden = !isLoggedIn;
     
-    
 };
+
+
 
