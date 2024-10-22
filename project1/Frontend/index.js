@@ -4,11 +4,40 @@
 // Constants for API base URLs
 const LOCAL_API_BASE_URL = 'http://localhost:5050';
 // const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
-const PUBLIC_API_BASE_URL = 'http://35.16.20.72:5050';
+const PUBLIC_API_BASE_URL = 'http://35.16.44.75:5050';
 
 // Choose the API base URL based on the environment
 const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_URL : PUBLIC_API_BASE_URL;
 // alert(window.location.hostname)
+
+// checking session
+document.addEventListener('DOMContentLoaded', async () => {
+    const appDiv1 = document.getElementById('guest-section');
+    const appDiv2 = document.getElementById('welcome-message');
+    
+    try {
+        // Check session when the page loads
+        const response = await axios.get(API_BASE_URL + '/session', { withCredentials: true });
+        const isLoggedIn = response.data.loggedIn;
+        
+        if (isLoggedIn) {
+            // User is logged in
+            const user = response.data.user; // Get user data
+            appDiv2.innerHTML = `<h3>Welcome, ${user.firstName}</h3><p>You can manage users below:</p>`;
+            localStorage.setItem('isLoggedIn', true); // Save logged in status
+            sessionStorage.setItem('user', JSON.stringify(user)); // Save user data
+            toggleSignInStatus(isLoggedIn);
+        } else {
+            // User is not logged in
+            appDiv1.innerHTML = '<h3>Please Sign In</h3><p>You need to sign in to access the user management features.</p>';
+            localStorage.setItem('isLoggedIn', false); // Save logged out status
+        }
+    } catch (error) {
+        console.error('Error checking session:', error);
+        appDiv1.innerHTML = '<h1>Error checking session</h1>';
+    }
+});
+
 
 // Show alert function
 function showAlert(message, type) {
@@ -62,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-//getAll
+// getAll
 document.addEventListener('DOMContentLoaded', function() {
     fetch(API_BASE_URL + '/getAll', {
         method: 'GET',
@@ -261,17 +290,22 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
         const result = await response.json();
         
         if (response.ok) {
-            isSignedIn = true; // Set the sign-in status to true
-            // showAlert('Sign in successful!', 'success'); // Notify user of success
+            // Notify user of success
+            // showAlert('Sign in successful!', 'success'); 
             
             // Store user data in session storage
             sessionStorage.setItem('user', JSON.stringify(result.user)); // Save user data
             
+            // Set isLoggedIn to true
+            const isLoggedIn = true; // User is logged in after a successful sign-in
+            
+            // Update UI elements
             document.getElementById('sign-in-modal').style.display = 'none';
             document.getElementById('sign-up-btn').style.display = 'none';
             document.getElementById('sign-in-btn').style.display = 'none';
             document.getElementById('sign-out-btn').style.display = 'block';
-            toggleSignInStatus(); // Update sign-in status UI
+            toggleSignInStatus(isLoggedIn); // Update sign-in status UI
+            location.reload(); // Reload the page or redirect as needed
         } else {
             showAlert('Sign in failed: ' + result.error, 'failure');
         }
@@ -286,25 +320,16 @@ document.getElementById('sign-out-btn').addEventListener('click', async () => {
     try {
         const response = await fetch(API_BASE_URL + '/logout', {
             method: 'POST',
-            credentials: 'include', // Ensure cookies are sent
+            credentials: 'include',
         });
         
-        // Debugging: Log the response to see what's being returned
-        console.log('Logout response:', response);
-        
         if (response.ok) {
-            const result = await response.json(); // Parse the response data
-            console.log(result); // Log the response data
-            
-            // Handle successful logout
-            sessionStorage.removeItem('user'); 
-            sessionStorage.removeItem('isLoggedIn'); 
-            document.getElementById('sign-out-btn').style.display = 'none'; 
-            document.getElementById('sign-up-btn').style.display = 'block'; 
-            document.getElementById('sign-in-btn').style.display = 'block'; 
-            showAlert(result.message, 'success'); 
+            // Clear local storage on successful logout
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            toggleSignInStatus(isLoggedIn = false); // Update the UI
+            location.reload(); // Reload the page or redirect as needed
         } else {
-            // Handle HTTP error response
             const errorData = await response.json(); 
             console.error('Logout error:', errorData);
             showAlert('Logout failed. Please try again.', 'failure');
@@ -314,6 +339,7 @@ document.getElementById('sign-out-btn').addEventListener('click', async () => {
         showAlert("An error occurred during logout. Please try again.", "failure");
     }
 });
+
 
 //dropdown change
 document.getElementById('dropdown').addEventListener('change', function() {
@@ -647,9 +673,6 @@ const closeUpdateRow = document.getElementById('close-update-row');
 const signedInSection = document.getElementById('signed-in-section');
 const guestSection = document.getElementById('guest-section');
 
-// Track sign-in status
-let isSignedIn = false;
-
 // Function to close modals
 const closeModal = (modal) => {
     modal.style.display = "none";
@@ -670,32 +693,16 @@ window.addEventListener('click', (event) => {
 });
 
 // Function to toggle sign-in status
-const toggleSignInStatus = () => {
-    const welcomeMessage = document.getElementById('welcome-message');
-    signInBtn.style.display = isSignedIn ? 'none' : 'inline';
-    signOutBtn.style.display = isSignedIn ? 'inline' : 'none';
-    signedInSection.classList.toggle('disabled', !isSignedIn);
-    guestSection.style.display = isSignedIn ? 'none' : 'block';
-    welcomeMessage.hidden = !isSignedIn;
+const toggleSignInStatus = (isLoggedIn) => {
     
-    if (isSignedIn) {
-        setTimeout(() => {
-            welcomeMessage.hidden = true; // Hide the welcome message after 5 seconds
-        }, 5000);
-    }
-};
-
-// Initial setup
-document.addEventListener('DOMContentLoaded', () => {
-    isSignedIn = !!localStorage.getItem('isLoggedIn'); // Check login status using localStorage
-    toggleSignInStatus(); // Update the UI based on sign-in status
-});
-
-// Example when the user logs in successfully:
-const handleLogin = () => {
-    // Assuming the login is successful, set the isLoggedIn flag
-    localStorage.setItem('isLoggedIn', 'true'); // Store login status
-    isSignedIn = true; // Update the sign-in status
-    toggleSignInStatus(); // Update UI
+    const welcomeMessage = document.getElementById('welcome-message');
+    signInBtn.style.display = isLoggedIn ? 'none' : 'inline';
+    signUpBtn.style.display = isLoggedIn ? 'none' : 'inline';
+    signOutBtn.style.display = isLoggedIn ? 'inline' : 'none';
+    signedInSection.classList.toggle('disabled', !isLoggedIn);
+    guestSection.style.display = isLoggedIn ? 'none' : 'block';
+    welcomeMessage.hidden = !isLoggedIn;
+    
+    
 };
 

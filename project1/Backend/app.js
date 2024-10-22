@@ -68,14 +68,17 @@
         res.json({ hashedPassword });
     });
     
-    // Get session details
+    // Session check route
     app.get('/session', (req, res) => {
         if (req.session.user) {
-            res.json(req.session.user); // User is logged in
+            // If a session exists, return the user details
+            res.json({ loggedIn: true, user: req.session.user });
         } else {
-            res.status(401).json({ message: "No user is logged in." });
+            // No session, return loggedIn: false
+            res.json({ loggedIn: false });
         }
     });
+    
     
     // Logout route
     app.post('/logout', (req, res) => {
