@@ -42,7 +42,7 @@
                const query = `
                   SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
                   CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
-                  CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+                  IFNULL(CONCAT(edited.first_name, ' ', edited.last_name), 'None') AS edited_by 
                   FROM users u 
                   LEFT JOIN users added ON u.added_by = added.id 
                   LEFT JOIN users edited ON u.edited_by = edited.id 
@@ -120,7 +120,7 @@
             const registrationDate = new Date().toISOString();
             const lastSignIn = new Date().toISOString();
             const addedBy = 1;
-            const editedBy = 1;
+            const editedBy = null;
             const isDeleted = 0;
             
             const insertId = await new Promise((resolve, reject) => {

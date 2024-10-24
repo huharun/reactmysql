@@ -1,10 +1,14 @@
 // This is the frontEnd that modifies the HTML page directly
 // event-based programming,such as document load, click a button
 
+
+const detroitDate = new Date().toLocaleString('en-US', { timeZone: 'America/Detroit' });
+console.log(detroitDate); // Displays the current date and time in Detroit
+
 // Constants for API base URLs
 const LOCAL_API_BASE_URL = 'http://localhost:5050';
 // const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
-const PUBLIC_API_BASE_URL = 'http://35.16.44.75:5050';
+const PUBLIC_API_BASE_URL = 'http://35.16.86.127:5050';
 
 // Choose the API base URL based on the environment
 const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_URL : PUBLIC_API_BASE_URL;
