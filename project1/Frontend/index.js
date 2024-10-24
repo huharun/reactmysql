@@ -2,9 +2,6 @@
 // event-based programming,such as document load, click a button
 
 
-const detroitDate = new Date().toLocaleString('en-US', { timeZone: 'America/Detroit' });
-console.log(detroitDate); // Displays the current date and time in Detroit
-
 // Constants for API base URLs
 const LOCAL_API_BASE_URL = 'http://localhost:5050';
 // const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
