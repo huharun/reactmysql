@@ -1,0 +1,164 @@
+// sql with sample inputs
+
+// 1. getAll data
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+IFNULL(CONCAT(edited.first_name, ' ', edited.last_name), 'None') AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0;
+
+
+// 2. insert login data
+
+INSERT INTO user_login (user_id, login_time, status, ip_address) 
+VALUES (40, "2024-10-14 23:43:02", "succes", "::ffff:35.16.20.72");
+
+
+// 3. update last sign in
+
+UPDATE users 
+SET last_sign_in = "2024-10-14 23:43:02" 
+WHERE id = 40;
+
+
+// 4. check by email
+
+SELECT COUNT(*) AS count 
+FROM users 
+WHERE email = "lion@gmail.com";
+
+
+// 5. Sign up( insert new user)
+
+INSERT INTO users 
+(first_name, last_name, email, password, salary, age, dob, registration_date, last_sign_in, added_by, edited_by, is_deleted) 
+VALUES ('John', 'Doe', 'john.doe@exale.com', 'password123', 55000, 30, '1994-05-14', '2024-10-24', '2024-10-23', 1, 2, 0);
+
+
+// Autocomplete
+
+// 6. Name
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0 
+AND (
+  (u.first_name LIKE 'John%') 
+  OR (u.last_name LIKE 'Doe%') 
+  OR (u.first_name LIKE CONCAT('%', SUBSTRING_INDEX('John Doe', ' ', 1), '%') 
+  AND u.last_name LIKE CONCAT('%', SUBSTRING_INDEX('John Doe', ' ', -1), '%'))
+);
+
+
+// 7. Salary 
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0 
+AND u.salary BETWEEN 40000 AND 60000;
+
+
+// 8. Age
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0 
+AND u.age BETWEEN 25 AND 35;
+
+
+
+// 9. After (ID greater than given value)
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0 
+AND u.id > 10;
+
+
+// 10. Never Logged In
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0 AND u.id NOT IN (SELECT user_id FROM user_login);
+
+
+// 11.Same Registration Date
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0 
+AND DATE(u.registration_date) = (SELECT DATE(registration_date) FROM users WHERE id = 42);
+
+
+// 12. Registered Today
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0 AND DATE(u.registration_date) = CURDATE();
+
+
+// 13. default search
+
+SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
+CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
+CONCAT(edited.first_name, ' ', edited.last_name) AS edited_by 
+FROM users u 
+LEFT JOIN users added ON u.added_by = added.id 
+LEFT JOIN users edited ON u.edited_by = edited.id 
+WHERE u.is_deleted = 0 AND u.? LIKE ?;
+
+
+// 14. get user by email
+
+SELECT * FROM users WHERE email = "lion@gmail.com";
+
+// 15. delete user by ID (setting is_deleted = 1)
+
+UPDATE users 
+SET is_deleted = 1, edited_by = 1 
+WHERE id = 22;
+
+
+// 16. update user info
+
+UPDATE users 
+SET first_name = 'Jane', 
+    last_name = 'Doe', 
+    email = 'jane.doe@example.com', 
+    salary = 55000, 
+    age = 30, 
+    edited_by = 2 
+WHERE id = 1;
+
+
