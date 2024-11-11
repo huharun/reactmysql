@@ -134,56 +134,56 @@
       }
       
       
-      //sign-up
-      async insertNewName(firstName, lastName, email, password, phone, address) {
+      async insertNewName(user_type, firstName, lastName, email, password, phone, address) {
          try {
-            // Check if email already exists
-            const emailExists = await new Promise((resolve, reject) => {
-               const query = "SELECT COUNT(*) AS count FROM `users` WHERE `email` = ?;";
-               connection.query(query, [email], (err, result) => {
-                  if (err) {
-                     reject(new Error(err.message));
-                  } else {
-                     resolve(result[0].count > 0); // Resolve with true if email exists
-                  }
-               });
-            });
-            
-            if (emailExists) {
-               throw new Error("Email already exists."); // Throw an error if email is found
-            }
-            
-            const registrationDate = new Date().toISOString();
-            const lastSignIn = new Date().toISOString();
-            const isDeleted = 0;
-            
-            // Insert the new user data into the database
-            const insertId = await new Promise((resolve, reject) => {
-               const query = "INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `phone`, `address`, `registration_date`, `last_sign_in`, `is_deleted`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
-               connection.query(query, [firstName, lastName, email, password, phone, address, registrationDate, lastSignIn, isDeleted], (err, result) => {
-                  if (err) {
-                     reject(new Error(err.message));
-                  } else {
-                     resolve(result.insertId);
-                  }
-               });
-            });
-            
-            console.log(insertId);
-            return {
-               id: insertId,
-               firstName: firstName,
-               lastName: lastName,
-               email: email,
-               phone: phone,
-               address: address,
-               dateAdded: registrationDate
-            };     
+             // Check if email already exists
+             const emailExists = await new Promise((resolve, reject) => {
+                 const query = "SELECT COUNT(*) AS count FROM `users` WHERE `email` = ?;";
+                 connection.query(query, [email], (err, result) => {
+                     if (err) {
+                         reject(new Error(err.message));
+                     } else {
+                         resolve(result[0].count > 0); // Resolve with true if email exists
+                     }
+                 });
+             });
+     
+             if (emailExists) {
+                 throw new Error("Email already exists."); // Throw an error if email is found
+             }
+     
+             const registrationDate = new Date().toISOString();
+             const lastSignIn = new Date().toISOString();
+             const isDeleted = 0;
+     
+             // Insert the new user data into the database
+             const insertId = await new Promise((resolve, reject) => {
+                 const query = "INSERT INTO `users` ( `first_name`, `last_name`, `email`, `password`, `phone`, `address`, `registration_date`, `last_sign_in`, `is_deleted`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+                 connection.query(query, [, firstName, lastName, email, password, phone, address, registrationDate, lastSignIn, isDeleted], (err, result) => {
+                     if (err) {
+                         reject(new Error(err.message));
+                     } else {
+                         resolve(result.insertId);
+                     }
+                 });
+             });
+     
+             console.log(insertId);
+             return {
+                 id: insertId,
+                 firstName: firstName,
+                 lastName: lastName,
+                 email: email,
+                 phone: phone,
+                 address: address,
+                 dateAdded: registrationDate
+             };
          } catch (error) {
-            console.error("Error inserting new name:", error);
-            throw error; // Rethrow the error for caller to handle
+             console.error("Error inserting new name:", error);
+             throw error; // Rethrow the error for caller to handle
          }
-      }
+     }
+     
       
       
       // Function to get autocomplete results

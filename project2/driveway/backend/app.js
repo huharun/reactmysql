@@ -176,7 +176,7 @@ app.get('/profile', authenticateJWT, async (req, res) => {
 // Sign-up route
 app.post('/insert', async (req, res) => {
     try {
-        const { first_name, last_name, email, password, phone, address } = req.body;
+        const { user_type, first_name, last_name, email, password, phone, address } = req.body;
 
         // Hash the password before saving to the database
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -185,7 +185,7 @@ app.post('/insert', async (req, res) => {
         const db = dbService.getDbServiceInstance();
         
         // Insert the new user data into the database
-        const result = await db.insertNewName(first_name, last_name, email, hashedPassword, phone, address);
+        const result = await db.insertNewName(user_type, first_name, last_name, email, hashedPassword, phone, address);
 
         // Send a success response with the newly added data
         res.json({ data: result });

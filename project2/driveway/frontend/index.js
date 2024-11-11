@@ -241,11 +241,41 @@ function initializeTableSorting(tableId) {
     });
 }
 
+
+
+document.getElementById("contractor-btn").addEventListener("click", function() {
+    // Record the selected user type as '2' for Contractor
+    document.getElementById("user-type").value = "2";
+    
+    // Hide the user type selection and show the rest of the form
+    document.getElementById("user-type-selection").style.display = "none";
+    document.getElementById("sign-up-form").style.display = "block";
+});
+
+document.getElementById("client-btn").addEventListener("click", function() {
+    // Record the selected user type as '3' for Client
+    const userType = document.getElementById("user-type").value = "3";
+    
+    // Hide the user type selection and show the rest of the form
+    document.getElementById("user-type-selection").style.display = "none";
+    document.getElementById("sign-up-form").style.display = "block";
+});
+
+// Back to User Type Selection
+document.getElementById("back-btn").addEventListener("click", function() {
+    // Show the user type selection again and hide the sign-up form
+    document.getElementById("user-type-selection").style.display = "block";
+    document.getElementById("sign-up-form").style.display = "none";
+});
+
+
+
 // Sign-up action
 document.getElementById('sign-up-form').addEventListener('submit', async (event) => {
     event.preventDefault(); // Prevent the default form submission
     
     // Collect data from form fields
+    const userType = document.getElementById('user-type').value;
     const firstName = document.getElementById('first-name').value;
     const lastName = document.getElementById('last-name').value;
     const phone = document.getElementById('phone').value;
@@ -275,6 +305,7 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
     
     // Create a user object without hashing the password client-side
     const userData = {
+        user_type: userType,
         first_name: firstName,
         last_name: lastName,
         email: email,
