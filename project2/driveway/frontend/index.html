@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="icon" type="image/x-icon" href="miles.ico.png">
+    <link rel="stylesheet" href="stylesheet.css">
+    <title>DBMS Project 2</title>
+</head>
+
+<body>
+    <header>
+        <h1 class="project-title">DBMS Project 2</h1>
+        <button id="sign-up-btn">Sign Up</button>
+        <button id="sign-in-btn">Sign In</button>
+        <button id="sign-out-btn" style="display: none;">Sign Out</button> <!-- Hidden by default -->
+    </header>
+    
+    <div id="custom-alert" class="custom-alert hidden">
+        <button class="close-btn" onclick="closeAlert()">✖</button>
+        <div id="alert-message">This is an alert message!</div>
+    </div>
+    
+    <!-- Sign Up Modal -->
+    <div id="sign-up-modal" class="modal" role="dialog" aria-labelledby="sign-up-title" aria-describedby="sign-up-description">
+        <div class="modal-content">
+            <span class="close" id="close-sign-up">&times;</span>
+            <h2 id="sign-up-title" style="text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); text-align: center; padding-bottom: 50px;">Sign Up</h2>
+            <form id="sign-up-form">
+                <div class="input-container">
+                    <label for="first-name">First Name:</label>
+                    <input type="text" id="first-name" >
+                </div>
+                <div class="input-container">
+                    <label for="last-name">Last Name:</label>
+                    <input type="text" id="last-name" >
+                </div>
+                <div class="input-container">
+                    <label for="signup-email">Email:</label>
+                    <input type="email" id="signup-email" >
+                </div>
+                <div class="input-container" style="position: relative;">
+                    <label for="signup-password">Password:</label>
+                    <input type="password" id="signup-password" >
+                    <span id="toggle-signup-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">
+                        👁️
+                    </span>
+                </div>
+                <div class="input-container">
+                    <label for="salary">Salary:</label>
+                    <input type="number" id="salary" >
+                </div>
+                <div class="input-container">
+                    <label for="age">Age:</label>
+                    <input type="number" id="age" >
+                </div>
+                <div class="input-container">
+                    <label for="dob">Date of Birth:</label>
+                    <input type="date" id="dob" >
+                </div>
+                <div class="button-container">
+                    <button type="submit" id="register-btn">Sign Up</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Sign In Modal -->
+    <div id="sign-in-modal" class="modal" role="dialog" aria-labelledby="sign-in-title" aria-describedby="sign-in-description">
+        <div class="modal-content">
+            <span class="close" id="close-sign-in">&times;</span>
+            <h2 id="sign-in-title" style="text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); text-align: center; padding-bottom: 50px;">Sign In</h2>
+            <form id="sign-in-form">
+                <div class="input-container">
+                    <label for="signin-email">Email:</label>
+                    <input type="email" id="signin-email" >
+                </div>
+                
+                <div class="input-container" style="position: relative;">
+                    <label for="signin-password">Password:</label>
+                    <input type="password" id="signin-password" >
+                    <span id="toggle-signin-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">
+                        👁️
+                    </span>
+                </div>
+                <div class="button-container">
+                    <button type="submit" id="login-btn">Sign In</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Update Row Modal -->
+    <div id="update-row-modal" class="modal" role="dialog" aria-labelledby="update-row-title" aria-describedby="update-row-description">
+        <div class="modal-content">
+            <span class="close" id="close-update-row">&times;</span>
+            <h2 id="update-row-title" style="text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); text-align: center; padding-bottom: 50px;">Update User</h2>
+            <form id="update-row-form">
+                <div class="input-container">
+                    <label for="update-id-input">Id:</label>
+                    <input type="text" id="update-id-input" readonly disabled>
+                </div>
+                <div class="input-container">
+                    <label for="update-name-input">Name:</label>
+                    <input type="text" id="update-name-input" placeholder="Enter new name">
+                </div>
+                <div class="input-container">
+                    <label for="update-email-input">Email:</label>
+                    <input type="text" id="update-email-input" placeholder="Enter new email">
+                </div>
+                <div class="input-container">
+                    <label for="update-salary-input">Salary:</label>
+                    <input type="text" id="update-salary-input" placeholder="Enter new salary">
+                </div>
+                <div class="input-container">
+                    <label for="update-age-input">Age:</label>
+                    <input type="text" id="update-age-input" placeholder="Enter new age">
+                </div>
+                <div class="button-container">
+                    <button type="submit" id="update-row-btn">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <main>
+        <h2 class="section-title">Users</h2>
+        
+        <!-- Section for guests -->
+        <div id="guest-section" class="user-section">
+            <h3>Please Sign In</h3>
+            <p>You need to sign in to access the user management features.</p>
+        </div>
+        
+        <!-- Section for signed-in users -->
+        <div id="signed-in-section" class="user-section disabled">
+            <div id="welcome-message" class="welcome-message" hidden></div>
+            <!-- Search Section -->
+            <div class="input-container">
+                <!-- <button id="add-btn">Add</button> -->
+                <label for="search-input">Search:</label>
+                <select id="dropdown" class="search-dropdown">
+                    <option id="option-all" value="all">------Select All------</option>
+                    <option id="option-id" value="id">User Id</option>
+                    <option id="option-name" selected value="name">Name</option>
+                    <option id="option-email" value="email">Email</option>
+                    <option id="option-salary" value="salary">Salary</option>
+                    <option id="option-age" value="age">Age</option>
+                    <option id="option-after" value="after">Registered After</option>
+                    <option id="option-never" value="never">Never Signed</option>
+                    <option id="option-sameReg" value="sameReg">User Registered on Same Day</option>
+                    <option id="option-todayReg" value="todayReg">User Registered Today</option>
+                </select>
+                <input type="text" placeholder="Search by Name" id="search-input">
+                <input type="number" placeholder="Max" id="search-input1" hidden>
+                <button id="search-btn" hidden>Search</button>
+            </div>
+            
+            <!-- Table Section -->
+            <table id="table">
+                <thead>
+                    <tr>
+                        <th data-column="id">User Id <span class="sort-icon"></span></th>
+                        <th data-column="name">Name <span class="sort-icon"></span></th>
+                        <th data-column="email">Email <span class="sort-icon"></span></th>
+                        <th data-column="salary">Salary <span class="sort-icon"></span></th>
+                        <th data-column="age">Age <span class="sort-icon"></span></th>
+                        <th data-column="registrationDate">Registration Date <span class="sort-icon"></span></th>
+                        <th data-column="lastSignIn">Last Sign-In <span class="sort-icon"></span></th>
+                        <th data-column="addedBy" hidden>Added By <span class="sort-icon"></span></th>
+                        <th data-column="lastEditBy">Last Edit By <span class="sort-icon"></span></th>
+                        <th>Delete</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+    </main>
+    
+    <footer>
+        <p>&copy; 2024 DBMS Project 1 - Arun and Sravani.</p>
+    </footer>
+    
+    <script src="index.js"></script>
+</body>
+
+</html>

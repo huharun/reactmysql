@@ -1,0 +1,351 @@
+/* Resetting default margin and padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Ensure body takes the full height */
+html, body {
+    height: 100%; /* Full height for the HTML and body */
+}
+
+/* Body styling */
+body {
+    display: flex; /* Use flexbox */
+    flex-direction: column; /* Stack items vertically */
+    font-family: Arial, sans-serif;
+    background-color: white; /* Light background for contrast */
+    color: black; /* Darker text color for better readability */
+    line-height: 1.6;
+}
+
+/* Main container */
+main {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    margin: 40px auto; /* Center the container */
+    padding: 40px; /* Padding inside the container */
+    border: 1px solid black; /* Border around the container */
+    flex: 1; /* Allow main to take up the remaining space */
+}
+
+.project-title, .section-title {
+    text-align: center; /* Center the text */
+    margin: 15px 0; /* Add margin above and below the heading */
+    padding: 10px; /* Add some padding */
+    background-color: #000; /* Solid black background */
+    border-radius: 8px; /* Rounded corners */
+    color: #fff; /* White text color */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    width: 70%; /* Set width to 50% of the page */
+    margin-left: auto; /* Center horizontally */
+    margin-right: auto; /* Center horizontally */
+}
+
+header {
+    position: relative; /* Set header to relative for absolute positioning of buttons */
+    display: flex; /* Use flexbox for alignment */
+    justify-content: flex-end; /* Align items to the end (right) */
+    align-items: center; /* Align items to the center vertically */
+    padding: 10px; /* Add some padding around the header */
+}
+
+#sign-up-btn {
+    margin-right: 10px; /* Space between buttons */
+    margin-left: 10px; /* Space between buttons */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Add some padding */
+    color: #fff; /* White text color */
+}
+
+#sign-in-btn {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Add some padding */
+    color: #fff; /* White text color */
+}
+
+/* Footer styling */
+footer {
+    position: relative;
+    display: flex; /* Use flexbox */
+    justify-content: center; /* Align items to the end (right) */
+    padding: 10px; /* Padding around the footer */
+    background-color: #f9f9f9; /* Light background color for footer */
+    border-top: 1px solid black; /* Light border above the footer */
+}
+
+/* Flex container for input and button */
+.input-container {
+    display: flex; /* Use flexbox */
+    align-items: center; /* Align items vertically center */
+    margin-bottom: 10px; /* Space between input sections */
+    margin-top: 20px; /* Space between input sections */
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+input[type="date"] {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px;
+    margin-right: 10px; /* Space between input and button */
+    margin-left: 10px; /* Space between input and button */
+    flex: 2; /* Allow input to take available space */
+    border: 1px solid #ccc; /* Light border for inputs */
+    border-radius: 4px; /* Rounded corners */
+}
+
+.search-dropdown{
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    text-align: center;
+    padding: 10px;
+    flex: 0.4; /* Allow input to take available space */
+    border: 0px solid #ccc; /* Light border for inputs */
+    border-radius: 4px; /* Rounded corners */
+}
+/* Button styles */
+button {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Add some padding */
+    color: #fff; /* White text color */
+    border: 1px solid black; /* Black border */
+    background-color: black; /* Change button background to black */
+    color: white; /* Change text color to white for contrast */
+    cursor: pointer; /* Pointer cursor on hover */
+}
+
+/* Table styling */
+table {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    width: 100%;
+    overflow-x: auto; /* Add horizontal scroll */
+    display: block; /* Enable scrolling */
+    border-collapse: collapse;
+    margin-top: 20px;
+    text-align: center;
+}
+
+th, td {
+    border: 1px solid black; /* Adds a solid black border */
+    padding: 10px; /* Adds padding for better spacing */
+    text-align: center; /* Centers the text within the cells */
+}
+
+th {
+    background-color: black; /* Dark background for header cells */
+    color: white; /* White text for header cells */
+    cursor: pointer; 
+}
+
+/* Update row section */
+#update-row {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid black; /* Light border for update row */
+}
+
+/* Modal styling */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Darker background for better contrast */
+    display: flex; /* Use flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Modal content styling */
+.modal-content {
+    background-color: #ffffff; /* White background for better readability */
+    margin: 20px; /* Add some margin around the modal */
+    padding: 30px; /* Increased padding for a more spacious feel */
+    border: none; /* Remove default border */
+    border-radius: 10px; /* Rounded corners for a smoother appearance */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Deeper shadow for a floating effect */
+    width: 90%; /* Full width on smaller screens */
+    max-width: 500px; /* Maximum width for larger screens */
+    animation: fadeIn 0.3s; /* Add a fade-in animation */
+}
+
+/* Close button styling */
+.close {
+    color: #888; /* Gray color for close button */
+    float: right; /* Position close button to the right */
+    font-size: 24px; /* Increased font size for visibility */
+    font-weight: bold; /* Bold text for emphasis */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: color 0.3s; /* Smooth color transition */
+}
+
+.close:hover,
+.close:focus {
+    color: black; /* Change color on hover or focus */
+    text-decoration: none; /* Remove underline */
+}
+.modal {
+    display: none; /* Hidden by default */
+    /* other styles */
+}
+
+.input-container {
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Vertically align items */
+    margin-bottom: 10px; /* Space between input sections */
+}
+
+label {
+    flex: 1; /* Make the label take up space */
+    margin-right: 10px; /* Space between label and input */
+    text-align: right; /* Align text to the right for labels */
+    min-width: 120px; /* Set a minimum width for consistency */
+    text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    
+}
+
+.button-container {
+    shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Add some padding */
+    display: flex; /* Use flexbox for alignment */
+    justify-content: center; /* Align buttons to the right */
+    margin-top: 40px; /* Add some spacing above the buttons */
+}
+
+/* Optional: Fade-in animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0; /* Start transparent */
+    }
+    to {
+        opacity: 1; /* End fully visible */
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 400px) {
+    .custom-alert {
+        width: 90%; /* Make it responsive */
+        padding: 15px 20px; /* Adjust padding */
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Alert box styling */
+.custom-alert {
+    position: fixed;
+    top: 20px; /* Position from the top */
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px); /* Start slightly above */
+    background-color: #fff; /* Default background (will change with classes) */
+    color: #000; /* Default text color */
+    padding: 20px 30px; /* Padding for spacing */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4); /* Shadow effect */
+    z-index: 1000; /* Ensure it's on top */
+    opacity: 0; /* Start hidden */
+    transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.3s ease; /* Animation effects */
+    text-align: center; /* Center text */
+    max-width: 50%; /* Maximum width of alert box to 50% of the page */
+    width: 100%; /* Ensure it can shrink responsively */
+}
+
+/* Show the alert */
+.custom-alert.show {
+    opacity: 1; /* Fully visible */
+    transform: translateX(-50%) translateY(0); /* Move to original position */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); /* Increase shadow on show */
+}
+
+/* Success alert styles */
+.alert-success {
+    background-color: #d4edda; /* Light green background */
+    color: #155724; /* Dark green text */
+}
+
+/* Failure alert styles */
+.alert-failure {
+    background-color: #f8d7da; /* Light red background */
+    color: #721c24; /* Dark red text */
+}
+
+/* Hidden class */
+.hidden {
+    display: none; /* Start hidden */
+}
+
+.disabled {
+    pointer-events: none; /* Prevent interactions */
+    opacity: 0.5; /* Make it look disabled */
+}
+
+/* Close button styling */
+.close-btn {
+    background: none; /* No background */
+    background-color: #000;
+    border: none; /* No border */
+    color: #fff; /* Black color */
+    font-size: 15px; /* Slightly larger font size */
+    cursor: pointer; /* Pointer cursor */
+    position: absolute; /* Position for the close button */
+    top: 20px; /* Distance from the top */
+    right: 15px; /* Distance from the right */
+    padding: 5px; /* Added padding for better click area */
+    transition: color 0.3s; /* Smooth transition for hover effect */
+}
+
+/* Add hover effect for the close button */
+.close-btn:hover {
+    color: #ff0000; /* Change color to red on hover */
+}
+
+/* Guest Section Styles */
+#guest-section {
+    border-radius: 8px; /* Rounded corners */
+    background-color: #ffebee; /* Light red background for emphasis */
+    color: #c62828; /* Dark red text color */
+    text-align: center; /* Center-align text */
+    margin-bottom: 10px;
+    animation: pulse 1.5s infinite; /* Pulsing effect */
+}
+
+.welcome-message {
+    border-radius: 8px; /* Rounded corners */
+    color: #2e7d32; /* Dark green text color */
+    background-color: #e8f5e9; /* Light green background for signed-in users */
+    text-align: center; /* Center-align text */
+    margin-bottom: 10px;
+}
+
+
+
+
+
+
+
+
+
