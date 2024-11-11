@@ -177,6 +177,101 @@ document.addEventListener('DOMContentLoaded', () => {
 //     });
 // });
 
+// Simulate dynamically fetching user type from the server (e.g., from a session or a JWT)
+const userType = getUserTypeFromSession(); // This function would ideally fetch the real user type dynamically
+
+// Function to simulate getting the user type (this is where you'd integrate your backend logic)
+function getUserTypeFromSession() {
+    // For demonstration purposes, we simulate returning user type (could be 2 for Contractor or 3 for Client)
+    // In a real-world scenario, this data might come from a session, JWT, or API call
+    return 2; // Change this value dynamically to test different users (2 for Contractor, 3 for Client)
+}
+
+// Function to render the correct menu based on user type
+function renderMenu() {
+    const contractorMenu = `
+        <h2>Contractor Dashboard</h2>
+        <nav class="menu">
+            <ul>
+                <li><a href="#quote-requests">Quote Requests</a>
+                    <ul class="submenu">
+                        <li><a href="#view-new-requests">View New Requests</a></li>
+                        <li><a href="#respond-to-request">Respond to Request</a></li>
+                        <li><a href="#view-all-quotes">View All Quotes</a></li>
+                    </ul>
+                </li>
+                <li><a href="#work-orders">Work Orders</a>
+                    <ul class="submenu">
+                        <li><a href="#view-active-orders">View Active Orders</a></li>
+                        <li><a href="#view-completed-orders">View Completed Orders</a></li>
+                        <li><a href="#manage-order-details">Manage Order Details</a></li>
+                    </ul>
+                </li>
+                <li><a href="#billing">Billing</a>
+                    <ul class="submenu">
+                        <li><a href="#generate-bill">Generate Bill</a></li>
+                        <li><a href="#view-all-bills">View All Bills</a></li>
+                        <li><a href="#manage-disputes">Manage Disputes</a></li>
+                    </ul>
+                </li>
+                <li><a href="#reports">Reports</a>
+                    <ul class="submenu">
+                        <li><a href="#revenue-report">Revenue Report</a></li>
+                        <li><a href="#big-clients">List of Big Clients</a></li>
+                        <li><a href="#overdue-bills">Overdue Bills</a></li>
+                        <li><a href="#client-ratings">Good and Bad Clients</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    `;
+
+    const clientMenu = `
+        <h2>Client Dashboard</h2>
+        <nav class="menu">
+            <ul>
+                <li><a href="#request-quote">Request a Quote</a>
+                    <ul class="submenu">
+                        <li><a href="#submit-new-request">Submit New Request</a></li>
+                        <li><a href="#view-my-requests">View My Requests</a></li>
+                    </ul>
+                </li>
+                <li><a href="#orders">Orders</a>
+                    <ul class="submenu">
+                        <li><a href="#view-my-orders">View My Orders</a></li>
+                        <li><a href="#manage-negotiations">Manage Order Negotiations</a></li>
+                    </ul>
+                </li>
+                <li><a href="#billing">Billing</a>
+                    <ul class="submenu">
+                        <li><a href="#view-bills">View Bills</a></li>
+                        <li><a href="#pay-bill">Pay Bill</a></li>
+                        <li><a href="#dispute-bill">Dispute Bill</a></li>
+                    </ul>
+                </li>
+                <li><a href="#account-management">Account Management</a>
+                    <ul class="submenu">
+                        <li><a href="#view-profile">View Profile</a></li>
+                        <li><a href="#payment-history">View Payment History</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    `;
+
+    const menuContainer = document.getElementById("menu-container");
+
+    if (userType === 2) {  // Contractor
+        menuContainer.innerHTML = contractorMenu;
+    } else if (userType === 3) {  // Client
+        menuContainer.innerHTML = clientMenu;
+    }
+}
+
+// Call the renderMenu function on page load
+window.onload = renderMenu;
+
+
 //listing all data in the table
 function loadHTMLTable(data){
     debug("index.js: loadHTMLTable called.");

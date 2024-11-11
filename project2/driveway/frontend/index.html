@@ -23,6 +23,8 @@
         <div id="alert-message">This is an alert message!</div>
     </div>
     
+    
+    
     <!-- Sign Up Modal -->
     <div id="sign-up-modal" class="modal" role="dialog" aria-labelledby="sign-up-title" aria-describedby="sign-up-description">
         <div class="modal-content">
@@ -41,8 +43,8 @@
             <!-- Sign-Up Form (hidden initially) -->
             <form id="sign-up-form" style="display: none;" autocomplete="on">
                 <!-- Hidden input to record user type -->
-                    <input type="hidden" id="user-type" name="user-type">
-                    <button type="button" id="back-btn" style="margin-top: 10px;">Back to Select User Type</button>
+                <input type="hidden" id="user-type" name="user-type">
+                <button type="button" id="back-btn" style="margin-top: 10px;">Back to Select User Type</button>
                 
                 <div class="input-container">
                     <label for="first-name">First Name:</label>
@@ -149,7 +151,7 @@
     </div>
     
     <main>
-        <h2 class="section-title">Users</h2>
+        <h2 class="section-title"></h2>
         
         <!-- Section for guests -->
         <div id="guest-section" class="user-section">
@@ -160,8 +162,11 @@
         <!-- Section for signed-in users -->
         <div id="signed-in-section" class="user-section disabled">
             <div id="welcome-message" class="welcome-message" hidden></div>
+            <!-- Menu container that will be populated based on user type -->
+            <div id="menu-container"></div>
+            
             <!-- Search Section -->
-            <div class="input-container">
+             <div class="input-container">
                 <!-- <button id="add-btn">Add</button> -->
                 <label for="search-input">Search:</label>
                 <select id="dropdown" class="search-dropdown">
@@ -179,20 +184,18 @@
                 <input type="text" placeholder="Search by Name" id="search-input">
                 <input type="number" placeholder="Max" id="search-input1" hidden>
                 <button id="search-btn" hidden>Search</button>
-            </div>
+            </div> 
             
             <!-- Table Section -->
             <table id="table">
                 <thead>
                     <tr>
-                        <th data-column="id">User Id <span class="sort-icon"></span></th>
+                        <th data-column="id">Id <span class="sort-icon"></span></th>
                         <th data-column="name">Name <span class="sort-icon"></span></th>
+                        <th data-column="phone">Phone <span class="sort-icon"></span></th>
                         <th data-column="email">Email <span class="sort-icon"></span></th>
-                        <th data-column="salary">Salary <span class="sort-icon"></span></th>
-                        <th data-column="age">Age <span class="sort-icon"></span></th>
                         <th data-column="registrationDate">Registration Date <span class="sort-icon"></span></th>
                         <th data-column="lastSignIn">Last Sign-In <span class="sort-icon"></span></th>
-                        <th data-column="addedBy" hidden>Added By <span class="sort-icon"></span></th>
                         <th data-column="lastEditBy">Last Edit By <span class="sort-icon"></span></th>
                         <th>Delete</th>
                         <th>Edit</th>

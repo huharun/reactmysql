@@ -172,6 +172,90 @@ button {
     background-color: #444;
 }
 
+/* Main Menu Styling */
+nav.menu ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex; /* Align menu items in a straight line */
+}
+
+nav.menu li {
+    position: relative;
+    margin: 0 15px; /* Space between menu items */
+}
+
+nav.menu a {
+    text-decoration: none;
+    color: #000; /* Black color for text */
+    font-weight: bold;
+    display: block;
+    padding: 10px 20px;
+    background-color: #fff; /* White background for menu */
+    border-radius: 5px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Hover Effect for Main Menu */
+nav.menu a:hover {
+    background-color: #bdc3c7; /* Light grey for hover effect */
+    color: #000; /* Keep text black on hover */
+}
+
+/* Submenu Styles */
+nav.menu .submenu {
+    list-style-type: none;
+    padding: 0;
+    display: none;
+    position: absolute;
+    top: 100%; /* Position the submenu directly under the menu item */
+    left: 0;
+    background-color: #fff; /* White background for submenu */
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Display Submenu on Hover */
+nav.menu li:hover > .submenu {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3); /* Slightly more intense shadow on hover */
+}
+
+/* Submenu Links Styling */
+nav.menu .submenu li a {
+    text-decoration: none;
+    color: #000; /* Black text color for submenu links */
+    padding: 8px 20px;
+    background-color: #fff; /* White background for submenu links */
+    border-radius: 5px;
+    transition: background-color 0.3s ease, padding-left 0.3s ease;
+}
+
+/* Hover Effect for Submenu Links */
+nav.menu .submenu li a:hover {
+    background-color: #bdc3c7; /* Light grey for submenu hover */
+    padding-left: 25px; /* Slight indentation on hover for a "clickable" effect */
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    nav.menu {
+        font-size: 14px;
+    }
+
+    nav.menu a {
+        padding: 8px 15px;
+    }
+
+    nav.menu .submenu li a {
+        padding: 6px 12px;
+    }
+}
 
 /* Table styling */
 table {
