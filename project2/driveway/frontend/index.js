@@ -10,6 +10,8 @@ const PUBLIC_API_BASE_URL = 'http://35.16.59.60:5050';
 // Choose the API base URL based on the environment
 const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_URL : PUBLIC_API_BASE_URL;
 // alert(window.location.hostname)
+
+// load check session
 document.addEventListener('DOMContentLoaded', async () => {
     const guestSection = document.getElementById('guest-section');
     const welcomeMessage = document.getElementById('welcome-message');
@@ -17,12 +19,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const token = localStorage.getItem('authToken');
         
+        // If there's no token, show the guest message and don't attempt to authenticate
         if (!token) {
             guestSection.innerHTML = '<h3>Please Sign In</h3><p>You need to sign in to access the user management features.</p>';
             localStorage.setItem('isLoggedIn', 'false');
             return;
         }
 
+        // If there is a token, attempt to authenticate
         const headers = { 'Authorization': `Bearer ${token}` };
         const response = await fetch(API_BASE_URL + '/authenticateJWT', {
             method: 'GET',
@@ -30,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             credentials: 'include'
         });
 
+        // If the response is not okay (status code not in the 200-299 range), handle the failure
         if (!response.ok) {
             throw new Error('Failed to check session');
         }
@@ -51,6 +56,54 @@ document.addEventListener('DOMContentLoaded', async () => {
         guestSection.innerHTML = '<h1>Error checking session</h1>';
     }
 });
+
+
+// Function to fetch address on page load
+function initAutocomplete() {
+    const addressInput = document.getElementById("address");
+    const suggestionsContainer = document.getElementById("address-suggestions");
+
+    addressInput.addEventListener("input", function () {
+        const query = addressInput.value;
+
+        if (query.length < 3) {
+            suggestionsContainer.innerHTML = ''; // Clear suggestions if the query is too short
+            return;
+        }
+
+        suggestionsContainer.innerHTML = '<div>Loading...</div>';
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsContainer.innerHTML = '';
+                data.forEach(item => {
+                    const suggestion = document.createElement("div");
+                    suggestion.textContent = item.display_name;
+                    suggestion.style.fontSize = '12px'; 
+                    suggestion.style.cursor = 'pointer';
+                    suggestion.style.padding = '4px';
+                    suggestion.style.borderBottom = '1px solid #ddd';
+
+                    suggestion.addEventListener("click", () => {
+                        addressInput.value = item.display_name;
+                        suggestionsContainer.innerHTML = '';
+                    });
+
+                    suggestionsContainer.appendChild(suggestion);
+                });
+
+                if (data.length === 0) {
+                    suggestionsContainer.innerHTML = '<div>No suggestions found</div>';
+                }
+            })
+            .catch(() => {
+                suggestionsContainer.innerHTML = '<div>Error fetching suggestions</div>';
+            });
+    });
+}
+
+window.onload = initAutocomplete;
 
 
 // Show alert function
@@ -106,23 +159,23 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // getAll
-document.addEventListener('DOMContentLoaded', function() {
-    fetch(API_BASE_URL + '/getAll', {
-        method: 'GET',
-        credentials: 'include'  // Include cookies if necessary
-    })
-    .then(response => response.json())  // Parse the response as JSON
-    .then(data => {
-        if (data && data.data) {
-            loadHTMLTable(data.data);  // Load the data into the table
-        } else {
-            console.error('No data available');
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching data:', error);
-    });
-});
+// document.addEventListener('DOMContentLoaded', function() {
+//     fetch(API_BASE_URL + '/getAll', {
+//         method: 'GET',
+//         credentials: 'include'  // Include cookies if necessary
+//     })
+//     .then(response => response.json())  // Parse the response as JSON
+//     .then(data => {
+//         if (data && data.data) {
+//             loadHTMLTable(data.data);  // Load the data into the table
+//         } else {
+//             console.error('No data available');
+//         }
+//     })
+//     .catch(error => {
+//         console.error('Error fetching data:', error);
+//     });
+// });
 
 //listing all data in the table
 function loadHTMLTable(data){
@@ -195,14 +248,13 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
     // Collect data from form fields
     const firstName = document.getElementById('first-name').value;
     const lastName = document.getElementById('last-name').value;
+    const phone = document.getElementById('phone').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
-    const salary = document.getElementById('salary').value;
-    const age = document.getElementById('age').value;
-    const dob = document.getElementById('dob').value;
+    const address = document.getElementById('address').value;
     
     // Add validation
-    if (!firstName || !lastName || !email || !password || !salary || !age || !dob) {
+    if (!firstName || !lastName || !email || !password || !phone || !address) {
         showAlert('Please fill in all required fields.', 'failure');
         return;
     }
@@ -227,9 +279,8 @@ document.getElementById('sign-up-form').addEventListener('submit', async (event)
         last_name: lastName,
         email: email,
         password: password, // Send plaintext password to the server
-        salary: salary,
-        age: age,
-        dob: dob
+        phone: phone,
+        address: address
     };
     
     // Send user data to backend
@@ -294,6 +345,7 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
             document.getElementById('sign-out-btn').style.display = 'block';
             
             // Optionally, reload the page or redirect
+            toggleSignInStatus(true);  // Update the UI sign-in state
             location.reload();
         } else {
             showAlert('Sign in failed: ' + result.error, 'failure');
@@ -344,6 +396,16 @@ document.getElementById('sign-out-btn').addEventListener('click', async () => {
         showAlert("An error occurred during logout. Please try again.", "failure");
     }
 });
+
+
+
+
+
+
+
+
+
+
 
 
 

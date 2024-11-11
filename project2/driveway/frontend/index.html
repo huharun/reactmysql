@@ -31,41 +31,47 @@
             <form id="sign-up-form">
                 <div class="input-container">
                     <label for="first-name">First Name:</label>
-                    <input type="text" id="first-name" >
+                    <input type="text" id="first-name" placeholder="Enter your first name" required>
                 </div>
                 <div class="input-container">
                     <label for="last-name">Last Name:</label>
-                    <input type="text" id="last-name" >
+                    <input type="text" id="last-name" placeholder="Enter your last name" required>
                 </div>
                 <div class="input-container">
+                    <label for="phone">Phone:</label>
+                    <input type="text" id="phone" placeholder="+1 (XXX) XXX-XXXX" required>
+                </div>
+                
+                <div class="input-container">
                     <label for="signup-email">Email:</label>
-                    <input type="email" id="signup-email" >
+                    <input type="email" id="signup-email" placeholder="you@example.com" required>
                 </div>
                 <div class="input-container" style="position: relative;">
                     <label for="signup-password">Password:</label>
-                    <input type="password" id="signup-password" >
+                    <input type="password" id="signup-password" placeholder="Choose a password" required>
                     <span id="toggle-signup-password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 18px;">
                         👁️
                     </span>
                 </div>
+                
+                <!-- Address Section -->
                 <div class="input-container">
-                    <label for="salary">Salary:</label>
-                    <input type="number" id="salary" >
+                    <label for="address">Address:</label>
+                    <input type="text" id="address" placeholder="Start typing an address" required>
                 </div>
-                <div class="input-container">
-                    <label for="age">Age:</label>
-                    <input type="number" id="age" >
-                </div>
-                <div class="input-container">
-                    <label for="dob">Date of Birth:</label>
-                    <input type="date" id="dob" >
-                </div>
+                <div id="address-suggestions" class="suggestions-container"></div>
+                
+                
                 <div class="button-container">
                     <button type="submit" id="register-btn">Sign Up</button>
                 </div>
             </form>
         </div>
     </div>
+    
+    
+    
+    
     
     <!-- Sign In Modal -->
     <div id="sign-in-modal" class="modal" role="dialog" aria-labelledby="sign-in-title" aria-describedby="sign-in-description">

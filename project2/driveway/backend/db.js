@@ -6,12 +6,6 @@
    
    let instance = null; 
    
-   /* for debugging
-   console.log(process.env.HOST);
-   console.log(process.env.USER);
-   console.log(process.env.PASSWORD);
-   */
-   
    const connection = mysql.createConnection({
       host: process.env.HOST,
       user: process.env.USER,        
@@ -67,40 +61,82 @@
       async insertLoginData(userId, loginTime, loginStatus, ipAddress) {
          return new Promise((resolve, reject) => {
             const insertQuery = `
-                 INSERT INTO user_login (user_id, login_time, status, ip_address) 
+                 INSERT INTO user_login (user_id, login_time, status, ip_address)
                  VALUES (?, ?, ?, ?);
              `;
             const updateQuery = `
-                 UPDATE users 
-                 SET last_sign_in = ? 
+                 UPDATE users
+                 SET last_sign_in = ?
                  WHERE id = ?;
              `;
             
             const insertValues = [userId, loginTime, loginStatus, ipAddress];
             const updateValues = [loginTime, userId];
             
-            // First, perform the insert operation
+            // Insert login attempt into user_login table
             connection.query(insertQuery, insertValues, (err, insertResults) => {
                if (err) {
                   return reject(err); 
                }
                
-               // Then, perform the update operation
+               // Update user's last sign-in time
                connection.query(updateQuery, updateValues, (err, updateResults) => {
                   if (err) {
                      return reject(err);
                   }
                   
-                  resolve({ insertResults, updateResults }); 
+                  resolve({ insertResults, updateResults });
                });
             });
          });
       }
       
+      async incrementFailedAttempts(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `
+              UPDATE users 
+              SET failed_attempts = failed_attempts + 1
+              WHERE id = ?;
+          `;
+            connection.query(query, [userId], (err, result) => {
+               if (err) return reject(err);
+               resolve(result);
+            });
+         });
+      }
+      
+      async lockUserAccount(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `
+           UPDATE users
+           SET locked = TRUE
+           WHERE id = ?;
+       `;
+            connection.query(query, [userId], (err, result) => {
+               if (err) return reject(err);
+               resolve(result);
+            });
+         });
+      }
+      
+      async resetFailedAttempts(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `
+           UPDATE users 
+           SET failed_attempts = 0 
+           WHERE id = ?;
+       `;
+            connection.query(query, [userId], (err, result) => {
+               if (err) return reject(err);
+               resolve(result);
+            });
+         });
+      }
+      
+      
       //sign-up
-      async insertNewName(firstName, lastName, email, password, salary, age, dob) {
+      async insertNewName(firstName, lastName, email, password, phone, address) {
          try {
-            
             // Check if email already exists
             const emailExists = await new Promise((resolve, reject) => {
                const query = "SELECT COUNT(*) AS count FROM `users` WHERE `email` = ?;";
@@ -119,13 +155,12 @@
             
             const registrationDate = new Date().toISOString();
             const lastSignIn = new Date().toISOString();
-            const addedBy = 1;
-            const editedBy = null;
             const isDeleted = 0;
             
+            // Insert the new user data into the database
             const insertId = await new Promise((resolve, reject) => {
-               const query = "INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `salary`, `age`, `dob`, `registration_date`, `last_sign_in`, `added_by`, `edited_by`, `is_deleted`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
-               connection.query(query, [firstName, lastName, email, password, salary, age, dob, registrationDate, lastSignIn, addedBy, editedBy, isDeleted], (err, result) => {
+               const query = "INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `phone`, `address`, `registration_date`, `last_sign_in`, `is_deleted`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+               connection.query(query, [firstName, lastName, email, password, phone, address, registrationDate, lastSignIn, isDeleted], (err, result) => {
                   if (err) {
                      reject(new Error(err.message));
                   } else {
@@ -134,15 +169,14 @@
                });
             });
             
-            console.log(insertId);  
+            console.log(insertId);
             return {
                id: insertId,
                firstName: firstName,
                lastName: lastName,
                email: email,
-               salary: salary,
-               age: age,
-               dob: dob,
+               phone: phone,
+               address: address,
                dateAdded: registrationDate
             };     
          } catch (error) {
@@ -150,6 +184,7 @@
             throw error; // Rethrow the error for caller to handle
          }
       }
+      
       
       // Function to get autocomplete results
       async getAutocompleteResults(searchValue, searchType, minSalary, maxSalary, minAge, maxAge) {

@@ -77,14 +77,41 @@ app.post('/signin', async (req, res) => {
         const user = await db.getUserByEmail(email);
         
         if (!user) {
+            // Log failed login attempt due to invalid email
+            const userIp = req.clientIp;
+            const loginTime = new Date().toISOString();
+            await db.insertLoginData(null, loginTime, 'failure', userIp);  // user.id is not available yet
             return res.status(401).json({ error: "Invalid email or password." });
         }
+
+        // Check if the user account is locked
+        if (user.locked) {
+            return res.status(403).json({ error: "Your account is locked due to multiple failed login attempts." });
+        }
+
         const match = await bcrypt.compare(password, user.password);
 
         if (!match) {
+            // Log failed login attempt due to incorrect password
+            const userIp = req.clientIp;
+            const loginTime = new Date().toISOString();
+            await db.insertLoginData(user.id, loginTime, 'failure', userIp);
+
+            // Increment the failed attempts
+            await db.incrementFailedAttempts(user.id);
+            
+            // Check if failed attempts exceed the limit (e.g., 5 attempts)
+            if (user.failed_attempts + 1 >= 5) {
+                // Lock the account if failed attempts exceed threshold
+                await db.lockUserAccount(user.id);
+            }
+
             return res.status(401).json({ error: "Invalid password." });
         }
         
+        // Reset failed attempts upon successful login
+        await db.resetFailedAttempts(user.id);
+
         // Capture user's IP address
         const userIp = req.clientIp;
         const loginTime = new Date().toISOString();
@@ -149,17 +176,25 @@ app.get('/profile', authenticateJWT, async (req, res) => {
 // Sign-up route
 app.post('/insert', async (req, res) => {
     try {
-        const { first_name, last_name, email, password, salary, age, dob } = req.body;
+        const { first_name, last_name, email, password, phone, address } = req.body;
+
+        // Hash the password before saving to the database
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Get the database instance
         const db = dbService.getDbServiceInstance();
         
-        const result = await db.insertNewName(first_name, last_name, email, hashedPassword, salary, age, dob);
-        res.json({ data: result }); // Return the newly added row to frontend
+        // Insert the new user data into the database
+        const result = await db.insertNewName(first_name, last_name, email, hashedPassword, phone, address);
+
+        // Send a success response with the newly added data
+        res.json({ data: result });
     } catch (err) {
         console.error(err); // Log the error for debugging
         res.status(400).json({ error: err.message }); // Send the error message to the client
     }
 });
+
 
 // Get all data route
 app.get('/getAll', async (req, res) => {
