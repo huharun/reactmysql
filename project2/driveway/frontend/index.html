@@ -151,7 +151,6 @@
     </div>
     
     <main>
-        <h2 class="section-title"></h2>
         
         <!-- Section for guests -->
         <div id="guest-section" class="user-section">
@@ -162,13 +161,11 @@
         <!-- Section for signed-in users -->
         <div id="signed-in-section" class="user-section disabled">
             <div id="welcome-message" class="welcome-message" hidden></div>
-            <!-- Menu container that will be populated based on user type -->
-            <div id="menu-container"></div>
             
             <!-- Search Section -->
-             <div class="input-container">
+            <!-- <div class="input-container"> -->
                 <!-- <button id="add-btn">Add</button> -->
-                <label for="search-input">Search:</label>
+                <!-- <label for="search-input">Search:</label>
                 <select id="dropdown" class="search-dropdown">
                     <option id="option-all" value="all">------Select All------</option>
                     <option id="option-id" value="id">User Id</option>
@@ -184,25 +181,15 @@
                 <input type="text" placeholder="Search by Name" id="search-input">
                 <input type="number" placeholder="Max" id="search-input1" hidden>
                 <button id="search-btn" hidden>Search</button>
-            </div> 
+            </div>  -->
             
+            
+            <!-- container that will be populated based on user type -->
+            <div id="menu-container"></div>
+            <div id="formContainer"></div>
             <!-- Table Section -->
-            <table id="table">
-                <thead>
-                    <tr>
-                        <th data-column="id">Id <span class="sort-icon"></span></th>
-                        <th data-column="name">Name <span class="sort-icon"></span></th>
-                        <th data-column="phone">Phone <span class="sort-icon"></span></th>
-                        <th data-column="email">Email <span class="sort-icon"></span></th>
-                        <th data-column="registrationDate">Registration Date <span class="sort-icon"></span></th>
-                        <th data-column="lastSignIn">Last Sign-In <span class="sort-icon"></span></th>
-                        <th data-column="lastEditBy">Last Edit By <span class="sort-icon"></span></th>
-                        <th>Delete</th>
-                        <th>Edit</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <table id="table"></table>
+            
         </div>
         
     </main>

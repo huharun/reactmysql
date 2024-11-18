@@ -15,7 +15,7 @@ const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_U
 document.addEventListener('DOMContentLoaded', async () => {
     const guestSection = document.getElementById('guest-section');
     const welcomeMessage = document.getElementById('welcome-message');
-
+    
     try {
         const token = localStorage.getItem('authToken');
         
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             localStorage.setItem('isLoggedIn', 'false');
             return;
         }
-
+        
         // If there is a token, attempt to authenticate
         const headers = { 'Authorization': `Bearer ${token}` };
         const response = await fetch(API_BASE_URL + '/authenticateJWT', {
@@ -33,14 +33,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             headers: headers,
             credentials: 'include'
         });
-
-        // If the response is not okay (status code not in the 200-299 range), handle the failure
+        
+        //handle response
         if (!response.ok) {
-            throw new Error('Failed to check session');
+            if (response.status === 401) { // Check if the token is expired
+                showAlert('Your session has expired. Please log in again.', 'failure');
+                localStorage.removeItem('authToken'); // Clear the expired token
+                localStorage.setItem('isLoggedIn', 'false');
+                guestSection.innerHTML = '<h3>Please Sign In</h3><p>You need to sign in to access the user management features.</p>';
+                return;
+            } else {
+                throw new Error('Failed to check session');
+            }
         }
-
+        
         const data = await response.json();
-
+        
         if (data.loggedIn) {
             const user = data.user;
             welcomeMessage.innerHTML = `<h3>Welcome, ${user.firstName}</h3><p>You can manage users below.</p>`;
@@ -62,44 +70,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 function initAutocomplete() {
     const addressInput = document.getElementById("address");
     const suggestionsContainer = document.getElementById("address-suggestions");
-
+    
     addressInput.addEventListener("input", function () {
         const query = addressInput.value;
-
+        
         if (query.length < 3) {
             suggestionsContainer.innerHTML = ''; // Clear suggestions if the query is too short
             return;
         }
-
+        
         suggestionsContainer.innerHTML = '<div>Loading...</div>';
-
+        
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`)
-            .then(response => response.json())
-            .then(data => {
-                suggestionsContainer.innerHTML = '';
-                data.forEach(item => {
-                    const suggestion = document.createElement("div");
-                    suggestion.textContent = item.display_name;
-                    suggestion.style.fontSize = '12px'; 
-                    suggestion.style.cursor = 'pointer';
-                    suggestion.style.padding = '4px';
-                    suggestion.style.borderBottom = '1px solid #ddd';
-
-                    suggestion.addEventListener("click", () => {
-                        addressInput.value = item.display_name;
-                        suggestionsContainer.innerHTML = '';
-                    });
-
-                    suggestionsContainer.appendChild(suggestion);
+        .then(response => response.json())
+        .then(data => {
+            suggestionsContainer.innerHTML = '';
+            data.forEach(item => {
+                const suggestion = document.createElement("div");
+                suggestion.textContent = item.display_name;
+                suggestion.style.fontSize = '12px'; 
+                suggestion.style.cursor = 'pointer';
+                suggestion.style.padding = '4px';
+                suggestion.style.borderBottom = '1px solid #ddd';
+                
+                suggestion.addEventListener("click", () => {
+                    addressInput.value = item.display_name;
+                    suggestionsContainer.innerHTML = '';
                 });
-
-                if (data.length === 0) {
-                    suggestionsContainer.innerHTML = '<div>No suggestions found</div>';
-                }
-            })
-            .catch(() => {
-                suggestionsContainer.innerHTML = '<div>Error fetching suggestions</div>';
+                
+                suggestionsContainer.appendChild(suggestion);
             });
+            
+            if (data.length === 0) {
+                suggestionsContainer.innerHTML = '<div>No suggestions found</div>';
+            }
+        })
+        .catch(() => {
+            suggestionsContainer.innerHTML = '<div>Error fetching suggestions</div>';
+        });
     });
 }
 
@@ -158,183 +166,469 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// getAll
-// document.addEventListener('DOMContentLoaded', function() {
-//     fetch(API_BASE_URL + '/getAll', {
-//         method: 'GET',
-//         credentials: 'include'  // Include cookies if necessary
-//     })
-//     .then(response => response.json())  // Parse the response as JSON
-//     .then(data => {
-//         if (data && data.data) {
-//             loadHTMLTable(data.data);  // Load the data into the table
-//         } else {
-//             console.error('No data available');
-//         }
-//     })
-//     .catch(error => {
-//         console.error('Error fetching data:', error);
-//     });
-// });
 
-// Simulate dynamically fetching user type from the server (e.g., from a session or a JWT)
-const userType = getUserTypeFromSession(); // This function would ideally fetch the real user type dynamically
-
-// Function to simulate getting the user type (this is where you'd integrate your backend logic)
-function getUserTypeFromSession() {
-    // For demonstration purposes, we simulate returning user type (could be 2 for Contractor or 3 for Client)
-    // In a real-world scenario, this data might come from a session, JWT, or API call
-    return 2; // Change this value dynamically to test different users (2 for Contractor, 3 for Client)
-}
 
 // Function to render the correct menu based on user type
 function renderMenu() {
     const contractorMenu = `
-        <h2>Contractor Dashboard</h2>
+        <h2 class="section-title">Contractor Dashboard</h2>
         <nav class="menu">
             <ul>
-                <li><a href="#quote-requests">Quote Requests</a>
-                    <ul class="submenu">
-                        <li><a href="#view-new-requests">View New Requests</a></li>
-                        <li><a href="#respond-to-request">Respond to Request</a></li>
-                        <li><a href="#view-all-quotes">View All Quotes</a></li>
+                <li><a href="#" onclick="toggleSubMenu(event, 'quote-requests')">Quote Requests</a>
+                    <ul class="submenu" id="quote-requests">
+                        <li><a href="#" onclick="viewNewRequests()">View New Requests</a></li>
+                        <li><a href="#" onclick="respondToRequest()">Respond to Request</a></li>
+                        <li><a href="#" onclick="viewAllQuotes()">View All Quotes</a></li>
                     </ul>
                 </li>
-                <li><a href="#work-orders">Work Orders</a>
-                    <ul class="submenu">
-                        <li><a href="#view-active-orders">View Active Orders</a></li>
-                        <li><a href="#view-completed-orders">View Completed Orders</a></li>
-                        <li><a href="#manage-order-details">Manage Order Details</a></li>
+                <li><a href="#" onclick="toggleSubMenu(event, 'work-orders')">Work Orders</a>
+                    <ul class="submenu" id="work-orders">
+                        <li><a href="#" onclick="viewActiveOrders()">View Active Orders</a></li>
+                        <li><a href="#" onclick="viewCompletedOrders()">View Completed Orders</a></li>
+                        <li><a href="#" onclick="manageOrderDetails()">Manage Order Details</a></li>
                     </ul>
                 </li>
-                <li><a href="#billing">Billing</a>
-                    <ul class="submenu">
-                        <li><a href="#generate-bill">Generate Bill</a></li>
-                        <li><a href="#view-all-bills">View All Bills</a></li>
-                        <li><a href="#manage-disputes">Manage Disputes</a></li>
+                <li><a href="#" onclick="toggleSubMenu(event, 'billing')">Billing</a>
+                    <ul class="submenu" id="billing">
+                        <li><a href="#" onclick="generateBill()">Generate Bill</a></li>
+                        <li><a href="#" onclick="viewAllBills()">View All Bills</a></li>
+                        <li><a href="#" onclick="manageDisputes()">Manage Disputes</a></li>
                     </ul>
                 </li>
-                <li><a href="#reports">Reports</a>
-                    <ul class="submenu">
-                        <li><a href="#revenue-report">Revenue Report</a></li>
-                        <li><a href="#big-clients">List of Big Clients</a></li>
-                        <li><a href="#overdue-bills">Overdue Bills</a></li>
-                        <li><a href="#client-ratings">Good and Bad Clients</a></li>
+                <li><a href="#" onclick="toggleSubMenu(event, 'reports')">Reports</a>
+                    <ul class="submenu" id="reports">
+                        <li><a href="#" onclick="viewRevenueReport()">Revenue Report</a></li>
+                        <li><a href="#" onclick="viewBigClients()">List of Big Clients</a></li>
+                        <li><a href="#" onclick="viewOverdueBills()">Overdue Bills</a></li>
+                        <li><a href="#" onclick="viewClientRatings()">Good and Bad Clients</a></li>
                     </ul>
                 </li>
             </ul>
         </nav>
     `;
-
+    
     const clientMenu = `
-        <h2>Client Dashboard</h2>
+        <h2 class="section-title">Client Dashboard</h2>
         <nav class="menu">
             <ul>
-                <li><a href="#request-quote">Request a Quote</a>
-                    <ul class="submenu">
-                        <li><a href="#submit-new-request">Submit New Request</a></li>
-                        <li><a href="#view-my-requests">View My Requests</a></li>
+                <li><a href="#" onclick="toggleSubMenu(event, 'request-quote')">Request a Quote</a>
+                    <ul class="submenu" id="request-quote">
+                        <li><a href="#" onclick="viewMyRequests()">View My Requests</a></li>
+                        <li><a href="#" onclick="submitNewRequest()">Submit New Request</a></li>
                     </ul>
                 </li>
-                <li><a href="#orders">Orders</a>
-                    <ul class="submenu">
-                        <li><a href="#view-my-orders">View My Orders</a></li>
-                        <li><a href="#manage-negotiations">Manage Order Negotiations</a></li>
+                <li><a href="#" onclick="toggleSubMenu(event, 'orders')">Orders</a>
+                    <ul class="submenu" id="orders">
+                        <li><a href="#" onclick="viewMyOrders()">View My Orders</a></li>
+                        <li><a href="#" onclick="manageNegotiations()">Manage Order Negotiations</a></li>
                     </ul>
                 </li>
-                <li><a href="#billing">Billing</a>
-                    <ul class="submenu">
-                        <li><a href="#view-bills">View Bills</a></li>
-                        <li><a href="#pay-bill">Pay Bill</a></li>
-                        <li><a href="#dispute-bill">Dispute Bill</a></li>
+                <li><a href="#" onclick="toggleSubMenu(event, 'billing')">Billing</a>
+                    <ul class="submenu" id="billing">
+                        <li><a href="#" onclick="viewBills()">View Bills</a></li>
+                        <li><a href="#" onclick="payBill()">Pay Bill</a></li>
+                        <li><a href="#" onclick="disputeBill()">Dispute Bill</a></li>
                     </ul>
                 </li>
-                <li><a href="#account-management">Account Management</a>
-                    <ul class="submenu">
-                        <li><a href="#view-profile">View Profile</a></li>
-                        <li><a href="#payment-history">View Payment History</a></li>
+                <li><a href="#" onclick="toggleSubMenu(event, 'account-management')">Account Management</a>
+                    <ul class="submenu" id="account-management">
+                        <li><a href="#" onclick="viewProfile()">View Profile</a></li>
+                        <li><a href="#" onclick="viewPaymentHistory()">View Payment History</a></li>
                     </ul>
                 </li>
             </ul>
         </nav>
     `;
-
+    
     const menuContainer = document.getElementById("menu-container");
-
-    if (userType === 2) {  // Contractor
-        menuContainer.innerHTML = contractorMenu;
-    } else if (userType === 3) {  // Client
-        menuContainer.innerHTML = clientMenu;
+    const formContainer = document.getElementById('formContainer');
+    
+    // Check if the user is logged in
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    
+    // If not logged in, display a message or hide the menu
+    if (isLoggedIn !== 'true') {
+        formContainer.innerHTML = `<div style="text-align: center;">
+        <video width="100%" height="auto" controls autoplay muted loop>
+        <source src="gwen.mp4" type="video/mp4">
+        <source src="gwen.webm" type="video/webm">
+        <source src="gwen.ogg" type="video/ogg">
+        Your browser does not support the video tag.
+        </video>
+        </div>`;
+        
+    } else {
+        // User is logged in, proceed with fetching user data
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        
+        // If userData exists, proceed
+        if (userData) {
+            const userType = userData.user_type; 
+            
+            console.log("User Type:", userType); 
+            
+            // Render the menu based on user type
+            if (userType === 2) {
+                menuContainer.innerHTML = contractorMenu;  // Display contractor menu
+            } else if (userType === 3) {
+                menuContainer.innerHTML = clientMenu;  // Display client menu
+                
+                // Open the "Request a Quote" submenu by default
+                const requestQuoteSubMenu = document.getElementById('request-quote');
+                if (requestQuoteSubMenu) {
+                    requestQuoteSubMenu.style.display = 'block';  // Ensure the submenu is displayed
+                }
+                
+                // Open the "View My Requests" by default (similar to clicking on it)
+                const viewMyRequestsLink = requestQuoteSubMenu.querySelector('a');
+                if (viewMyRequestsLink) {
+                    // Trigger the function for "View My Requests" on page load
+                    viewMyRequestsLink.click();
+                }
+            } else {
+                menuContainer.innerHTML = "<div><h1 style='text-align:center'>Not a valid user</h1></div>";
+            }
+        } else {
+            // If userData is not available, prompt to log in
+            menuContainer.innerHTML = "<div><h1 style='text-align:center'>Please log in to view this content.</h1></div>";
+        }
     }
+    
+}
+
+// Function to toggle the visibility of submenu when clicking on a parent link
+function toggleSubMenu(event, submenuId) {
+    event.preventDefault();
+    const submenu = document.getElementById(submenuId);
+    const allSubmenus = document.querySelectorAll('.submenu');
+    
+    // Close all submenus
+    allSubmenus.forEach(sub => {
+        if (sub !== submenu) {
+            sub.style.display = 'none';
+        }
+    });
+    
+    // Toggle the clicked submenu
+    submenu.style.display = (submenu.style.display === 'none' || submenu.style.display === '') ? 'block' : 'none';
+}
+
+
+// Define functions for each action triggered by the menu links
+//contractor
+function viewNewRequests() {
+    console.log("Viewing New Quote Requests...");
+    // Add logic to handle this action
+}
+
+function respondToRequest() {
+    console.log("Responding to a Quote Request...");
+    // Add logic to handle this action
+}
+
+function viewAllQuotes() {
+    console.log("Viewing All Quotes...");
+    // Add logic to handle this action
+}
+
+function viewActiveOrders() {
+    console.log("Viewing Active Work Orders...");
+    // Add logic to handle this action
+}
+
+function viewCompletedOrders() {
+    console.log("Viewing Completed Work Orders...");
+    // Add logic to handle this action
+}
+
+function manageOrderDetails() {
+    console.log("Managing Order Details...");
+    // Add logic to handle this action
+}
+
+function generateBill() {
+    console.log("Generating Bill...");
+    // Add logic to handle this action
+}
+
+function viewAllBills() {
+    console.log("Viewing All Bills...");
+    // Add logic to handle this action
+}
+
+function manageDisputes() {
+    console.log("Managing Disputes...");
+    // Add logic to handle this action
+}
+
+function viewReports() {
+    console.log("Viewing Reports...");
+    // Add logic to handle this action
+}
+
+function viewRevenueReport() {
+    console.log("Viewing Revenue Report...");
+    // Add logic to handle this action
+}
+
+function viewBigClients() {
+    console.log("Viewing List of Big Clients...");
+    // Add logic to handle this action
+}
+
+function viewOverdueBills() {
+    console.log("Viewing Overdue Bills...");
+    // Add logic to handle this action
+}
+
+function viewClientRatings() {
+    console.log("Viewing Client Ratings...");
+    // Add logic to handle this action
+}
+
+
+
+//Clients
+function submitNewRequest() {
+    console.log("Submitting a New Request...");
+    
+    const userData = JSON.parse(sessionStorage.getItem('user')) || {};
+    const clientId = userData.userId || '';
+    const clientName = `${userData.firstName || ''} ${userData.lastName || ''}`;
+    const userType = userData.user_type || '';
+    
+    const formContainer = document.getElementById('formContainer');
+    formContainer.innerHTML = `
+        <form id="serviceRequestForm">
+            <h2>Submit a New Service Request</h2>
+            
+            <div class="input-container">
+                <label for="clientId">Client ID:</label>
+                <input type="text" id="clientId" name="clientId" value="${clientId}" readonly required>
+            </div>
+            
+            <div class="input-container">
+                <label for="clientName">Client Name:</label>
+                <input type="text" id="clientName" name="clientName" value="${clientName}" readonly required>
+            </div>
+            
+            <div class="input-container">
+                <label for="serviceType">Service Type:</label>
+                <select id="serviceType" name="serviceType" required>
+                    <option value="1">Driveway Sealing</option>
+                    <option value="2">Crack Repair</option>
+                    <option value="3">Pothole Filling</option>
+                    <option value="4">Resurfacing</option>
+                    <option value="5">Pressure Washing</option>
+                    <option value="6">Driveway Cleaning</option>
+                    <option value="7">Regraveling</option>
+                    <option value="8">Seal Coating</option>
+                    <option value="9">Other</option>
+                </select>
+            </div>
+            
+            <div class="input-container">
+                <label for="description">Description of the Issue:</label>
+                <textarea id="description" name="description" placeholder="Describe the issue you are facing..." required></textarea>
+            </div>
+            
+            <div class="input-container">
+                <label for="urgency">Urgency Level:</label>
+                <select id="urgency" name="urgency" required>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            
+            <div class="input-container">
+                <label for="images">Upload Images (optional):</label>
+                <input type="file" id="images" name="images" accept="image/*" multiple>
+            </div>
+            
+            <div class="button-container">
+                <button type="submit">Submit Request</button>
+            </div>
+        </form>
+    `;
+    
+    const serviceRequestForm = document.getElementById('serviceRequestForm');
+    serviceRequestForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const serviceType = document.getElementById('serviceType').value;   
+        const description = document.getElementById('description').value;
+        const urgency = document.getElementById('urgency').value;
+        const images = document.getElementById('images').files; // Get multiple files
+        
+        const formData = new FormData();
+        formData.append('clientId', clientId);
+        formData.append('clientName', clientName);
+        formData.append('userType', userType);
+        formData.append('serviceType', serviceType);
+        formData.append('description', description);
+        formData.append('urgency', urgency);
+        
+        // Append each selected file to FormData
+        Array.from(images).forEach((image) => {
+            formData.append('images', image);  // Same field name ('images') for multiple files
+        });
+        
+        try {
+            const response = await fetch(API_BASE_URL + '/submit_request', {
+                method: 'POST',
+                body: formData,
+            });
+            
+            if (!response.ok) throw new Error('Failed to submit request');
+            
+            const result = await response.json();
+            console.log('Request submitted successfully:', result);
+            showAlert('Your service request has been submitted successfully!', 'success');
+            viewMyRequests()
+            
+        } catch (error) {
+            console.error('Error submitting the request:', error);
+            showAlert('An error occurred. Please try again later.', 'failure');
+            
+        }
+    });
+}
+
+function viewMyRequests() {
+    console.log("Viewing My Requests...");
+    
+    // Retrieve user data from sessionStorage
+    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const userId = userData.userId;  // Get the userId from session data
+    
+    // Check if userId is present
+    if (!userId) {
+        console.error('User is not authenticated');
+        return;  // Exit the function if no userId found
+    }
+    
+    // Dynamically add the header to view user requests
+    const formContainer = document.getElementById('formContainer');
+    formContainer.innerHTML = `<h2>My Service Requests</h2>`;
+    
+    // Fetch the user's service requests from the server using a POST request
+    fetch(API_BASE_URL + '/view_requests', {
+        method: 'POST',  // Use POST method to send data
+        headers: {
+            'Content-Type': 'application/json',  // Ensure the server knows we're sending JSON
+        },
+        body: JSON.stringify({ userId: userId })  // Send userId in the request body
+    })
+    .then(response => response.json())
+    .then(data => {
+        const table = document.getElementById('table'); // Get the table by id
+        
+        // Check if there are any requests to display
+        if (data && data.length > 0) {
+            // Create table headers based on the fields
+            let tableHTML = `
+                <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Client ID</th>
+                        <th>Service ID</th>
+                        <th>Property Address</th>
+                        <th>Square Feet</th>
+                        <th>Proposed Price</th>
+                        <th>Note</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                        <th>Updated At</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            // Loop through the data to populate rows
+            data.forEach(request => {
+                tableHTML += `
+                    <tr>
+                        <td>${request.request_id}</td>
+                        <td>${request.client_id}</td>
+                        <td>${request.service_id}</td>
+                        <td>${request.property_address}</td>
+                        <td>${request.square_feet}</td>
+                        <td>${request.proposed_price}</td>
+                        <td>${request.note ? request.note : 'N/A'}</td>
+                        <td>${request.status}</td>
+                        <td>${new Date(request.created_at).toLocaleString()}</td>
+                        <td>${new Date(request.updated_at).toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+            
+            // Close the table tags
+            tableHTML += `
+                </tbody>
+            `;
+            
+            // Inject the table rows into the table element with id "table"
+            table.innerHTML = tableHTML;
+        } else {
+            table.innerHTML = '<tr>No service requests found.</tr>';
+        }
+    })
+    .catch(error => {
+        console.error('Error in fetching requests:', error);
+        showAlert('There was an error fetching your requests. Please try again later.', 'failure');
+    });
+}
+
+
+function viewOrders() {
+    console.log("Viewing Orders...");
+    // Add logic to handle this action
+}
+
+function viewMyOrders() {
+    console.log("Viewing My Orders...");
+    // Add logic to handle this action
+}
+
+function manageNegotiations() {
+    console.log("Managing Order Negotiations...");
+    // Add logic to handle this action
+}
+
+function viewBills() {
+    console.log("Viewing Bills...");
+    // Add logic to handle this action
+}
+
+function payBill() {
+    console.log("Paying Bill...");
+    // Add logic to handle this action
+}
+
+function disputeBill() {
+    console.log("Disputing Bill...");
+    // Add logic to handle this action
+}
+
+function accountManagement() {
+    console.log("Managing Account...");
+    // Add logic to handle this action
+}
+
+function viewProfile() {
+    console.log("Viewing Profile...");
+    // Add logic to handle this action
+}
+
+function viewPaymentHistory() {
+    console.log("Viewing Payment History...");
+    // Add logic to handle this action
 }
 
 // Call the renderMenu function on page load
 window.onload = renderMenu;
 
-
-//listing all data in the table
-function loadHTMLTable(data){
-    debug("index.js: loadHTMLTable called.");
-    
-    const table = document.querySelector('table tbody'); 
-    
-    if(data.length === 0){
-        table.innerHTML = "<tr><td class='no-data' colspan='11'>No Data</td></tr>";
-        return;
-    }
-    
-    let tableHtml = "";
-    data.forEach(function ({id, first_name, last_name, email, user_id, salary, age, registration_date, last_sign_in, added_by, edited_by}) {
-        tableHtml += "<tr>";
-        tableHtml += `<td>${id}</td>`;
-        tableHtml += `<td>${first_name} ${last_name}</td>`;
-        tableHtml += `<td>${email}</td>`;
-        tableHtml += `<td>${salary}</td>`;
-        tableHtml += `<td>${age}</td>`;
-        tableHtml += `<td>${new Date(registration_date).toLocaleString()}</td>`;
-        tableHtml += `<td>${new Date(last_sign_in).toLocaleString()}</td>`;
-        tableHtml += `<td hidden>${added_by}</td>`;
-        tableHtml += `<td>${edited_by}</td>`;
-        tableHtml += `<td><button class="delete-row-btn" data-id=${id}>Delete</button></td>`;
-        tableHtml += `<td><button class="edit-row-btn" data-id=${id} data-first_name=${first_name} data-last_name=${last_name} data-email=${email} data-salary=${salary} data-age=${age} >Edit</button></td>`;
-        tableHtml += "</tr>";
-    });
-    
-    table.innerHTML = tableHtml;
-    
-    // Initialize sorting
-    initializeTableSorting('table');
-}
-
-// Function to initialize sorting for the table
-function initializeTableSorting(tableId) {
-    const table = document.getElementById(tableId);
-    const headers = table.querySelectorAll('th');
-    const tbody = table.tBodies[0];
-    const sortStates = Array(headers.length).fill(true); // true for ascending
-    
-    headers.forEach((header, index) => {
-        // Skip last two headers (Delete and Edit)
-        if (index >= headers.length - 2) return;
-        
-        header.addEventListener('click', () => {
-            const ascending = sortStates[index];
-            const rows = Array.from(tbody.rows).sort((a, b) => {
-                const aValue = isNaN(a.cells[index].innerText) ? a.cells[index].innerText : parseFloat(a.cells[index].innerText);
-                const bValue = isNaN(b.cells[index].innerText) ? b.cells[index].innerText : parseFloat(b.cells[index].innerText);
-                return ascending ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
-            });
-            rows.forEach(row => tbody.appendChild(row));
-            sortStates[index] = !ascending;
-            headers.forEach((hdr, i) => {
-                const sortIcon = hdr.querySelector('.sort-icon');
-                if (i < headers.length - 2 && sortIcon) { // Ensure it's not the last two headers
-                    sortIcon.innerHTML = i === index ? (sortStates[index] ? '▲' : '▼') : '';
-                }
-            });
-        });
-    });
-}
 
 
 
@@ -439,13 +733,13 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
     // Collect data from form fields
     const email = document.getElementById('signin-email').value;
     const password = document.getElementById('signin-password').value;
-
+    
     // Add validation
     if (!email || !password) {
         showAlert('Please fill in all required fields.', 'failure');
         return;
     }
-
+    
     // Send login request to backend
     try {
         const response = await fetch(API_BASE_URL + '/signin', {
@@ -472,6 +766,7 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
             
             // Optionally, reload the page or redirect
             toggleSignInStatus(true);  // Update the UI sign-in state
+            localStorage.setItem('reloadFlag', 'true');
             location.reload();
         } else {
             showAlert('Sign in failed: ' + result.error, 'failure');
@@ -482,19 +777,35 @@ document.getElementById('sign-in-form').addEventListener('submit', async (event)
     }
 });
 
+// Check if the flag is set on page load
+window.addEventListener('load', () => {
+    const reloadFlag = localStorage.getItem('reloadFlag');
+    
+    if (reloadFlag === 'true') {
+        // Reset the flag
+        localStorage.removeItem('reloadFlag');
+        
+        // Trigger the second reload after a short delay
+        setTimeout(() => {
+            location.reload();
+        }, 100); // 100ms delay before the second reload
+    }
+});
+
+
 
 //sign-out action
 document.getElementById('sign-out-btn').addEventListener('click', async () => {
     try {
         // Get the JWT token from localStorage
         const authToken = localStorage.getItem('authToken');
-
+        
         if (!authToken) {
             console.error('No token found');
             showAlert('You are not logged in.', 'failure');
             return;
         }
-
+        
         // Send request to logout route with the token in the Authorization header
         const response = await fetch(API_BASE_URL + '/logout', {
             method: 'POST',
@@ -503,13 +814,14 @@ document.getElementById('sign-out-btn').addEventListener('click', async () => {
             },
             credentials: 'include', // Ensure session cookies are included if used
         });
-
+        
         // Check if the logout was successful
         if (response.ok) {
             // Clear the JWT token from localStorage
             localStorage.removeItem('authToken');
             toggleSignInStatus(false);  // Update the UI sign-in state
             showAlert('Successfully logged out.', 'success');  // Inform user of success
+            location.reload();
         } else {
             // Handle error during logout
             const errorData = await response.json();
@@ -537,162 +849,162 @@ document.getElementById('sign-out-btn').addEventListener('click', async () => {
 
 
 
-//dropdown change
-document.getElementById('dropdown').addEventListener('change', function() {
-    const selectedValue = this.value; 
-    const inputField = document.getElementById('search-input'); 
-    const searchInput1 = document.getElementById("search-input1"); 
-    
-    // Reset fields initially
-    inputField.removeAttribute('disabled'); 
-    inputField.placeholder = ''; 
-    inputField.type = 'text'; 
-    searchInput1.hidden = true; 
-    
-    switch (selectedValue) {
-        case 'all':
-        inputField.disabled = true;
-        inputField.placeholder = 'Showing All';
-        inputField.value = '';
-        fetchUsers('all');
-        break;
-        case 'id':
-        inputField.placeholder = 'Search by Id';
-        break;
-        case 'name':
-        inputField.placeholder = 'Search by Name';
-        break;
-        case 'email':
-        inputField.placeholder = 'Search by Email'; 
-        break;
-        case 'salary':
-        inputField.placeholder = 'Min Salary'; // Placeholder for Min Salary
-        inputField.type = 'number'; // Change type to number for Min Salary
-        searchInput1.placeholder = 'Max Salary'; // Placeholder for Max Salary
-        searchInput1.type = 'number'; // Change type to number for Max Salary
-        searchInput1.hidden = false; // Show the Max Salary input
-        break;
-        case 'age':
-        inputField.placeholder = 'Min Age';
-        inputField.type = 'number';
-        searchInput1.placeholder = 'Max Age';
-        searchInput1.type = 'number';
-        searchInput1.hidden = false;
-        break;
-        case 'after':
-        inputField.placeholder = 'Search by After the Id'; 
-        inputField.type = 'number';
-        break;
-        case 'never':
-        inputField.placeholder = 'Users never Signed In'; 
-        inputField.disabled = true;
-        inputField.value = '';
-        fetchUsers('never');
-        break;
-        case 'sameReg':
-        inputField.placeholder = 'Users Registered on Same Day'; 
-        inputField.type = 'number'; 
-        break;
-        case 'todayReg':
-        inputField.placeholder = 'Users Registered on Today'; 
-        inputField.disabled = true;
-        inputField.value = '';
-        fetchUsers('todayReg');
-        break;
-        
-        default:
-        inputField.placeholder = 'Select All';
-    }
-});
+// //dropdown change
+// document.getElementById('dropdown').addEventListener('change', function() {
+//     const selectedValue = this.value; 
+//     const inputField = document.getElementById('search-input'); 
+//     const searchInput1 = document.getElementById("search-input1"); 
+
+//     // Reset fields initially
+//     inputField.removeAttribute('disabled'); 
+//     inputField.placeholder = ''; 
+//     inputField.type = 'text'; 
+//     searchInput1.hidden = true; 
+
+//     switch (selectedValue) {
+//         case 'all':
+//         inputField.disabled = true;
+//         inputField.placeholder = 'Showing All';
+//         inputField.value = '';
+//         fetchUsers('all');
+//         break;
+//         case 'id':
+//         inputField.placeholder = 'Search by Id';
+//         break;
+//         case 'name':
+//         inputField.placeholder = 'Search by Name';
+//         break;
+//         case 'email':
+//         inputField.placeholder = 'Search by Email'; 
+//         break;
+//         case 'salary':
+//         inputField.placeholder = 'Min Salary'; // Placeholder for Min Salary
+//         inputField.type = 'number'; // Change type to number for Min Salary
+//         searchInput1.placeholder = 'Max Salary'; // Placeholder for Max Salary
+//         searchInput1.type = 'number'; // Change type to number for Max Salary
+//         searchInput1.hidden = false; // Show the Max Salary input
+//         break;
+//         case 'age':
+//         inputField.placeholder = 'Min Age';
+//         inputField.type = 'number';
+//         searchInput1.placeholder = 'Max Age';
+//         searchInput1.type = 'number';
+//         searchInput1.hidden = false;
+//         break;
+//         case 'after':
+//         inputField.placeholder = 'Search by After the Id'; 
+//         inputField.type = 'number';
+//         break;
+//         case 'never':
+//         inputField.placeholder = 'Users never Signed In'; 
+//         inputField.disabled = true;
+//         inputField.value = '';
+//         fetchUsers('never');
+//         break;
+//         case 'sameReg':
+//         inputField.placeholder = 'Users Registered on Same Day'; 
+//         inputField.type = 'number'; 
+//         break;
+//         case 'todayReg':
+//         inputField.placeholder = 'Users Registered on Today'; 
+//         inputField.disabled = true;
+//         inputField.value = '';
+//         fetchUsers('todayReg');
+//         break;
+
+//         default:
+//         inputField.placeholder = 'Select All';
+//     }
+// });
 
 // Function to handle input changes for both salary fields
-async function handleInput() {
-    const searchInput = document.getElementById('search-input').value;
-    const searchInput1 = document.getElementById('search-input1').value;
-    const dropdown = document.getElementById('dropdown');
-    const selectedOption = dropdown.value;
-    
-    let bodyData;
-    if (selectedOption === 'salary') {
-        let minSalary = searchInput.trim() === '' ? 0 : parseFloat(searchInput);
-        let maxSalary = searchInput1.trim() === '' ? Infinity : parseFloat(searchInput1);
-        
-        if (isNaN(minSalary) || isNaN(maxSalary)) {
-            showAlert('Please enter valid numeric values for both salaries.', 'failure');
-            return;
-        }
-        
-        if (minSalary >= maxSalary) {
-            showAlert('Min Salary must be less than Max Salary.', 'failure');
-            return;
-        }
-        
-        bodyData = { minSalary, maxSalary, searchType: selectedOption };
-    }
-    else if (selectedOption === 'age') {
-        let minAge = searchInput.trim() === '' ? 0 : parseInt(searchInput, 10);
-        let maxAge = searchInput1.trim() === '' ? Infinity : parseInt(searchInput1, 10);
-        
-        if (isNaN(minAge) || isNaN(maxAge)) {
-            showAlert('Please enter valid numeric values for both ages.', 'failure');
-            return;
-        }
-        
-        if (minAge >= maxAge) {
-            showAlert('Min Age must be less than Max Age.', 'failure');
-            return;
-        }
-        
-        bodyData = { minAge, maxAge, searchType: selectedOption };
-    }
-    else {
-        bodyData = { searchValue: searchInput, searchType: selectedOption };
-    }
-    
-    const response = await fetch(API_BASE_URL + '/autocomplete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyData),
-    });
-    
-    // Check if response is OK
-    if (!response.ok) {
-        const errorDetails = await response.json();
-        showAlert(`Error: ${errorDetails.details}`, 'failure');
-        return; 
-    }
-    
-    const results = await response.json();
-    displayResults(results);
-}
+// async function handleInput() {
+//     const searchInput = document.getElementById('search-input').value;
+//     const searchInput1 = document.getElementById('search-input1').value;
+//     const dropdown = document.getElementById('dropdown');
+//     const selectedOption = dropdown.value;
 
-// Function to handle fetching users based on selected option
-async function fetchUsers(type, searchValue = null) {
-    let bodyData = { searchType: type }; 
-    
-    if (searchValue) {
-        bodyData.searchValue = searchValue;
-    }
-    
-    const response = await fetch(API_BASE_URL + '/autocomplete', {
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyData), 
-    });
-    
-    if (!response.ok) {
-        const errorDetails = await response.json();
-        showAlert(`Error: ${errorDetails.details}`, 'failure');
-        return;
-    }
-    
-    const results = await response.json();
-    displayResults(results);
-}
+//     let bodyData;
+//     if (selectedOption === 'salary') {
+//         let minSalary = searchInput.trim() === '' ? 0 : parseFloat(searchInput);
+//         let maxSalary = searchInput1.trim() === '' ? Infinity : parseFloat(searchInput1);
+
+//         if (isNaN(minSalary) || isNaN(maxSalary)) {
+//             showAlert('Please enter valid numeric values for both salaries.', 'failure');
+//             return;
+//         }
+
+//         if (minSalary >= maxSalary) {
+//             showAlert('Min Salary must be less than Max Salary.', 'failure');
+//             return;
+//         }
+
+//         bodyData = { minSalary, maxSalary, searchType: selectedOption };
+//     }
+//     else if (selectedOption === 'age') {
+//         let minAge = searchInput.trim() === '' ? 0 : parseInt(searchInput, 10);
+//         let maxAge = searchInput1.trim() === '' ? Infinity : parseInt(searchInput1, 10);
+
+//         if (isNaN(minAge) || isNaN(maxAge)) {
+//             showAlert('Please enter valid numeric values for both ages.', 'failure');
+//             return;
+//         }
+
+//         if (minAge >= maxAge) {
+//             showAlert('Min Age must be less than Max Age.', 'failure');
+//             return;
+//         }
+
+//         bodyData = { minAge, maxAge, searchType: selectedOption };
+//     }
+//     else {
+//         bodyData = { searchValue: searchInput, searchType: selectedOption };
+//     }
+
+//     const response = await fetch(API_BASE_URL + '/autocomplete', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(bodyData),
+//     });
+
+//     // Check if response is OK
+//     if (!response.ok) {
+//         const errorDetails = await response.json();
+//         showAlert(`Error: ${errorDetails.details}`, 'failure');
+//         return; 
+//     }
+
+//     const results = await response.json();
+//     displayResults(results);
+// }
+
+// // Function to handle fetching users based on selected option
+// async function fetchUsers(type, searchValue = null) {
+//     let bodyData = { searchType: type }; 
+
+//     if (searchValue) {
+//         bodyData.searchValue = searchValue;
+//     }
+
+//     const response = await fetch(API_BASE_URL + '/autocomplete', {
+//         method: 'POST', 
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify(bodyData), 
+//     });
+
+//     if (!response.ok) {
+//         const errorDetails = await response.json();
+//         showAlert(`Error: ${errorDetails.details}`, 'failure');
+//         return;
+//     }
+
+//     const results = await response.json();
+//     displayResults(results);
+// }
 
 // Add event listeners to both input fields
-document.getElementById('search-input').addEventListener('input', handleInput);
-document.getElementById('search-input1').addEventListener('input', handleInput);
+// document.getElementById('search-input').addEventListener('input', handleInput);
+// document.getElementById('search-input1').addEventListener('input', handleInput);
 
 function displayResults(results) {
     if(results){
@@ -700,38 +1012,38 @@ function displayResults(results) {
     }
 }
 
-let rowToDelete; 
+// let rowToDelete; 
 // when the delete button is clicked, since it is not part of the DOM tree, we need to do it differently
-document.querySelector('table tbody').addEventListener('click', 
-    function(event){
-        const userData = sessionStorage.getItem('user');
-        const sessionUserid = JSON.parse(userData);
-        
-        
-        if(event.target.className === "delete-row-btn"){
-            // alert(event.target.dataset.id);return
-            
-            const id = event.target.dataset.id
-            deleteRowById(id,sessionUserid.id);   
-            rowToDelete = event.target.parentNode.parentNode.rowIndex;    
-            debug("delete which one:");
-            debug(rowToDelete);
-        }   
-        if(event.target.className === "edit-row-btn"){
-            // alert(JSON.stringify(event.target.dataset));return
-            const id = event.target.dataset.id
-            const first_name = event.target.dataset.first_name
-            const last_name = event.target.dataset.last_name
-            const email = event.target.dataset.email
-            const salary = event.target.dataset.salary
-            const age = event.target.dataset.age
-            
-            
-            showEditRowInterface(id, first_name, last_name, email, salary, age); 
-            
-        }
-    }
-);
+// document.querySelector('table tbody').addEventListener('click', 
+//     function(event){
+//         const userData = sessionStorage.getItem('user');
+//         const sessionUserid = JSON.parse(userData);
+
+
+//         if(event.target.className === "delete-row-btn"){
+//             // alert(event.target.dataset.id);return
+
+//             const id = event.target.dataset.id
+//             deleteRowById(id,sessionUserid.id);   
+//             rowToDelete = event.target.parentNode.parentNode.rowIndex;    
+//             debug("delete which one:");
+//             debug(rowToDelete);
+//         }   
+//         if(event.target.className === "edit-row-btn"){
+//             // alert(JSON.stringify(event.target.dataset));return
+//             const id = event.target.dataset.id
+//             const first_name = event.target.dataset.first_name
+//             const last_name = event.target.dataset.last_name
+//             const email = event.target.dataset.email
+//             const salary = event.target.dataset.salary
+//             const age = event.target.dataset.age
+
+
+//             showEditRowInterface(id, first_name, last_name, email, salary, age); 
+
+//         }
+//     }
+// );
 
 //not exactly deleting
 function deleteRowById(id,sessionUserid){

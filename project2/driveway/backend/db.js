@@ -28,34 +28,6 @@
          return instance? instance: new DbService();
       }
       
-      // getAll
-      async getAllData(){
-         try{
-            // use await to call an asynchronous function
-            const response = await new Promise((resolve, reject) => {
-               const query = `
-                  SELECT u.id, u.first_name, u.last_name, u.email, u.salary, u.age, u.registration_date, u.last_sign_in, 
-                  CONCAT(added.first_name, ' ', added.last_name) AS added_by, 
-                  IFNULL(CONCAT(edited.first_name, ' ', edited.last_name), 'None') AS edited_by 
-                  FROM users u 
-                  LEFT JOIN users added ON u.added_by = added.id 
-                  LEFT JOIN users edited ON u.edited_by = edited.id 
-                  WHERE u.is_deleted = 0;`;
-               
-               connection.query(query, (err, results) => {
-                  if (err) reject(new Error(err.message));
-                  else resolve(results);
-               });
-            });
-            
-            // console.log("dbServices.js: search result:");
-            // console.log(response);  // for debugging to see the result of select
-            return response;
-            
-         }  catch(error){
-            console.log(error);
-         }
-      }
       
       // insert login data
       async insertLoginData(userId, loginTime, loginStatus, ipAddress) {
@@ -136,54 +108,98 @@
       
       async insertNewName(user_type, firstName, lastName, email, password, phone, address) {
          try {
-             // Check if email already exists
-             const emailExists = await new Promise((resolve, reject) => {
-                 const query = "SELECT COUNT(*) AS count FROM `users` WHERE `email` = ?;";
-                 connection.query(query, [email], (err, result) => {
-                     if (err) {
-                         reject(new Error(err.message));
-                     } else {
-                         resolve(result[0].count > 0); // Resolve with true if email exists
-                     }
-                 });
-             });
-     
-             if (emailExists) {
-                 throw new Error("Email already exists."); // Throw an error if email is found
-             }
-     
-             const registrationDate = new Date().toISOString();
-             const lastSignIn = new Date().toISOString();
-             const isDeleted = 0;
-     
-             // Insert the new user data into the database
-             const insertId = await new Promise((resolve, reject) => {
-                 const query = "INSERT INTO `users` ( `first_name`, `last_name`, `email`, `password`, `phone`, `address`, `registration_date`, `last_sign_in`, `is_deleted`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
-                 connection.query(query, [, firstName, lastName, email, password, phone, address, registrationDate, lastSignIn, isDeleted], (err, result) => {
-                     if (err) {
-                         reject(new Error(err.message));
-                     } else {
-                         resolve(result.insertId);
-                     }
-                 });
-             });
-     
-             console.log(insertId);
-             return {
-                 id: insertId,
-                 firstName: firstName,
-                 lastName: lastName,
-                 email: email,
-                 phone: phone,
-                 address: address,
-                 dateAdded: registrationDate
-             };
+            // Check if email already exists
+            const emailExists = await new Promise((resolve, reject) => {
+               const query = "SELECT COUNT(*) AS count FROM `users` WHERE `email` = ?;";
+               connection.query(query, [email], (err, result) => {
+                  if (err) {
+                     reject(new Error(err.message));
+                  } else {
+                     resolve(result[0].count > 0); // Resolve with true if email exists
+                  }
+               });
+            });
+            
+            if (emailExists) {
+               throw new Error("Email already exists."); // Throw an error if email is found
+            }
+            
+            const registrationDate = new Date().toISOString();
+            const lastSignIn = new Date().toISOString();
+            const isDeleted = 0;
+            
+            // Insert the new user data into the database
+            const insertId = await new Promise((resolve, reject) => {
+               const query = "INSERT INTO `users` (`user_type`, `first_name`, `last_name`, `email`, `password`, `phone`, `address`, `registration_date`, `last_sign_in`, `is_deleted`) VALUES (?,   ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+               connection.query(query, [user_type, firstName, lastName, email, password, phone, address, registrationDate, lastSignIn, isDeleted], (err, result) => {
+                  if (err) {
+                     reject(new Error(err.message));
+                  } else {
+                     resolve(result.insertId);
+                  }
+               });
+            });
+            
+            console.log(insertId);
+            return {
+               id: insertId,
+               firstName: firstName,
+               lastName: lastName,
+               email: email,
+               phone: phone,
+               address: address,
+               dateAdded: registrationDate
+            };
          } catch (error) {
-             console.error("Error inserting new name:", error);
-             throw error; // Rethrow the error for caller to handle
+            console.error("Error inserting new name:", error);
+            throw error; // Rethrow the error for caller to handle
          }
-     }
-     
+      }
+      
+      // Function to save the service request to the database
+      async saveRequestToDB({ clientId, serviceType, description, urgency, images }) {
+         return new Promise((resolve, reject) => {
+            const query = `
+           INSERT INTO requestforquote (client_id, service_id, property_address, square_feet, proposed_price, note, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
+       `;
+            const values = [clientId, serviceType, description, urgency, 'price', 'note', 'status'];
+            
+            connection.query(query, values, (err, results) => {
+               if (err) return reject(err);
+               const requestId = results.insertId;
+               
+               if (images && images.length > 0) {
+                  const insertImageQuery = `INSERT INTO images (request_id, image_url) VALUES ?`;
+                  const imageValues = images.map(image => [requestId, image]);
+                  connection.query(insertImageQuery, [imageValues], (err) => {
+                     if (err) return reject(err);
+                     resolve(results);
+                  });
+               } else {
+                  resolve(results);
+               }
+            });
+         });
+      }
+      
+      // Function to get service requests by user ID
+      async getRequestsByUserId(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM requestforquote WHERE client_id = ?`;
+            
+            connection.query(query, [userId], (err, results) => {
+               if (err) return reject(err);
+               resolve(results);  // Return the list of requests
+            });
+         });
+      }
+      
+      
+      
+      
+      
+      
       
       
       // Function to get autocomplete results

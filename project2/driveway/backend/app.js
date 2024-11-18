@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const multer = require('multer');
+const path = require('path');
 const requestIp = require('request-ip'); // IP address middleware
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken'); // JWT
@@ -29,10 +31,22 @@ app.use((req, res, next) => {
     next();
 });
 
+// Configure file upload using multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './uploads');  // Save files to 'uploads' directory
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);  // Rename file to avoid conflicts
+    }
+});
+
+const upload = multer({ storage: storage });
+
 // JWT Token generation function
 function generateToken(user,userIp) {
     return jwt.sign(
-        { userId: user.id, email: user.email, firstName: user.first_name, ip: userIp},
+        { userId: user.id, user_type: user.user_type, email: user.email, firstName: user.first_name, lastName: user.last_name, ip: userIp},
         process.env.JWT_SECRET || 'arun_key', // Make sure to define the secret key in .env
         { expiresIn: '1h' } // Token expiration time
     );
@@ -45,19 +59,24 @@ function authenticateJWT(req, res, next) {
     if (!token) {
         return res.status(403).json({ message: 'Access denied: Token missing' });
     }
-
+    
     // Log token for debugging (optional, can be removed later)
     console.log("Token received:", token);
-
+    
     jwt.verify(token, process.env.JWT_SECRET || 'arun_key', (err, user) => {
         if (err) {
-            console.error("Token verification failed:", err); // Log error for debugging
+            if (err.name === 'TokenExpiredError') {
+                console.error("Token verification failed:", err.message);
+                return res.status(401).json({ message: 'Token expired, please log in again' });
+            }
+            console.error("Token verification failed:", err.message);
             return res.status(403).json({ message: 'Invalid token' });
         }
-
+        
         req.user = user;  // Attach user info to request object
         next();
     });
+    
 }
 
 app.get('/authenticateJWT', authenticateJWT, (req, res) => {
@@ -83,20 +102,20 @@ app.post('/signin', async (req, res) => {
             await db.insertLoginData(null, loginTime, 'failure', userIp);  // user.id is not available yet
             return res.status(401).json({ error: "Invalid email or password." });
         }
-
+        
         // Check if the user account is locked
         if (user.locked) {
             return res.status(403).json({ error: "Your account is locked due to multiple failed login attempts." });
         }
-
+        
         const match = await bcrypt.compare(password, user.password);
-
+        
         if (!match) {
             // Log failed login attempt due to incorrect password
             const userIp = req.clientIp;
             const loginTime = new Date().toISOString();
             await db.insertLoginData(user.id, loginTime, 'failure', userIp);
-
+            
             // Increment the failed attempts
             await db.incrementFailedAttempts(user.id);
             
@@ -105,19 +124,19 @@ app.post('/signin', async (req, res) => {
                 // Lock the account if failed attempts exceed threshold
                 await db.lockUserAccount(user.id);
             }
-
+            
             return res.status(401).json({ error: "Invalid password." });
         }
         
         // Reset failed attempts upon successful login
         await db.resetFailedAttempts(user.id);
-
+        
         // Capture user's IP address
         const userIp = req.clientIp;
         const loginTime = new Date().toISOString();
         
         await db.insertLoginData(user.id, loginTime, 'success', userIp);
-
+        
         // Generate JWT token
         const token = generateToken(user, userIp);
         
@@ -127,6 +146,7 @@ app.post('/signin', async (req, res) => {
             token: token,
             user: {
                 id: user.id,
+                user_type: user.user_type,
                 email: user.email,
                 firstName: user.first_name,
                 lastName: user.last_name,
@@ -157,11 +177,12 @@ app.get('/profile', authenticateJWT, async (req, res) => {
     try {
         const db = dbService.getDbServiceInstance();
         const userId = req.user.userId;  // Access the user ID from the decoded JWT
-
+        
         
         const user = await db.getUserById(userId);
         res.json({
             id: user.id,
+            user_type: user.user_type,
             email: user.email,
             firstName: user.first_name,
             lastName: user.last_name,
@@ -177,16 +198,16 @@ app.get('/profile', authenticateJWT, async (req, res) => {
 app.post('/insert', async (req, res) => {
     try {
         const { user_type, first_name, last_name, email, password, phone, address } = req.body;
-
+        
         // Hash the password before saving to the database
         const hashedPassword = await bcrypt.hash(password, 10);
-
+        
         // Get the database instance
         const db = dbService.getDbServiceInstance();
         
         // Insert the new user data into the database
         const result = await db.insertNewName(user_type, first_name, last_name, email, hashedPassword, phone, address);
-
+        
         // Send a success response with the newly added data
         res.json({ data: result });
     } catch (err) {
@@ -196,17 +217,57 @@ app.post('/insert', async (req, res) => {
 });
 
 
-// Get all data route
-app.get('/getAll', async (req, res) => {
+// API route for submitting a new service request
+app.post('/submit_request', upload.array('images', 5), async (req, res) => {
     try {
+        const { clientId, clientName, userType, serviceType, description, urgency } = req.body;
+        const images = req.files || [];  // Get uploaded images (array of files)
         const db = dbService.getDbServiceInstance();
-        const data = await db.getAllData(); // Await the promise
-        res.json({ data });
-    } catch (err) {
-        console.error("Error fetching data:", err); // Log the error
-        res.status(500).json({ error: 'Failed to fetch data' }); // Return a response to the client
+        
+        console.log(req.body);  // Log to inspect the received data
+        console.log(req.files);  // Log the uploaded files (should be an array)
+        
+        // Save the request data and image paths to the database
+        const savedRequest = await db.saveRequestToDB({
+            clientId,
+            clientName,
+            userType,
+            serviceType,
+            description,
+            urgency,
+            images: images.map(image => image.path),  // Map file paths for images
+        });
+        
+        res.status(200).json({ message: 'Request submitted successfully', request: savedRequest });
+    } catch (error) {
+        console.error('Error submitting request:', error);  // Log the error details
+        res.status(500).json({ error: 'Failed to submit request', details: error.message });
     }
 });
+
+// API route for fetching the user's service requests
+app.post('/view_requests', async (req, res) => {
+    try {
+        // Assuming userId is sent in the body of the POST request
+        const userId = req.body.userId;  // Access userId from the body
+        if (!userId) return res.status(401).json({ error: 'User not authenticated' });
+
+        const db = dbService.getDbServiceInstance();
+
+        // Query the database for the user's service requests
+        const requests = await db.getRequestsByUserId(userId);
+
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error('Error fetching requests:', error);
+        res.status(500).json({ error: 'Failed to fetch requests', details: error.message });
+    }
+});
+
+
+
+
+
 
 // Autocomplete search
 app.post('/autocomplete', async (req, res) => {
@@ -236,7 +297,7 @@ app.patch('/update', authenticateJWT, async (req, res) => {
     if (id !== req.user.userId) {
         return res.status(403).json({ error: 'You do not have permission to update this user.' });
     }
-
+    
     const db = dbService.getDbServiceInstance();
     
     try {
@@ -260,7 +321,7 @@ app.delete('/delete/:id/:sessionUserid', authenticateJWT, async (req, res) => {
     if (id !== req.user.userId) {
         return res.status(403).json({ error: 'You do not have permission to delete this user.' });
     }
-
+    
     try {
         const result = await db.deleteRowById(id, sessionUserid);
         if (result) {
