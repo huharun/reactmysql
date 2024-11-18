@@ -51,7 +51,7 @@ header {
     justify-content: flex-end; /* Align items to the end (right) */
     align-items: center; /* Align items to the center vertically */
     padding: 10px; /* Add some padding around the header */
-    background-color: #fff; /* Light background color for footer */
+    background-color: #fff; 
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); /* Darker shadow */
     border-radius: 8px; /* Rounded corners */
     margin: 10px ; /* Center the container */

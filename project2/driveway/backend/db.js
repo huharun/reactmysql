@@ -196,6 +196,59 @@
       }
       
       
+      // getOrdersByUserId
+      async getOrdersByUserId(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM requestforquote WHERE client_id = ?`;  // Changed 'orders' to 'requestforquote'
+            
+            connection.query(query, [userId], (err, results) => {
+               if (err) return reject(err);  // Handle errors
+               resolve(results);  // Return the order results
+            });
+         });
+      }
+      
+      
+      // getNegotiationsByUserId
+      async getNegotiationsByUserId(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM requestforquote WHERE client_id = ? AND status = 'In Progress'`;  // Changed 'orders' to 'requestforquote'
+            
+            connection.query(query, [userId], (err, results) => {
+               if (err) return reject(err);  // Handle errors
+               resolve(results);  // Return the negotiation results
+            });
+         });
+      }
+      
+      // Get user profile by userId
+      async getUserProfile(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM users WHERE id = ?`;
+            
+            connection.query(query, [userId], (err, results) => {
+               if (err) return reject(err);
+               resolve(results[0]);  // Assuming the first result is the user's profile
+            });
+         });
+      }
+      
+      // Get payment history by userId
+      async getPaymentHistory(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM payment WHERE user_id = ?`;
+            
+            connection.query(query, [userId], (err, results) => {
+               if (err) return reject(err);
+               resolve(results);  // Return the list of payments
+            });
+         });
+      }
+      
+      
+      
+      
+      
       
       
       

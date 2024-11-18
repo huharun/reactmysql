@@ -251,12 +251,12 @@ app.post('/view_requests', async (req, res) => {
         // Assuming userId is sent in the body of the POST request
         const userId = req.body.userId;  // Access userId from the body
         if (!userId) return res.status(401).json({ error: 'User not authenticated' });
-
+        
         const db = dbService.getDbServiceInstance();
-
+        
         // Query the database for the user's service requests
         const requests = await db.getRequestsByUserId(userId);
-
+        
         res.status(200).json(requests);
     } catch (error) {
         console.error('Error fetching requests:', error);
@@ -265,6 +265,68 @@ app.post('/view_requests', async (req, res) => {
 });
 
 
+app.post('/view_orders', async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        if (!userId) return res.status(401).json({ error: 'User not authenticated' });
+        
+        const db = dbService.getDbServiceInstance();
+        const orders = await db.getOrdersByUserId(userId);
+        
+        res.status(200).json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
+    }
+});
+
+app.post('/manage_negotiations', async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        if (!userId) return res.status(401).json({ error: 'User not authenticated' });
+        
+        const db = dbService.getDbServiceInstance();
+        const negotiations = await db.getNegotiationsByUserId(userId);
+        
+        res.status(200).json(negotiations);
+    } catch (error) {
+        console.error('Error fetching negotiations:', error);
+        res.status(500).json({ error: 'Failed to fetch negotiations', details: error.message });
+    }
+});
+
+
+// API route for fetching user profile
+app.post('/view_profile', async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        if (!userId) return res.status(401).json({ error: 'User not authenticated' });
+        
+        const db = dbService.getDbServiceInstance();
+        const profile = await db.getUserProfile(userId);  // Assuming this function is implemented
+        
+        res.status(200).json(profile);
+    } catch (error) {
+        console.error('Error fetching profile:', error);
+        res.status(500).json({ error: 'Failed to fetch profile', details: error.message });
+    }
+});
+
+// API route for fetching payment history
+app.post('/view_payment_history', async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        if (!userId) return res.status(401).json({ error: 'User not authenticated' });
+        
+        const db = dbService.getDbServiceInstance();
+        const payments = await db.getPaymentHistory(userId);  // Assuming this function is implemented
+        
+        res.status(200).json(payments);
+    } catch (error) {
+        console.error('Error fetching payment history:', error);
+        res.status(500).json({ error: 'Failed to fetch payment history', details: error.message });
+    }
+});
 
 
 

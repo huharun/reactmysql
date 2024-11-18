@@ -298,20 +298,22 @@ function renderMenu() {
 
 // Function to toggle the visibility of submenu when clicking on a parent link
 function toggleSubMenu(event, submenuId) {
-    event.preventDefault();
+    event.preventDefault();  // Prevent the default link action
+    
     const submenu = document.getElementById(submenuId);
     const allSubmenus = document.querySelectorAll('.submenu');
     
     // Close all submenus
     allSubmenus.forEach(sub => {
         if (sub !== submenu) {
-            sub.style.display = 'none';
+            sub.classList.remove('active');  // Remove active class to hide it
         }
     });
     
     // Toggle the clicked submenu
-    submenu.style.display = (submenu.style.display === 'none' || submenu.style.display === '') ? 'block' : 'none';
+    submenu.classList.toggle('active');  // Toggle the 'active' class to show or hide it
 }
+
 
 
 // Define functions for each action triggered by the menu links
@@ -398,6 +400,8 @@ function submitNewRequest() {
     const userType = userData.user_type || '';
     
     const formContainer = document.getElementById('formContainer');
+    document.getElementById('formContainer').style.display = 'block';
+    document.getElementById('table').style.display = 'none';
     formContainer.innerHTML = `
         <form id="serviceRequestForm">
             <h2>Submit a New Service Request</h2>
@@ -508,10 +512,6 @@ function viewMyRequests() {
         return;  // Exit the function if no userId found
     }
     
-    // Dynamically add the header to view user requests
-    const formContainer = document.getElementById('formContainer');
-    formContainer.innerHTML = `<h2>My Service Requests</h2>`;
-    
     // Fetch the user's service requests from the server using a POST request
     fetch(API_BASE_URL + '/view_requests', {
         method: 'POST',  // Use POST method to send data
@@ -523,11 +523,13 @@ function viewMyRequests() {
     .then(response => response.json())
     .then(data => {
         const table = document.getElementById('table'); // Get the table by id
+        document.getElementById('formContainer').style.display = 'none';
+        document.getElementById('table').style.display = 'block';
         
         // Check if there are any requests to display
         if (data && data.length > 0) {
             // Create table headers based on the fields
-            let tableHTML = `
+            let tableHTML = `<h2>My Service Requests</h2>
                 <thead>
                     <tr>
                         <th>Request ID</th>
@@ -581,20 +583,147 @@ function viewMyRequests() {
 }
 
 
-function viewOrders() {
-    console.log("Viewing Orders...");
-    // Add logic to handle this action
-}
-
 function viewMyOrders() {
     console.log("Viewing My Orders...");
-    // Add logic to handle this action
+    
+    // Retrieve user data from sessionStorage
+    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const userId = userData.userId; // Get the userId from session data
+    
+    // Check if userId is present
+    if (!userId) {
+        console.error('User is not authenticated');
+        return; // Exit the function if no userId found
+    }
+    
+    // Dynamically add the header to view user orders
+    document.getElementById('table').style.display = 'block';
+    document.getElementById('formContainer').style.display = 'none';
+    
+    // Fetch the user's orders from the server using a POST request
+    fetch(API_BASE_URL + '/view_orders', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: userId }), // Send userId in the request body
+    })
+    .then(response => response.json())
+    .then(data => {
+        const table = document.getElementById('table'); // Get the table by id
+        
+        if (data && data.length > 0) {
+            // Create table headers based on the fields
+            let tableHTML = `<h2>My Orders</h2>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Request ID</th>
+                        <th>Accepted Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            // Populate rows with order data
+            data.forEach(order => {
+                tableHTML += `
+                    <tr>
+                        <td>${order.order_id}</td>
+                        <td>${order.request_id}</td>
+                        <td>${new Date(order.accepted_date).toLocaleDateString()}</td>
+                        <td>${order.status}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                </tbody>
+            `;
+            
+            // Inject the table rows into the table element
+            table.innerHTML = tableHTML;
+        } else {
+            table.innerHTML = '<tr>No orders found.</tr>';
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching orders:', error);
+        showAlert('There was an error fetching your orders. Please try again later.', 'failure');
+    });
 }
+
 
 function manageNegotiations() {
     console.log("Managing Order Negotiations...");
-    // Add logic to handle this action
+    
+    // Retrieve user data from sessionStorage
+    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const userId = userData.userId;
+    
+    if (!userId) {
+        console.error('User is not authenticated');
+        return;
+    }
+    
+    // Dynamically add the header for managing negotiations
+    document.getElementById('table').style.display = 'block';
+    document.getElementById('formContainer').style.display = 'none';
+    
+    // Fetch negotiation-related orders
+    fetch(API_BASE_URL + '/manage_negotiations', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: userId }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        const table = document.getElementById('table');
+        
+        if (data && data.length > 0) {
+            let tableHTML = `<h2>Manage Negotiations</h2>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            // Add rows for orders with negotiation actions
+            data.forEach(order => {
+                tableHTML += `
+                    <tr>
+                        <td>${order.order_id}</td>
+                        <td>${order.status}</td>
+                        <td>
+                            <button onclick="acceptNegotiation(${order.order_id})">Accept</button>
+                            <button onclick="declineNegotiation(${order.order_id})">Decline</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                </tbody>
+            `;
+            
+            table.innerHTML = tableHTML;
+        } else {
+            table.innerHTML = '<tr>No negotiations to manage.</tr>';
+        }
+    })
+    .catch(error => {
+        console.error('Error managing negotiations:', error);
+        showAlert('There was an error fetching negotiation data. Please try again later.', 'failure');
+    });
 }
+
 
 function viewBills() {
     console.log("Viewing Bills...");
@@ -611,20 +740,177 @@ function disputeBill() {
     // Add logic to handle this action
 }
 
-function accountManagement() {
-    console.log("Managing Account...");
-    // Add logic to handle this action
-}
 
 function viewProfile() {
     console.log("Viewing Profile...");
-    // Add logic to handle this action
+    
+    // Retrieve user data from sessionStorage
+    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const userId = userData.userId;  // Get the userId from session data
+    
+    // Check if userId is present
+    if (!userId) {
+        console.error('User is not authenticated');
+        return;
+    }
+    
+    // Fetch the user's profile data from the server
+    fetch(API_BASE_URL + '/view_profile', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: userId })  // Send userId in the request body
+    })
+    .then(response => response.json())
+    .then(data => {
+        const formContainer = document.getElementById('formContainer');
+        document.getElementById('formContainer').style.display = 'block';
+        document.getElementById('table').style.display = 'none';
+
+        
+        if (data) {
+            formContainer.innerHTML = `
+                <form id="profileForm">
+                <h2>Edit User Profile</h2>
+                    <div class="input-container">
+                        <label for="firstName">First Name:</label>
+                        <input type="text" id="firstName" name="firstName" value="${data.first_name}" required />
+                    </div>
+                    <div class="input-container">
+                        <label for="lastName">Last Name:</label>
+                        <input type="text" id="lastName" name="lastName" value="${data.last_name}" required />
+                    </div>
+                    <div class="input-container">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" value="${data.email}" required />
+                    </div>
+                    <div class="input-container">
+                        <label for="phone">Phone:</label>
+                        <input type="text" id="phone" name="phone" value="${data.phone}" required />
+                    </div>
+                    <div class="input-container">
+                        <label for="address">Address:</label>
+                        <textarea id="address" name="address" required>${data.address}</textarea>
+                    </div>
+                    <div class="input-container">
+                        <label for="creditCard">Credit Card:</label>
+                        <input type="text" id="creditCard" name="creditCard" value="${data.credit_card}" required />
+                    </div>
+                    <div class="button-container">
+                        <button type="submit">Save Changes</button>
+                    </div>
+                </form>
+            `;
+            
+            // Add an event listener to handle the form submission
+            document.getElementById('profileForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Collect the updated data from the form
+                const updatedData = {
+                    userId: userId,
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    address: document.getElementById('address').value,
+                    credit_card: document.getElementById('creditCard').value,
+                };
+                
+                // Send the updated data to the server
+                fetch(API_BASE_URL + '/update_profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updatedData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Profile updated successfully!', 'success');
+                    } else {
+                        showAlert('Failed to update profile. Please try again later.', 'failure');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating profile:', error);
+                    showAlert('There was an error updating your profile. Please try again later.', 'failure');
+                });
+            });
+        } else {
+            formContainer.innerHTML = '<p>No profile data found.</p>';
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching profile:', error);
+        showAlert('There was an error fetching your profile. Please try again later.', 'failure');
+    });
 }
 
 function viewPaymentHistory() {
     console.log("Viewing Payment History...");
-    // Add logic to handle this action
+    
+    // Retrieve user data from sessionStorage
+    const userData = JSON.parse(sessionStorage.getItem('user'));
+    const userId = userData.userId;  // Get the userId from session data
+    
+    // Check if userId is present
+    if (!userId) {
+        console.error('User is not authenticated');
+        return;
+    }
+    
+    // Fetch the user's payment history from the server
+    fetch(API_BASE_URL + '/view_payment_history', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: userId })  // Send userId in the request body
+    })
+    .then(response => response.json())
+    .then(data => {
+        const paymentHistoryContainer = document.getElementById('paymentHistoryContainer');
+        
+        if (data && data.length > 0) {
+            let tableHTML = `
+                <thead>
+                    <tr>
+                        <th>Payment ID</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Paid On</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+            
+            data.forEach(payment => {
+                tableHTML += `
+                    <tr>
+                        <td>${payment.payment_id}</td>
+                        <td>${payment.amount}</td>
+                        <td>${payment.status}</td>
+                        <td>${new Date(payment.paid_on).toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `</tbody>`;
+            paymentHistoryContainer.innerHTML = tableHTML;
+        } else {
+            paymentHistoryContainer.innerHTML = '<p>No payment history found.</p>';
+        }
+    })
+    .catch(error => {
+        console.error('Error fetching payment history:', error);
+        showAlert('There was an error fetching your payment history. Please try again later.', 'failure');
+    });
 }
+
+
 
 // Call the renderMenu function on page load
 window.onload = renderMenu;
