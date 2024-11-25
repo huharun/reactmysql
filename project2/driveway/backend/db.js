@@ -156,14 +156,34 @@
          }
       }
       
-      // Function to save the service request to the database
-      async saveRequestToDB({ clientId, serviceType, description, urgency, images }) {
+      async getNewRequests() {
          return new Promise((resolve, reject) => {
             const query = `
-           INSERT INTO requestforquote (client_id, service_id, property_address, square_feet, proposed_price, note, status)
+                 SELECT R.*, CONCAT(U.first_name, ' ', U.last_name) AS client_name, S.service_name
+                 FROM requestforquote R
+                 JOIN users U ON U.id = R.client_id
+                 JOIN service_types S ON S.service_id = R.service_id
+                 WHERE R.is_deleted = 0
+                 ORDER BY R.request_id DESC;
+             `;
+            
+            connection.query(query, (err, results) => {
+               if (err) {
+                  return reject(err);
+               }
+               resolve(results); // Return the fetched data
+            });
+         });
+      }
+      
+      // Function to save the service request to the database
+      async saveRequestToDB({ clientId, serviceType, propertyAdress, description, urgency, images }) {
+         return new Promise((resolve, reject) => {
+            const query = `
+           INSERT INTO requestforquote (client_id, service_id, property_address, note, urgency, proposed_price, status)
            VALUES (?, ?, ?, ?, ?, ?, ?)
        `;
-            const values = [clientId, serviceType, description, urgency, 'price', 'note', 'status'];
+            const values = [clientId, serviceType, propertyAdress, description, urgency, 'price', 'Pending'];
             
             connection.query(query, values, (err, results) => {
                if (err) return reject(err);
@@ -186,7 +206,11 @@
       // Function to get service requests by user ID
       async getRequestsByUserId(userId) {
          return new Promise((resolve, reject) => {
-            const query = `SELECT * FROM requestforquote WHERE client_id = ?`;
+            const query = `SELECT R.*, CONCAT(U.first_name, ' ', U.last_name) AS client_name, S.service_name
+                           FROM requestforquote R 
+                           JOIN users U ON U.id = R.client_id
+                           JOIN service_types S ON S.service_id = R.service_id
+                           WHERE R.client_id = ? AND R.is_deleted = 0`;
             
             connection.query(query, [userId], (err, results) => {
                if (err) return reject(err);
@@ -199,14 +223,22 @@
       // getOrdersByUserId
       async getOrdersByUserId(userId) {
          return new Promise((resolve, reject) => {
-            const query = `SELECT * FROM requestforquote WHERE client_id = ?`;  // Changed 'orders' to 'requestforquote'
+            const query = `SELECT O.*, R.*, S.service_name, O.status
+                           FROM orderofwork O
+                           JOIN requestforquote R ON R.request_id = O.request_id
+                           JOIN service_types S ON S.service_id = R.service_id
+                           WHERE R.client_id = ? AND R.is_deleted = 0`;
             
             connection.query(query, [userId], (err, results) => {
-               if (err) return reject(err);  // Handle errors
-               resolve(results);  // Return the order results
+               if (err) {
+                  console.error('Database error:', err); // Log the error for debugging
+                  return reject(err);
+               }
+               resolve(results);
             });
          });
       }
+      
       
       
       // getNegotiationsByUserId
@@ -343,15 +375,14 @@
       }
       
       // update is_deleted to keep info
-      async deleteRowById(id,sessionUserid){
+      async deleteRowById(request_id){
          try{
-            id = parseInt(id, 10);
-            sessionUserid = parseInt(sessionUserid, 10);
+            request_id = parseInt(request_id, 10);
             // use await to call an asynchronous function
             const response = await new Promise((resolve, reject) => 
                {
-               const query = "UPDATE users Set is_deleted = 1, edited_by = ? WHERE id = ?;";
-               connection.query(query, [sessionUserid,id], (err, result) => {
+               const query = "UPDATE requestforquote SET is_deleted = 1, updated_at = NOW() WHERE request_id = ?;";
+               connection.query(query, [request_id], (err, result) => {
                   if(err) reject(new Error(err.message));
                   else resolve(result.affectedRows);
                });
@@ -365,6 +396,7 @@
          console.log(error);
       }
    }
+   
    
    // update
    async updateNameById(id, first_name, last_name, email, salary, age, sessionUserid) {

@@ -216,11 +216,26 @@ app.post('/insert', async (req, res) => {
     }
 });
 
+// Endpoint to view new quote requests
+app.get('/new_requests', async (req, res) => {
+    try {
+        // Optionally, add authorization logic here (e.g., check if the user is authenticated)
+        const db = dbService.getDbServiceInstance();
+        const requests = await db.getNewRequests();
+        
+        // Return the list of new requests as JSON
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error('Error fetching new requests:', error);
+        res.status(500).json({ error: 'Failed to fetch new requests', details: error.message });
+    }
+});
+
 
 // API route for submitting a new service request
 app.post('/submit_request', upload.array('images', 5), async (req, res) => {
     try {
-        const { clientId, clientName, userType, serviceType, description, urgency } = req.body;
+        const { clientId, clientName, userType, serviceType, propertyAdress, description, urgency } = req.body;
         const images = req.files || [];  // Get uploaded images (array of files)
         const db = dbService.getDbServiceInstance();
         
@@ -233,6 +248,7 @@ app.post('/submit_request', upload.array('images', 5), async (req, res) => {
             clientName,
             userType,
             serviceType,
+            propertyAdress,
             description,
             urgency,
             images: images.map(image => image.path),  // Map file paths for images
@@ -267,18 +283,25 @@ app.post('/view_requests', async (req, res) => {
 
 app.post('/view_orders', async (req, res) => {
     try {
-        const userId = req.body.userId;
-        if (!userId) return res.status(401).json({ error: 'User not authenticated' });
-        
+        const userId = parseInt(req.body.userId, 10);
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid userId provided' });
+        }
+
         const db = dbService.getDbServiceInstance();
         const orders = await db.getOrdersByUserId(userId);
-        
+
+        if (orders.length === 0) {
+            return res.status(200).json({ message: 'No orders found for this user.' });
+        }
+
         res.status(200).json(orders);
     } catch (error) {
         console.error('Error fetching orders:', error);
         res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
     }
 });
+
 
 app.post('/manage_negotiations', async (req, res) => {
     try {
@@ -376,26 +399,26 @@ app.patch('/update', authenticateJWT, async (req, res) => {
 });
 
 // Delete route
-app.delete('/delete/:id/:sessionUserid', authenticateJWT, async (req, res) => {
-    const { id, sessionUserid } = req.params;
+app.delete('/delete/:request_id', authenticateJWT, async (req, res) => {
+    const { request_id } = req.params;
     const db = dbService.getDbServiceInstance();
-    
-    if (id !== req.user.userId) {
-        return res.status(403).json({ error: 'You do not have permission to delete this user.' });
-    }
-    
+
     try {
-        const result = await db.deleteRowById(id, sessionUserid);
+        const result = await db.deleteRowById(request_id);
+
+        // Only send the response once
         if (result) {
             res.json({ success: true });
         } else {
-            res.json({ success: false });
+            res.json({ success: false, message: `No rows were updated for request_id ${request_id}, maybe it does not exist.` });
         }
     } catch (err) {
         console.log(err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
+
+
 
 // Debug function, will be deleted later
 app.post('/debug', (req, res) => {
