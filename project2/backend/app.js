@@ -31,6 +31,8 @@ app.use((req, res, next) => {
     next();
 });
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Configure file upload using multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -216,12 +218,12 @@ app.post('/insert', async (req, res) => {
     }
 });
 
-// Endpoint to view new quote requests
-app.get('/new_requests', async (req, res) => {
+// Endpoint to fetch new requests with owner information
+app.get('/new_requests/:type', async (req, res) => {
+    const type = req.params.type;
     try {
-        // Optionally, add authorization logic here (e.g., check if the user is authenticated)
         const db = dbService.getDbServiceInstance();
-        const requests = await db.getNewRequests();
+        const requests = await db.getNewRequests(type);
         
         // Return the list of new requests as JSON
         res.status(200).json(requests);
@@ -230,6 +232,81 @@ app.get('/new_requests', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch new requests', details: error.message });
     }
 });
+
+
+// Endpoint to take ownership of a request
+app.post('/take_ownership', async (req, res) => {
+    const { requestId, userId, action_type } = req.body;
+    
+    try {
+        if (!requestId || !userId) {
+            return res.status(400).json({ error: 'Missing requestId or userId' });
+        }
+        
+        // Access the database service
+        const db = dbService.getDbServiceInstance();
+        
+        // Update the ownership of the request
+        const result = await db.takeOwnership(requestId, userId, action_type);
+        
+        if (result.affectedRows > 0) {
+            if (action_type === 1){
+            res.status(200).json({ success: true, message: `Request ID ${requestId} is now owned by User ID ${userId}` });
+            }else{
+            res.status(200).json({ success: true, message: `Request ID ${requestId} is now removed ownership from User ID ${userId}` });
+            }
+        } else {
+            res.status(404).json({ error: 'Request not found or already owned' });
+        }
+    } catch (error) {
+        console.error('Error taking ownership:', error);
+        res.status(500).json({ error: 'Failed to take ownership', details: error.message });
+    }
+});
+
+app.post('/manage_orders', async (req, res) => {
+    const userId = req.body.userId; // Getting userId from the request body
+
+    try {
+        const db = dbService.getDbServiceInstance(); // Assuming a db service
+        const orders = await db.getOrders(userId); // Fetch orders for the user
+        if (orders.length > 0) {
+            res.status(200).json(orders);
+        } else {
+            res.status(404).json({ message: 'No orders found' });
+        }
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ error: 'Failed to fetch orders' });
+    }
+});
+
+// Route to handle managing quotes
+app.post('/manage_quotes', async (req, res) => {
+    const { requestId, quoteNote, counterPrice, timeWindowStart, timeWindowEnd, status } = req.body;
+
+    // Ensure all required fields are present
+    if (!requestId || !quoteNote || !counterPrice || !timeWindowStart || !timeWindowEnd || !status) {
+        return res.status(400).json({ success: false, message: 'All fields are required' });
+    }
+
+    try {
+        const db = dbService.getDbServiceInstance(); // Get DB instance
+        const result = await db.saveQuoteToDB({ requestId, quoteNote, counterPrice, timeWindowStart, timeWindowEnd, status });
+
+        res.status(200).json({
+            success: true,
+            message: 'Quote submitted successfully',
+            data: result
+        });
+    } catch (error) {
+        console.error('Error submitting quote:', error);
+        res.status(500).json({ success: false, message: 'Server error, please try again later' });
+    }
+});
+
+
+
 
 
 // API route for submitting a new service request
@@ -261,24 +338,34 @@ app.post('/submit_request', upload.array('images', 5), async (req, res) => {
     }
 });
 
-// API route for fetching the user's service requests
 app.post('/view_requests', async (req, res) => {
     try {
-        // Assuming userId is sent in the body of the POST request
         const userId = req.body.userId;  // Access userId from the body
         if (!userId) return res.status(401).json({ error: 'User not authenticated' });
         
         const db = dbService.getDbServiceInstance();
         
-        // Query the database for the user's service requests
+        // Fetch the service requests
         const requests = await db.getRequestsByUserId(userId);
         
-        res.status(200).json(requests);
+        // Add full URLs for images
+        const baseUrl =  "/reactmysql/project2/backend/"; 
+        
+        const updatedRequests = requests.map(request => {
+            // Prepend the base URL to each image URL
+            if (request.image_urls) {
+                request.image_urls = request.image_urls.split(', ').map(url => baseUrl + url).join(', ');
+            }
+            return request;
+        });
+        
+        res.status(200).json(updatedRequests);
     } catch (error) {
         console.error('Error fetching requests:', error);
         res.status(500).json({ error: 'Failed to fetch requests', details: error.message });
     }
 });
+
 
 
 app.post('/view_orders', async (req, res) => {
@@ -287,12 +374,36 @@ app.post('/view_orders', async (req, res) => {
         if (!userId || isNaN(userId)) {
             return res.status(400).json({ error: 'Invalid userId provided' });
         }
-
+        
         const db = dbService.getDbServiceInstance();
         const orders = await db.getOrdersByUserId(userId);
-
+        
         if (orders.length === 0) {
             return res.status(200).json({ message: 'No orders found for this user.' });
+        }
+        
+        res.status(200).json(orders);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
+    }
+});
+
+app.post('/view_orders', async (req, res) => {
+    try {
+        const { userId, orderStatus } = req.body;
+
+        // Validate the input
+        const validOrderStatuses = ['In Progress', 'Completed'];
+        if (!userId || isNaN(userId) || !validOrderStatuses.includes(orderStatus)) {
+            return res.status(400).json({ error: 'Invalid userId or orderStatus provided' });
+        }
+
+        const db = dbService.getDbServiceInstance();
+        const orders = await db.getOrdersByUserIdAndStatus(userId, orderStatus);
+
+        if (orders.length === 0) {
+            return res.status(200).json({ message: `No ${orderStatus} orders found for this user.` });
         }
 
         res.status(200).json(orders);
@@ -301,6 +412,7 @@ app.post('/view_orders', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
     }
 });
+
 
 
 app.post('/manage_negotiations', async (req, res) => {
@@ -317,6 +429,32 @@ app.post('/manage_negotiations', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch negotiations', details: error.message });
     }
 });
+
+// POST /update_negotiation_status
+app.post('/update_negotiation_status', async (req, res) => {
+    try {
+        const { responseId, status } = req.body;
+        
+        if (!responseId || !status) {
+            return res.status(400).json({ error: 'Response ID and Status are required.' });
+        }
+        
+        // Update the negotiation status in the database
+        const db = dbService.getDbServiceInstance();
+        const result = await db.updateNegotiationStatus(responseId, status);
+        
+        if (result.affectedRows > 0) {
+            return res.status(200).json({ success: true, message: `${status} negotiation successfully.` });
+        } else {
+            return res.status(400).json({ success: false, message: 'Failed to update the negotiation status.' });
+        }
+    } catch (error) {
+        console.error('Error updating negotiation status:', error);
+        res.status(500).json({ error: 'Failed to update negotiation status', details: error.message });
+    }
+});
+
+
 
 
 // API route for fetching user profile
@@ -402,10 +540,10 @@ app.patch('/update', authenticateJWT, async (req, res) => {
 app.delete('/delete/:request_id', authenticateJWT, async (req, res) => {
     const { request_id } = req.params;
     const db = dbService.getDbServiceInstance();
-
+    
     try {
         const result = await db.deleteRowById(request_id);
-
+        
         // Only send the response once
         if (result) {
             res.json({ success: true });

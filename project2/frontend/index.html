@@ -150,6 +150,38 @@
         </div>
     </div>
     
+    <!-- Manage Quote Modal -->
+    <div id="manage-quote-modal" class="modal" role="dialog" aria-labelledby="manage-quote-title" aria-describedby="manage-quote-description">
+        <div class="modal-content">
+            <span class="close" id="close-manage-quote">&times;</span>
+            <h2 id="manage-quote-title" style="text-align: center; padding-bottom: 50px;">
+                Manage Quote for Request ID: <span id="request-id-span"></span>
+            </h2>
+            <form id="manage-quote-form">
+                <div class="input-container">
+                    <label for="quote-note-input">Quote Note:</label>
+                    <textarea id="quote-note-input" placeholder="Enter a quote note" required></textarea>
+                </div>
+                <div class="input-container">
+                    <label for="counter-price-input">Counter Price:</label>
+                    <input type="number" id="counter-price-input" placeholder="Enter counter price" step="0.01" required>
+                </div>
+                <div class="input-container">
+                    <label for="time-window-start-input">Time Window Start:</label>
+                    <input type="date" id="time-window-start-input" required>
+                </div>
+                <div class="input-container">
+                    <label for="time-window-end-input">Time Window End:</label>
+                    <input type="date" id="time-window-end-input" required>
+                </div>
+                <div class="button-container">
+                    <button type="submit" id="submit-quote-btn">Update Quote</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    
     <main>
         
         <!-- Section for guests -->
