@@ -380,7 +380,7 @@ function viewNewRequests(type) {
                 tableHTML += `</tbody>`;
                 table.innerHTML = tableHTML;
             } else {
-                table.innerHTML = '<tr><td colspan="6">No new requests found.</td></tr>';
+                table.innerHTML = '<tr>No new requests found.</tr>';
             }
         })
         .catch(error => {
@@ -509,7 +509,7 @@ function viewNewRequests(type) {
                 tableHTML += `</tbody>`;
                 table.innerHTML = tableHTML;
             } else {
-                table.innerHTML = '<tr><td colspan="10">No orders found.</td></tr>';
+                table.innerHTML = '<tr>No orders found.</tr>';
             }
         })
         .catch(error => {
@@ -718,7 +718,7 @@ function viewNewRequests(type) {
                 tableHTML += `</tbody>`;
                 table.innerHTML = tableHTML;
             } else {
-                table.innerHTML = '<tr><td colspan="6">No orders found.</td></tr>';
+                table.innerHTML = '<tr>No orders found.</tr>';
             }
         })
         .catch(error => {
@@ -819,6 +819,9 @@ function viewNewRequests(type) {
         const userId = userData?.userId;
         const userType = userData?.user_type;
         
+        document.getElementById('formContainer').style.display = 'none';
+        document.getElementById('table').style.display = 'block';
+        
         if (!userId) {
             showAlert('User is not authenticated.', 'failure');
             return;
@@ -892,6 +895,21 @@ function viewNewRequests(type) {
                             billsHTML += `
                             <td>
                                 <i class="fas fa-check-circle" style="color: green;" title="Paid"></i> Paid
+                                <button class="icon-btn" onclick="exportBillToPDF(
+                                ${bill.bill_id}, 
+                                ${bill.order_id}, 
+                                ${bill.amount}, 
+                                ${bill.proposed_price}, 
+                                ${bill.discount}, 
+                                '${bill.generated_date}', 
+                                '${bill.due_date}', 
+                                '${billStatus}', 
+                                '${bill.client_name}', 
+                                '${bill.service_name}', 
+                                '${bill.email}'
+                                )" title="Export to PDF">
+                                <i class="fas fa-file-pdf" style="color: red; font-size: 16px;"></i> 
+                                </button>
                             </td>`;
                         } else {
                             // Show "Pay Bill" button if the bill is not paid
@@ -997,8 +1015,8 @@ function viewNewRequests(type) {
                             <tr>
                                 <td>${dispute.bill_id}</td>
                                 <td>${dispute.order_id}</td>
-                                <td>${dispute.amount}</td>
-                                <td>${new Date(dispute.due_date).toLocaleString()}</td>
+                                <td>$${dispute.amount.toFixed(2)}</td>
+                                <td>${new Date(dispute.due_date).toLocaleDateString()}</td>
                                 <td>${dispute.dispute_reason || 'No reason provided'}</td> <!-- Display dispute reason -->
                                 <td>${dispute.bill_status}</td>
                                 <td><button onclick="resolveDispute(${dispute.bill_id})" title="Resolve the dispute"><i class="fas fa-file-invoice-dollar"></i> Resolve</button></td>
@@ -1008,7 +1026,7 @@ function viewNewRequests(type) {
                 
                 // If no disputes are found
                 if (tableHTML === '<tr><th>Bill ID</th><th>Order ID</th><th>Amount</th><th>Due Date</th><th>Dispute Reason</th><th>Status</th><th>Action</th></tr>') {
-                    tableHTML += '<tr><td colspan="7">No active disputes found.</td></tr>';
+                    tableHTML += '<tr>No active disputes found.</tr>';
                 }
                 
                 // Populate the table with the generated rows
@@ -1085,30 +1103,244 @@ function viewNewRequests(type) {
     
     
     
-    function viewReports() {
-        console.log("Viewing Reports...");
-        // Add logic to handle this action
-    }
     
     function viewRevenueReport() {
         console.log("Viewing Revenue Report...");
-        // Add logic to handle this action
+    
+        // Assume the user is authenticated and has a userId stored in sessionStorage
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+    
+        if (!userId) {
+            console.error('User is not authenticated');
+            return;
+        }
+    
+        // Hide or show relevant elements
+        document.getElementById('table').style.display = 'block';
+        document.getElementById('formContainer').style.display = 'none';
+    
+        // Fetch the revenue report data
+        fetch(API_BASE_URL + '/revenue_report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('table');
+            if (data && data.length > 0) {
+                let tableHTML = `<h2>Revenue Report</h2>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Revenue</th>
+                        <th>New Clients</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+                data.forEach(report => {
+                    tableHTML += `
+                    <tr>
+                        <td>${report.month || 'N/A'}</td>
+                        <td>${report.total_revenue ? `$${report.total_revenue.toFixed(2)}` : "Not available"}</td>
+                        <td>${report.new_clients || 'N/A'}</td>
+                    </tr>
+                `;
+                });
+                tableHTML += `</tbody>`;
+                table.innerHTML = tableHTML;
+            } else {
+                table.innerHTML = '<tr>No revenue data available for the selected period.</tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching revenue report:', error);
+            showAlert('There was an error fetching the revenue report. Please try again later.', 'failure');
+        });
     }
+    
     
     function viewBigClients() {
         console.log("Viewing List of Big Clients...");
-        // Add logic to handle this action
+    
+        // Assume user authentication as before
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+    
+        if (!userId) {
+            console.error('User is not authenticated');
+            return;
+        }
+    
+        // Hide or show relevant elements
+        document.getElementById('table').style.display = 'block';
+        document.getElementById('formContainer').style.display = 'none';
+    
+        // Fetch list of big clients
+        fetch(API_BASE_URL + '/big_clients', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('table');
+            if (data && data.length > 0) {
+                let tableHTML = `<h2>Big Clients</h2>
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Revenue</th>
+                        <th>Last Purchase</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+                data.forEach(client => {
+                    tableHTML += `
+                    <tr>
+                        <td>${client.name || 'N/A'}</td>
+                        <td>${client.revenue ? `$${client.revenue.toFixed(2)}` : "Not available"}</td>
+                        <td>${client.last_purchase ? new Date(client.last_purchase).toLocaleDateString() : 'N/A'}</td>
+                    </tr>
+                `;
+                });
+                tableHTML += `</tbody>`;
+                table.innerHTML = tableHTML;
+            } else {
+                table.innerHTML = '<tr>No big clients data available.</tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching big clients:', error);
+            showAlert('There was an error fetching big clients. Please try again later.', 'failure');
+        });
     }
+    
     
     function viewOverdueBills() {
         console.log("Viewing Overdue Bills...");
-        // Add logic to handle this action
+    
+        // Assume user authentication as before
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+    
+        if (!userId) {
+            console.error('User is not authenticated');
+            return;
+        }
+    
+        // Hide or show relevant elements
+        document.getElementById('table').style.display = 'block';
+        document.getElementById('formContainer').style.display = 'none';
+    
+        // Fetch overdue bills data
+        fetch(API_BASE_URL + '/overdue_bills', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('table');
+            if (data && data.length > 0) {
+                let tableHTML = `<h2>Overdue Bills</h2>
+                <thead>
+                    <tr>
+                        <th>Bill ID</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+                data.forEach(bill => {
+                    tableHTML += `
+                    <tr>
+                        <td>${bill.bill_id || 'N/A'}</td>
+                        <td>${bill.amount ? `$${bill.amount.toFixed(2)}` : "Not available"}</td>
+                        <td>${bill.due_date ? new Date(bill.due_date).toLocaleDateString() : 'N/A'}</td>
+                        <td>${bill.status || 'N/A'}</td>
+                    </tr>
+                `;
+                });
+                tableHTML += `</tbody>`;
+                table.innerHTML = tableHTML;
+            } else {
+                table.innerHTML = '<tr>No overdue bills found.</tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching overdue bills:', error);
+            showAlert('There was an error fetching overdue bills. Please try again later.', 'failure');
+        });
     }
+    
     
     function viewClientRatings() {
         console.log("Viewing Client Ratings...");
-        // Add logic to handle this action
+    
+        // Assume user authentication as before
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+    
+        if (!userId) {
+            console.error('User is not authenticated');
+            return;
+        }
+    
+        // Hide or show relevant elements
+        document.getElementById('table').style.display = 'block';
+        document.getElementById('formContainer').style.display = 'none';
+    
+        // Fetch client ratings data
+        fetch(API_BASE_URL + '/client_ratings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('table');
+            if (data && data.length > 0) {
+                let tableHTML = `<h2>Client Ratings</h2>
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Rating</th>
+                        <th>Feedback</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+                data.forEach(client => {
+                    tableHTML += `
+                    <tr>
+                        <td>${client.name || 'N/A'}</td>
+                        <td>${client.rating || 'Not rated'}</td>
+                        <td>${client.feedback || 'No feedback'}</td>
+                    </tr>
+                `;
+                });
+                tableHTML += `</tbody>`;
+                table.innerHTML = tableHTML;
+            } else {
+                table.innerHTML = '<tr>No client ratings found.</tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching client ratings:', error);
+            showAlert('There was an error fetching client ratings. Please try again later.', 'failure');
+        });
     }
+    
     
     
     
@@ -1386,7 +1618,7 @@ function viewNewRequests(type) {
                 tableHTML += `</tbody>`;
                 table.innerHTML = tableHTML;
             }else {
-                table.innerHTML = '<tr>No service requests found.</tr>';
+                table.innerHTML = '<tr>Orders will show when contractor accepts request.</tr>';
             }
         })
         .catch(error => {
@@ -1465,7 +1697,7 @@ function viewNewRequests(type) {
                 tableHTML += `</tbody>`;
                 table.innerHTML = tableHTML;
             } else {
-                table.innerHTML = '<tr><td colspan="6">No negotiations to manage.</td></tr>';
+                table.innerHTML = '<tr>negotiations will avaialable after contractor quotes..</tr>';
             }
         })
         .catch(error => {
@@ -1831,25 +2063,26 @@ function viewNewRequests(type) {
         console.log("Viewing Payment History...");
         
         // Retrieve user data from sessionStorage
-        const userData = JSON.parse(sessionStorage.getItem('user'));
-        const userId = userData.userId;  // Get the userId from session data
-        
-        // Check if userId is present
-        if (!userId) {
-            console.error('User is not authenticated');
+        const userData = sessionStorage.getItem('user');
+        if (!userData) {
+            console.error('User session not found');
             return;
         }
         
-        // Fetch the user's payment history from the server
+        const userId = JSON.parse(userData).userId;
+        
+        // Fetch the user's payment history
         fetch(API_BASE_URL + '/view_payment_history', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ userId: userId })  // Send userId in the request body
+            body: JSON.stringify({ userId: userId })
         })
         .then(response => response.json())
         .then(data => {
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('table').style.display = 'block';
             const paymentHistoryContainer = document.getElementById('table');
             
             if (data && data.length > 0) {
@@ -1857,9 +2090,14 @@ function viewNewRequests(type) {
                 <thead>
                     <tr>
                         <th>Payment ID</th>
+                        <th>Transaction ID</th>
                         <th>Amount</th>
-                        <th>Status</th>
                         <th>Paid On</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                        <th>Client</th>
+                        <th>Service</th>
+                        <th>Print</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1869,9 +2107,34 @@ function viewNewRequests(type) {
                     tableHTML += `
                     <tr>
                         <td>${payment.payment_id}</td>
-                        <td>${payment.amount}</td>
-                        <td>${payment.status}</td>
-                        <td>${new Date(payment.paid_on).toLocaleString()}</td>
+                        <td>${payment.transaction_id}</td>
+                        <td>$${payment.amount.toFixed(2)}</td>
+                        <td>${new Date(payment.payment_date).toLocaleDateString()}</td>
+                        <td>${payment.payment_method}</td>
+                        <td>${payment.payment_status}</td>
+                        <td>${payment.client_name}</td>
+                        <td>${payment.service_name}</td>
+                        <td>
+                            <button class="icon-btn"
+                                onclick="printPayment(
+                                    '${payment.payment_id}', 
+                                    '${payment.transaction_id}', 
+                                    '${payment.amount}', 
+                                    '${new Date(payment.payment_date).toLocaleDateString()}', 
+                                    '${payment.payment_method}', 
+                                    '${payment.payment_status}',
+                                    '${payment.client_name}',
+                                    '${payment.service_name}',
+                                    '${payment.proposed_price}',
+                                    '${payment.owner_name}',
+                                    '${payment.email}',
+                                    '${payment.credit_card}'
+                                )"
+                                
+                                title="Export payment details to PDF">
+                                <i class="fas fa-file-pdf" aria-hidden="true" style="color: red; font-size: 16px;"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
                 });
@@ -1887,6 +2150,171 @@ function viewNewRequests(type) {
             showAlert('There was an error fetching your payment history. Please try again later.', 'failure');
         });
     }
+    
+    function exportBillToPDF(billId, orderId, amount, proposed_price, discount, generatedDate, dueDate, billStatus, clientName, serviceName, email) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Set Title
+        doc.setFontSize(22); // Larger font size for the main title
+        doc.text("Bill", 105, 20, null, null, "center");
+        
+        // Add Subtitle or Details
+        doc.setFontSize(14); // Medium font size for the subtitle
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 30, null, null, "center");
+        
+        // Add Horizontal Line
+        doc.setLineWidth(0.5);
+        doc.line(10, 35, 200, 35);
+        
+        // Add Client and Service Information
+        doc.setFontSize(16); // Larger font size for section headers
+        const clientInfo = [
+            ["Client Name", clientName],
+            ["Email", email],
+            ["Service", serviceName],
+            ["Proposed Price", `$${parseFloat(proposed_price).toFixed(2)}`], // Ensure amount is treated as a string
+            ["Discount", `$${parseFloat(discount).toFixed(2)}`], // Ensure discount is treated as a string
+        ];
+        
+        let startY = 45; // Starting Y position for the client info
+        
+        clientInfo.forEach(row => {
+            let x1 = 10, x2 = 70; // Column positions
+            doc.setFontSize(12); // Standard font size for labels
+            doc.text(row[0], x1, startY); // Field
+            doc.setFontSize(12); // Standard font size for content
+            doc.text(row[1].toString(), x2, startY); // Ensure value is treated as a string
+            startY += 10; // Increment Y position
+        });
+        
+        // Add Payment Details
+        doc.setFontSize(16); // Larger font size for section headers
+        doc.text("Payment Information", 10, startY + 10);
+        startY += 20;
+        
+        const paymentInfo = [
+            ["Bill ID", billId],
+            ["Order ID", orderId],
+            ["Amount", `$${parseFloat(amount).toFixed(2)}`], // Ensure amount is treated as a string
+            ["Generated Date", new Date(generatedDate).toLocaleDateString()], // Format date to show only date
+            ["Due Date", new Date(dueDate).toLocaleDateString()], // Format date to show only date
+            ["Status", billStatus],
+        ];
+        
+        paymentInfo.forEach(row => {
+            let x1 = 10, x2 = 70;
+            doc.setFontSize(12); // Standard font size for labels
+            doc.text(row[0], x1, startY); // Field
+            doc.setFontSize(12); // Standard font size for content
+            doc.text(row[1].toString(), x2, startY); // Ensure value is treated as a string
+            startY += 10;
+        });
+        
+        // Add Footer
+        doc.setFontSize(10); // Small font size for footer
+        doc.text("Thank you for your payment.", 105, startY + 20, null, null, "center");
+        
+        // Generate PDF as Blob
+        const pdfBlob = doc.output('blob');
+        
+        // Create a URL for the Blob and open in a new tab
+        const pdfURL = URL.createObjectURL(pdfBlob);
+        window.open(pdfURL, '_blank');
+    }
+    
+    
+    
+    
+    
+    function printPayment(paymentId, transactionId, amount, paymentDate, paymentMethod, paymentStatus, clientName, serviceName, proposedPrice, contractorName, email, creditCard) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Set Title
+        doc.setFontSize(22); // Larger font size for the main title
+        doc.text("Payment", 105, 20, null, null, "center");
+        
+        // Add Subtitle or Details
+        doc.setFontSize(14); // Medium font size for the subtitle
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, 30, null, null, "center");
+        
+        // Add Horizontal Line
+        doc.setLineWidth(0.5);
+        doc.line(10, 35, 200, 35);
+        
+        // Add Client and Service Information
+        doc.setFontSize(16); // Larger font size for section headers
+        const clientInfo = [
+            ["Client Name", clientName],
+            ["Email", email],
+            ["Credit Card", `**** **** **** ${creditCard.slice(-4)}`],
+            ["Service", serviceName],
+            // Ensure proposedPrice is a valid number before formatting it
+            ["Proposed Price", `$${isNaN(parseFloat(proposedPrice)) ? 0 : parseFloat(proposedPrice).toFixed(2)}`],
+        ];
+        
+        let startY = 45; // Starting Y position for the client info
+        
+        clientInfo.forEach(row => {
+            let x1 = 10, x2 = 70; // Column positions
+            doc.setFontSize(12); // Standard font size for labels
+            doc.text(row[0], x1, startY); // Field
+            doc.setFontSize(12); // Standard font size for content
+            doc.text(row[1], x2, startY); // Details
+            startY += 10; // Increment Y position
+        });
+        
+        // Add Payment Details
+        doc.setFontSize(16); // Larger font size for section headers
+        doc.text("Payment Information", 10, startY + 10);
+        startY += 20;
+        
+        const paymentInfo = [
+            ["Payment ID", paymentId],
+            ["Transaction ID", transactionId],
+            ["Amount", `$${parseFloat(amount).toFixed(2)}`],  // Ensure amount is a number
+            ["Paid On", paymentDate],
+            ["Payment Method", paymentMethod],
+            ["Payment Status", paymentStatus],
+        ];
+        
+        paymentInfo.forEach(row => {
+            let x1 = 10, x2 = 70;
+            doc.setFontSize(12); // Standard font size for labels
+            doc.text(row[0], x1, startY); // Field
+            doc.setFontSize(12); // Standard font size for content
+            doc.text(row[1], x2, startY); // Details
+            startY += 10;
+        });
+        
+        // Add Contractor Information (if applicable)
+        if (contractorName) {
+            doc.setFontSize(16); // Larger font size for section headers
+            doc.text("Contractor Information", 10, startY + 10);
+            startY += 15;
+            
+            doc.setFontSize(12); // Standard font size for labels
+            doc.text("Contractor:", 10, startY);
+            doc.setFontSize(12); // Standard font size for content
+            doc.text(contractorName, 70, startY);
+        }
+        
+        // Add Footer
+        doc.setFontSize(10); // Small font size for footer
+        doc.text("Thank you for your payment.", 105, startY + 20, null, null, "center");
+        
+        // Generate PDF as Blob
+        const pdfBlob = doc.output('blob');
+        
+        // Create a URL for the Blob and open in a new tab
+        const pdfURL = URL.createObjectURL(pdfBlob);
+        window.open(pdfURL, '_blank');
+    }
+    
+    
+    
+    
     
     
     

@@ -528,6 +528,71 @@ app.post('/generateBill', async (req, res) => {
 });
 
 
+// Endpoint to fetch revenue report
+app.post('/revenue_report', async (req, res) => {
+    try {
+        const userId = parseInt(req.body.userId, 10);
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid userId provided' });
+        }
+        
+        const reportData = await db.getRevenueReport(userId);
+        return res.status(200).json(reportData);
+    } catch (error) {
+        console.error('Error fetching revenue report:', error);
+        return res.status(500).json({ error: 'Failed to fetch revenue report', details: error.message });
+    }
+});
+
+// Endpoint to fetch big clients
+app.post('/big_clients', async (req, res) => {
+    try {
+        const userId = parseInt(req.body.userId, 10);
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid userId provided' });
+        }
+        
+        const clientsData = await db.getBigClients(userId);
+        return res.status(200).json(clientsData);
+    } catch (error) {
+        console.error('Error fetching big clients:', error);
+        return res.status(500).json({ error: 'Failed to fetch big clients', details: error.message });
+    }
+});
+
+// Endpoint to fetch overdue bills
+app.post('/overdue_bills', async (req, res) => {
+    try {
+        const userId = parseInt(req.body.userId, 10);
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid userId provided' });
+        }
+        
+        const overdueBillsData = await db.getOverdueBills(userId);
+        return res.status(200).json(overdueBillsData);
+    } catch (error) {
+        console.error('Error fetching overdue bills:', error);
+        return res.status(500).json({ error: 'Failed to fetch overdue bills', details: error.message });
+    }
+});
+
+// Endpoint to fetch client ratings
+app.post('/client_ratings', async (req, res) => {
+    try {
+        const userId = parseInt(req.body.userId, 10);
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid userId provided' });
+        }
+        
+        const ratingsData = await db.getClientRatings(userId);
+        return res.status(200).json(ratingsData);
+    } catch (error) {
+        console.error('Error fetching client ratings:', error);
+        return res.status(500).json({ error: 'Failed to fetch client ratings', details: error.message });
+    }
+});
+
+
 
 // Route to view all bills for a user
 app.post('/viewAllBills', async (req, res) => {
@@ -560,14 +625,14 @@ app.post('/viewAllBills', async (req, res) => {
 app.post('/resolveDispute', async (req, res) => {
     try {
         const { billId, reason } = req.body;
-
+        
         // Check if required fields are empty
         if (!billId || !reason) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
-
+        
         const db = dbService.getDbServiceInstance();
-
+        
         // Resolve the dispute with the given billId and reason
         const result = await db.resolveDispute(billId, reason);
         if (result) {
@@ -590,18 +655,18 @@ app.post('/resolveDispute', async (req, res) => {
 app.post('/getBill', async (req, res) => {
     try {
         const { userId, billId, orderId } = req.body;
-
+        
         if (!userId) return res.status(401).json({ error: 'User not authenticated' });
-
+        
         const db = dbService.getDbServiceInstance();
-
+        
         // Fetch bill details by userId, billId, and orderId
         const bills = await db.getBillDetails(userId, billId, orderId);
-
+        
         if (!bills.length) {
             return res.status(404).json({ error: 'No bills found for this user' });
         }
-
+        
         res.status(200).json(bills);
     } catch (error) {
         console.error('Error fetching bill details:', error);
@@ -613,25 +678,25 @@ app.post('/getBill', async (req, res) => {
 app.post('/submitPayment', async (req, res) => {
     try {
         const { billId, userId, amount, cardNumber, cardExpiry, cardCVC } = req.body;
-
+        
         // Ensure all required fields are provided
         if (!userId || !billId || !amount || !cardNumber || !cardExpiry || !cardCVC) {
             return res.status(400).json({ error: 'Missing required payment details' });
         }
-
+        
         // Get database service instance
         const db = dbService.getDbServiceInstance();
-
+        
         // Payment status logic (static for now, modify as per actual payment gateway response)
         const paymentStatus = 'successful'; 
         const paymentMethod = 'card'; 
-
+        
         // Generate a unique transaction ID
         const transactionId = `TX-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-
+        
         // Insert payment details into the database
         await db.insertPaymentDetails(userId, billId, amount, cardNumber, cardExpiry, cardCVC, paymentStatus, paymentMethod, transactionId);
-
+        
         // Return a success response
         res.status(200).json({ message: 'Payment successfully processed!' });
     } catch (error) {
@@ -646,20 +711,20 @@ app.post('/submitPayment', async (req, res) => {
 app.post('/disputeBill', async (req, res) => {
     try {
         const { billId, orderId, reason } = req.body;
-
+        
         // Input validation
         if (!billId || !orderId || !reason) {
             return res.status(400).json({ error: 'All fields are required to dispute a bill.' });
         }
-
+        
         // Connect to database service
         const db = dbService.getDbServiceInstance();
         const result = await db.disputeBill(billId, orderId, reason);
-
+        
         if (result) {
             return res.status(200).json({ success: true, message: 'Bill disputed successfully.' });
         }
-
+        
         res.status(500).json({ success: false, message: 'Failed to dispute the bill.' });
     } catch (error) {
         console.error('Error disputing bill:', error);
@@ -693,22 +758,22 @@ app.post('/view_profile', async (req, res) => {
 app.post('/update_profile', async (req, res) => {
     try {
         const { userId, first_name, last_name, email, phone, address, credit_card } = req.body;
-
+        
         // Check if all required fields are provided
         if (!userId || !first_name || !last_name || !email || !phone || !address || !credit_card) {
             return res.status(400).json({ error: 'All fields are required' });
         }
-
+        
         const db = dbService.getDbServiceInstance();
-
+        
         // Log data being passed to the query
         console.log("Updating profile for user:", {
             userId, first_name, last_name, email, phone, address, credit_card
         });
-
+        
         // Call the database function to update the profile
         const updateResult = await db.updateUserProfile(userId, first_name, last_name, email, phone, address, credit_card);
-
+        
         // Check if update was successful
         if (updateResult.success) {
             return res.status(200).json({ success: true, message: 'Profile updated successfully' });

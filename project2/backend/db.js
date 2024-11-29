@@ -410,7 +410,7 @@
                            FROM orderofwork O
                            LEFT JOIN bill B ON B.order_id = O.order_id
                            JOIN requestforquote R ON R.request_id = O.request_id
-                           JOIN quoteresponse QR ON QR.request_id = O.request_id
+                           LEFT JOIN quoteresponse QR ON QR.request_id = O.request_id
                            JOIN service_types S ON S.service_id = R.service_id
                            WHERE R.client_id = ? AND R.is_deleted = 0 AND O.is_deleted = 0`;
             
@@ -579,17 +579,84 @@
          });
       }
       
+      // Get revenue report by userId
+      async getRevenueReport(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT month, total_revenue, new_clients 
+                      FROM revenue_reports 
+                      WHERE user_id = ?`;
+            connection.query(query, [userId], (err, results) => {
+               if (err) {
+                  console.error('Database error:', err);
+                  return reject(err);
+               }
+               resolve(results);
+            });
+         });
+      }
+      
+      // Get big clients by userId
+      async getBigClients(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT name, revenue, last_purchase 
+                      FROM big_clients 
+                      WHERE user_id = ?`;
+            connection.query(query, [userId], (err, results) => {
+               if (err) {
+                  console.error('Database error:', err);
+                  return reject(err);
+               }
+               resolve(results);
+            });
+         });
+      }
+      
+      // Get overdue bills by userId
+      async getOverdueBills(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT bill_id, amount, due_date, status 
+                      FROM overdue_bills 
+                      WHERE user_id = ?`;
+            connection.query(query, [userId], (err, results) => {
+               if (err) {
+                  console.error('Database error:', err);
+                  return reject(err);
+               }
+               resolve(results);
+            });
+         });
+      }
+      
+      // Get client ratings by userId
+      async getClientRatings(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT name, rating, feedback 
+                      FROM client_ratings 
+                      WHERE user_id = ?`;
+            connection.query(query, [userId], (err, results) => {
+               if (err) {
+                  console.error('Database error:', err);
+                  return reject(err);
+               }
+               resolve(results);
+            });
+         });
+      }
+      
       
       
       // Function to get all bills for a user based on user type
       async getAllBills(userId, userType) {
          return new Promise((resolve, reject) => {
             let query = `
-           SELECT b.bill_id, b.order_id, b.amount, b.discount, b.generated_date, b.due_date, 
-                  b.status AS bill_status, o.status AS order_status, r.property_address, QR.counter_price, b.dispute_reason, b.dispute_resolve
+           SELECT b.bill_id, b.order_id, b.amount, b.discount, b.generated_date, b.due_date, U.email, S.service_name, S.proposed_price, CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+                        CONCAT(UO.first_name, ' ', UO.last_name) AS owner_name, b.status AS bill_status, o.status AS order_status, r.property_address, QR.counter_price, b.dispute_reason, b.dispute_resolve
            FROM bill b
            INNER JOIN orderofwork o ON b.order_id = o.order_id
            INNER JOIN requestforquote r ON o.request_id = r.request_id
+           JOIN users U ON U.id = R.client_id
+           LEFT JOIN users UO ON UO.id = R.owned_by 
+           JOIN service_types S ON S.service_id = R.service_id
            JOIN quoteresponse QR ON QR.request_id = o.request_id
            WHERE
        `;
@@ -806,11 +873,14 @@
       // Get payment history by userId
       async getPaymentHistory(userId) {
          return new Promise((resolve, reject) => {
-            const query = `SELECT B.*, O.*, QR.*, S.service_name, O.status, S.proposed_price, CONCAT(U.first_name, ' ', U.last_name) AS name, U.email, U.credit_card
+            const query = `SELECT B.*, O.*, QR.*, P.*, S.service_name, O.status, S.proposed_price, CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+                        CONCAT(UO.first_name, ' ', UO.last_name) AS owner_name, U.email, U.credit_card
            FROM bill B
+           JOIN payment P ON P.bill_id = B.bill_id
            JOIN orderofwork O ON O.order_id = B.order_id
            JOIN requestforquote R ON R.request_id = O.request_id
            JOIN users U ON U.id = R.client_id
+           LEFT JOIN users UO ON UO.id = R.owned_by 
            JOIN quoteresponse QR ON QR.request_id = O.request_id
            JOIN service_types S ON S.service_id = R.service_id
            WHERE R.client_id = ?`;
