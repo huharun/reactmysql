@@ -252,9 +252,9 @@ app.post('/take_ownership', async (req, res) => {
         
         if (result.affectedRows > 0) {
             if (action_type === 1){
-            res.status(200).json({ success: true, message: `Request ID ${requestId} is now owned by User ID ${userId}` });
+                res.status(200).json({ success: true, message: `Request ID ${requestId} is now owned by User ID ${userId}` });
             }else{
-            res.status(200).json({ success: true, message: `Request ID ${requestId} is now removed ownership from User ID ${userId}` });
+                res.status(200).json({ success: true, message: `Request ID ${requestId} is now removed ownership from User ID ${userId}` });
             }
         } else {
             res.status(404).json({ error: 'Request not found or already owned' });
@@ -267,7 +267,7 @@ app.post('/take_ownership', async (req, res) => {
 
 app.post('/manage_orders', async (req, res) => {
     const userId = req.body.userId; // Getting userId from the request body
-
+    
     try {
         const db = dbService.getDbServiceInstance(); // Assuming a db service
         const orders = await db.getOrders(userId); // Fetch orders for the user
@@ -285,16 +285,16 @@ app.post('/manage_orders', async (req, res) => {
 // Route to handle managing quotes
 app.post('/manage_quotes', async (req, res) => {
     const { requestId, quoteNote, counterPrice, timeWindowStart, timeWindowEnd, status } = req.body;
-
+    
     // Ensure all required fields are present
     if (!requestId || !quoteNote || !counterPrice || !timeWindowStart || !timeWindowEnd || !status) {
         return res.status(400).json({ success: false, message: 'All fields are required' });
     }
-
+    
     try {
         const db = dbService.getDbServiceInstance(); // Get DB instance
         const result = await db.saveQuoteToDB({ requestId, quoteNote, counterPrice, timeWindowStart, timeWindowEnd, status });
-
+        
         res.status(200).json({
             success: true,
             message: 'Quote submitted successfully',
@@ -305,6 +305,53 @@ app.post('/manage_quotes', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error, please try again later' });
     }
 });
+
+
+app.post('/send_chat', async (req, res) => {
+    const { orderId, senderId, receiverId, message } = req.body;
+    
+    // Ensure all required fields are present
+    if (!orderId || !senderId || !receiverId || !message) {
+        return res.status(400).json({ success: false, message: 'Order ID, sender ID, receiver ID, and message are required' });
+    }
+    
+    try {
+        const db = dbService.getDbServiceInstance(); // Get DB instance
+        const result = await db.saveChatToDB({ orderId, senderId, receiverId, message });
+        
+        res.status(200).json({
+            success: true,
+            message: 'Chat message sent successfully',
+            data: result
+        });
+    } catch (error) {
+        console.error('Error sending chat message:', error);
+        res.status(500).json({ success: false, message: 'Server error, please try again later' });
+    }
+});
+
+app.get('/get_chat', async (req, res) => {
+    const { orderId } = req.query;
+    
+    // Ensure orderId is present
+    if (!orderId) {
+        return res.status(400).json({ success: false, message: 'Order ID is required' });
+    }
+    
+    try {
+        const db = dbService.getDbServiceInstance(); // Get DB instance
+        const messages = await db.getChatMessages(orderId);
+        
+        res.status(200).json({
+            success: true,
+            messages: messages
+        });
+    } catch (error) {
+        console.error('Error fetching chat messages:', error);
+        res.status(500).json({ success: false, message: 'Server error, please try again later' });
+    }
+});
+
 
 
 
@@ -390,29 +437,31 @@ app.post('/view_orders', async (req, res) => {
     }
 });
 
-app.post('/view_orders', async (req, res) => {
+app.post('/viewActiveorders', async (req, res) => {
     try {
         const { userId, orderStatus } = req.body;
-
+        
+        
         // Validate the input
         const validOrderStatuses = ['In Progress', 'Completed'];
         if (!userId || isNaN(userId) || !validOrderStatuses.includes(orderStatus)) {
             return res.status(400).json({ error: 'Invalid userId or orderStatus provided' });
         }
-
+        
         const db = dbService.getDbServiceInstance();
         const orders = await db.getOrdersByUserIdAndStatus(userId, orderStatus);
-
+        
         if (orders.length === 0) {
             return res.status(200).json({ message: `No ${orderStatus} orders found for this user.` });
         }
-
+        
         res.status(200).json(orders);
     } catch (error) {
         console.error('Error fetching orders:', error);
         res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
     }
 });
+
 
 
 
@@ -455,6 +504,172 @@ app.post('/update_negotiation_status', async (req, res) => {
     }
 });
 
+// Route to generate a bill for a user
+app.post('/generateBill', async (req, res) => {
+    try {
+        const {orderId, requestId, amount, discount, dueDate, status } = req.body;
+        
+        // Validation: check that the essential fields are provided and are valid
+        if (!orderId || !requestId || isNaN(requestId) || !amount || isNaN(amount) || !discount || isNaN(discount)) {
+            return res.status(400).json({ error: 'Invalid data provided' });
+        }
+        
+        const db = dbService.getDbServiceInstance();
+        
+        // Save the generated bill with the provided details
+        const result = await db.generateBill(orderId, requestId, amount, discount, dueDate, status);
+        
+        // Send success response with billId
+        res.status(200).json({ success: true, message: 'Bill generated successfully', billId: result.insertId });
+    } catch (error) {
+        console.error('Error generating bill:', error);
+        res.status(500).json({ error: 'Failed to generate bill', details: error.message });
+    }
+});
+
+
+
+// Route to view all bills for a user
+app.post('/viewAllBills', async (req, res) => {
+    try {
+        const { userId, userType } = req.body;
+        
+        // Validate userId
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid userId provided' });
+        }
+        
+        // Fetch bills from the database
+        const db = dbService.getDbServiceInstance();
+        const bills = await db.getAllBills(userId, userType);
+        
+        // Return appropriate response
+        if (!bills || bills.length === 0) {
+            return res.status(200).json([]); // Send an empty array if no bills are found
+        }
+        
+        res.status(200).json(bills);
+    } catch (error) {
+        console.error('Error fetching bills:', error);
+        res.status(500).json({ error: 'Failed to fetch bills', details: error.message });
+    }
+});
+
+
+// Route to manage disputes for a user
+app.post('/resolveDispute', async (req, res) => {
+    try {
+        const { billId, reason } = req.body;
+
+        // Check if required fields are empty
+        if (!billId || !reason) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const db = dbService.getDbServiceInstance();
+
+        // Resolve the dispute with the given billId and reason
+        const result = await db.resolveDispute(billId, reason);
+        if (result) {
+            res.status(200).json({ message: 'Dispute resolved successfully' });
+        } else {
+            res.status(400).json({ error: 'Failed to resolve dispute' });
+        }
+    } catch (error) {
+        console.error('Error managing disputes:', error);
+        res.status(500).json({ error: 'Failed to manage disputes', details: error.message });
+    }
+});
+
+
+
+
+
+
+// API route to fetch user bill details
+app.post('/getBill', async (req, res) => {
+    try {
+        const { userId, billId, orderId } = req.body;
+
+        if (!userId) return res.status(401).json({ error: 'User not authenticated' });
+
+        const db = dbService.getDbServiceInstance();
+
+        // Fetch bill details by userId, billId, and orderId
+        const bills = await db.getBillDetails(userId, billId, orderId);
+
+        if (!bills.length) {
+            return res.status(404).json({ error: 'No bills found for this user' });
+        }
+
+        res.status(200).json(bills);
+    } catch (error) {
+        console.error('Error fetching bill details:', error);
+        res.status(500).json({ error: 'Failed to fetch bill details', details: error.message });
+    }
+});
+
+// API route to submit payment details
+app.post('/submitPayment', async (req, res) => {
+    try {
+        const { billId, userId, amount, cardNumber, cardExpiry, cardCVC } = req.body;
+
+        // Ensure all required fields are provided
+        if (!userId || !billId || !amount || !cardNumber || !cardExpiry || !cardCVC) {
+            return res.status(400).json({ error: 'Missing required payment details' });
+        }
+
+        // Get database service instance
+        const db = dbService.getDbServiceInstance();
+
+        // Payment status logic (static for now, modify as per actual payment gateway response)
+        const paymentStatus = 'successful'; 
+        const paymentMethod = 'card'; 
+
+        // Generate a unique transaction ID
+        const transactionId = `TX-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
+        // Insert payment details into the database
+        await db.insertPaymentDetails(userId, billId, amount, cardNumber, cardExpiry, cardCVC, paymentStatus, paymentMethod, transactionId);
+
+        // Return a success response
+        res.status(200).json({ message: 'Payment successfully processed!' });
+    } catch (error) {
+        // Log error and return a failure response
+        console.error('Error processing payment:', error);
+        res.status(500).json({ error: 'Failed to process payment', details: error.message });
+    }
+});
+
+
+// Route to dispute a bill
+app.post('/disputeBill', async (req, res) => {
+    try {
+        const { billId, orderId, reason } = req.body;
+
+        // Input validation
+        if (!billId || !orderId || !reason) {
+            return res.status(400).json({ error: 'All fields are required to dispute a bill.' });
+        }
+
+        // Connect to database service
+        const db = dbService.getDbServiceInstance();
+        const result = await db.disputeBill(billId, orderId, reason);
+
+        if (result) {
+            return res.status(200).json({ success: true, message: 'Bill disputed successfully.' });
+        }
+
+        res.status(500).json({ success: false, message: 'Failed to dispute the bill.' });
+    } catch (error) {
+        console.error('Error disputing bill:', error);
+        res.status(500).json({ error: 'An error occurred while disputing the bill.', details: error.message });
+    }
+});
+
+
+
+
 
 
 
@@ -473,6 +688,46 @@ app.post('/view_profile', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch profile', details: error.message });
     }
 });
+
+// API route for updating user profile
+app.post('/update_profile', async (req, res) => {
+    try {
+        const { userId, first_name, last_name, email, phone, address, credit_card } = req.body;
+
+        // Check if all required fields are provided
+        if (!userId || !first_name || !last_name || !email || !phone || !address || !credit_card) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        const db = dbService.getDbServiceInstance();
+
+        // Log data being passed to the query
+        console.log("Updating profile for user:", {
+            userId, first_name, last_name, email, phone, address, credit_card
+        });
+
+        // Call the database function to update the profile
+        const updateResult = await db.updateUserProfile(userId, first_name, last_name, email, phone, address, credit_card);
+
+        // Check if update was successful
+        if (updateResult.success) {
+            return res.status(200).json({ success: true, message: 'Profile updated successfully' });
+        } else {
+            console.error('Error with the update query:', updateResult.details); // Log query failure details
+            return res.status(500).json({ success: false, error: 'Failed to update profile', details: updateResult.details });
+        }
+    } catch (error) {
+        console.error('Unexpected error during profile update:', error); // Log unexpected errors
+        return res.status(500).json({
+            error: 'Failed to update profile',
+            details: error.message || 'Unknown error occurred',
+        });
+    }
+});
+
+
+
+
 
 // API route for fetching payment history
 app.post('/view_payment_history', async (req, res) => {

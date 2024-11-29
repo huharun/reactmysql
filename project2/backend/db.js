@@ -306,6 +306,48 @@
          });
       }
       
+      // Function to save chat messages to the database
+      async saveChatToDB({ orderId, senderId, receiverId, message }) {
+         return new Promise((resolve, reject) => {
+            const insertQuery = `
+           INSERT INTO chat_messages (order_id, sender_id, receiver_id, message)
+           VALUES (?, ?, ?, ?)
+       `;
+            const insertValues = [orderId, senderId, receiverId, message];
+            
+            connection.query(insertQuery, insertValues, (err, results) => {
+               if (err) return reject(err);
+               resolve({ action: 'inserted', results });
+            });
+         });
+      }
+      
+      
+      // Function to get chat messages from the database
+      async getChatMessages(orderId) {
+         return new Promise((resolve, reject) => {
+            const selectQuery = `
+                     SELECT 
+                         cm.chat_id, cm.sender_id, cm.receiver_id, cm.message, cm.timestamp,
+                         CONCAT(
+                             (CASE WHEN u_sender.user_type = 3 THEN u_sender.first_name ELSE u_sender.first_name END), ' '
+                         ) AS sender_name, 
+                         CONCAT(
+                             (CASE WHEN u_receiver.user_type = 3 THEN u_receiver.first_name ELSE u_receiver.first_name END), ' '
+                         ) AS receiver_name
+                     FROM chat_messages cm
+                     LEFT JOIN users u_sender ON cm.sender_id = u_sender.id  
+                     LEFT JOIN users u_receiver ON cm.receiver_id = u_receiver.id  
+                     WHERE cm.order_id = ?
+                     ORDER BY cm.timestamp ASC;`;
+            
+            
+            connection.query(selectQuery, [orderId], (err, results) => {
+               if (err) return reject(err);
+               resolve(results);
+            });
+         });
+      }
       
       
       
@@ -364,8 +406,9 @@
       // getOrdersByUserId
       async getOrdersByUserId(userId) {
          return new Promise((resolve, reject) => {
-            const query = `SELECT O.*, R.*, QR.*, S.service_name, O.status, S.proposed_price
+            const query = `SELECT O.*, R.*, QR.*, B.*, S.service_name, O.status, S.proposed_price
                            FROM orderofwork O
+                           LEFT JOIN bill B ON B.order_id = O.order_id
                            JOIN requestforquote R ON R.request_id = O.request_id
                            JOIN quoteresponse QR ON QR.request_id = O.request_id
                            JOIN service_types S ON S.service_id = R.service_id
@@ -380,10 +423,10 @@
             });
          });
       }
-
+      
       async getOrdersByUserIdAndStatus(userId, orderStatus) {
          return new Promise((resolve, reject) => {
-             const query = `
+            const query = `
                  SELECT O.*, R.*, QR.*, S.service_name, O.status, S.proposed_price
                  FROM orderofwork O
                  JOIN requestforquote R ON R.request_id = O.request_id
@@ -392,26 +435,28 @@
                  WHERE R.owned_by = ? 
                  AND R.is_deleted = 0 
                  AND O.is_deleted = 0
-                 AND O.status = '?'`; // Filter by the status (Active or Completed)
-     
-             connection.query(query, [userId, orderStatus], (err, results) => {
-                 if (err) {
-                     console.error('Database error:', err);
-                     return reject(err);
-                 }
-                 resolve(results);
-             });
+                 AND O.status = ?`; // Filter by the status (Active or Completed)
+            
+            connection.query(query, [userId, orderStatus], (err, results) => {
+               if (err) {
+                  console.error('Database error:', err);
+                  return reject(err);
+               }
+               resolve(results);
+            });
          });
-     }
-     
-     
+      }
+      
+      
       
       
       async getOrders(userId) {
          return new Promise((resolve, reject) => {
-            const query = `SELECT O.*, R.*, QR.*, S.service_name, O.status, O.request_id, S.proposed_price
+            const query = `SELECT O.*, R.*, QR.*, B.*, S.service_name, O.status, B.status as bill_status , O.request_id, O.order_id, S.proposed_price, CONCAT(U.first_name, ' ', U.last_name) AS client_name
                            FROM orderofwork O
+                           LEFT JOIN bill B ON B.order_id = O.order_id
                            JOIN requestforquote R ON R.request_id = O.request_id
+                           JOIN users U ON U.id = R.client_id
                            LEFT JOIN quoteresponse QR ON QR.request_id = O.request_id
                            JOIN service_types S ON S.service_id = R.service_id
                            WHERE R.owned_by = ? AND O.is_deleted = 0;`;
@@ -429,12 +474,19 @@
       // getNegotiationsByUserId
       async getNegotiationsByUserId(userId) {
          return new Promise((resolve, reject) => {
-            const query = `SELECT O.*, R.*, QR.*, S.service_name, S.proposed_price
+            const query = `SELECT O.*, R.*, QR.*, S.service_name, S.proposed_price, 
+                           CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+                           CONCAT(O_user.first_name, ' ', O_user.last_name) AS owner_name
                            FROM orderofwork O
                            JOIN requestforquote R ON R.request_id = O.request_id
+                           JOIN users U ON U.id = R.client_id
+                           LEFT JOIN users O_user ON O_user.id = R.owned_by  -- Changed alias to O_user
                            JOIN quoteresponse QR ON QR.request_id = O.request_id
                            JOIN service_types S ON S.service_id = R.service_id
-                           WHERE client_id = ? AND R.is_deleted = 0 AND O.is_deleted = 0 AND O.status = 'In Progress'`;  // Changed 'orders' to 'requestforquote'
+                           WHERE client_id = ? 
+                             AND R.is_deleted = 0 
+                             AND O.is_deleted = 0 
+                             AND O.status = 'In Progress'`;
             
             connection.query(query, [userId], (err, results) => {
                if (err) return reject(err);  // Handle errors
@@ -458,6 +510,253 @@
          });
       }
       
+      // In dbService.js file
+      async getBillsByUserId(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT bill_id, order_id, amount, discount, generated_date, due_date, status
+                           FROM bills
+                           AND is_deleted = 0
+                           ORDER BY generated_date DESC;`;
+            
+            connection.query(query, [userId], (err, results) => {
+               if (err) {
+                  console.error('Database error:', err);
+                  return reject(err);
+               }
+               resolve(results);
+            });
+         });
+      }
+      
+      
+      // Function to generate a bill
+      async generateBill(orderId, requestId, amount, discount, dueDate, status) {
+         return new Promise((resolve, reject) => {
+            const billDate = new Date(); // Current date for the bill's generation date
+            
+            // First, check if the bill already exists for the given orderId
+            const checkQuery = 'SELECT * FROM bill WHERE order_id = ?';
+            
+            connection.query(checkQuery, [orderId], (err, results) => {
+               if (err) {
+                  console.error('Error checking existing bill:', err);
+                  return reject(err); // Reject if an error occurs during the check
+               }
+               
+               // If the orderId already exists, update the existing record
+               if (results.length > 0) {
+                  const updateQuery = `
+                   UPDATE bill 
+                   SET amount = ?, discount = ?, generated_date = ?, due_date = ?, status = ? 
+                   WHERE order_id = ?
+               `;
+                  const updateValues = [amount, discount, billDate, dueDate, status, orderId];
+                  
+                  connection.query(updateQuery, updateValues, (updateErr, updateResults) => {
+                     if (updateErr) {
+                        console.error('Error updating bill:', updateErr);
+                        return reject(updateErr); // Reject if an error occurs during the update
+                     }
+                     resolve(updateResults); // Resolve with update result
+                  });
+               } else {
+                  // If the orderId does not exist, insert a new record
+                  const insertQuery = `
+                   INSERT INTO bill (order_id, amount, discount, generated_date, due_date, status) 
+                   VALUES (?, ?, ?, ?, ?, ?)
+               `;
+                  const insertValues = [orderId, amount, discount, billDate, dueDate, status];
+                  
+                  connection.query(insertQuery, insertValues, (insertErr, insertResults) => {
+                     if (insertErr) {
+                        console.error('Error inserting bill:', insertErr);
+                        return reject(insertErr); // Reject if an error occurs during the insert
+                     }
+                     resolve(insertResults); // Resolve with insert result
+                  });
+               }
+            });
+         });
+      }
+      
+      
+      
+      // Function to get all bills for a user based on user type
+      async getAllBills(userId, userType) {
+         return new Promise((resolve, reject) => {
+            let query = `
+           SELECT b.bill_id, b.order_id, b.amount, b.discount, b.generated_date, b.due_date, 
+                  b.status AS bill_status, o.status AS order_status, r.property_address, QR.counter_price, b.dispute_reason, b.dispute_resolve
+           FROM bill b
+           INNER JOIN orderofwork o ON b.order_id = o.order_id
+           INNER JOIN requestforquote r ON o.request_id = r.request_id
+           JOIN quoteresponse QR ON QR.request_id = o.request_id
+           WHERE
+       `;
+            let queryParams = [];
+            
+            // Split WHERE condition based on user type
+            if (userType === 2) {
+               query += " r.owned_by = ?";
+               queryParams = [userId]; // userId is passed as owned_by
+            } else if (userType === 3) {
+               query += " r.client_id = ?";
+               queryParams = [userId]; // userId is passed as client_id
+            } else {
+               return reject('Invalid userType');
+            }
+            
+            // Execute the query
+            connection.query(query, queryParams, (err, results) => {
+               if (err) {
+                  console.error('Error fetching bills:', err);
+                  return reject(err);
+               }
+               resolve(results); // Return the fetched bills with additional details
+            });
+         });
+      }
+      
+      
+      
+      
+      // Function to get active disputes for a user
+      async getActiveDisputes(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT * FROM disputes WHERE user_id = ? AND status = 'Active'`;
+            connection.query(query, [userId], (err, results) => {
+               if (err) {
+                  console.error('Error fetching disputes:', err);
+                  return reject(err);
+               }
+               resolve(results);
+            });
+         });
+      }
+      
+      // Function to resolve a dispute in the database
+      async resolveDispute(billId, reason) {
+         return new Promise((resolve, reject) => {
+            const query = `UPDATE bill SET status = 'Resolved', dispute_resolve = ? WHERE bill_id = ?`;
+            connection.query(query, [reason, billId], (err, results) => {
+               if (err) {
+                  console.error('Error resolving dispute:', err);
+                  return reject(err);
+               }
+               // If the query was successful and affected rows are > 0, resolve the promise
+               if (results.affectedRows > 0) {
+                  resolve(results);
+               } else {
+                  reject('No rows affected, dispute resolution failed.');
+               }
+            });
+         });
+      }
+      
+      
+      // Get bill details by userId, billId, and orderId
+      async getBillDetails(userId, billId, orderId) {
+         return new Promise((resolve, reject) => {
+            const query = `
+           SELECT B.*, O.*, QR.*, S.service_name, O.status, S.proposed_price, CONCAT(U.first_name, ' ', U.last_name) AS name, U.email, U.credit_card
+           FROM bill B
+           JOIN orderofwork O ON O.order_id = B.order_id
+           JOIN requestforquote R ON R.request_id = O.request_id
+           JOIN users U ON U.id = R.client_id
+           JOIN quoteresponse QR ON QR.request_id = O.request_id
+           JOIN service_types S ON S.service_id = R.service_id
+           WHERE B.bill_id = ? AND O.order_id = ?
+       `;
+            
+            connection.query(query, [billId, orderId], (err, results) => {
+               if (err) return reject(err);
+               resolve(results);  // Resolving with the bill details
+            });
+         });
+      }
+      
+      
+      // Function to insert payment details into the payment table
+      async insertPaymentDetails(userId, billId, amount, cardNumber, cardExpiry, cardCVC, paymentStatus, paymentMethod, transactionId) {
+         return new Promise((resolve, reject) => {
+            // Start a transaction
+            connection.beginTransaction((err) => {
+               if (err) {
+                  return reject(err);
+               }
+               
+               // Check if the bill is already paid
+               const checkBillQuery = `
+                     SELECT status FROM bill WHERE bill_id = ? AND status = 'paid';
+                 `;
+               
+               connection.query(checkBillQuery, [billId], (err, results) => {
+                  if (err) {
+                     return connection.rollback(() => reject(err)); // Rollback if there's an error checking the bill status
+                  }
+                  
+                  // If the bill is already paid, reject the payment request
+                  if (results.length > 0) {
+                     return connection.rollback(() => reject(new Error('This bill has already been paid.')));
+                  }
+                  
+                  // Insert payment details into the payment table
+                  const paymentQuery = `
+                         INSERT INTO payment (bill_id, user_id, amount, card_number, card_expiry, card_cvc, payment_status, payment_method, transaction_id, payment_date)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                     `;
+                  
+                  connection.query(paymentQuery, [billId, userId, amount, cardNumber, cardExpiry, cardCVC, paymentStatus, paymentMethod, transactionId], (err, results) => {
+                     if (err) {
+                        return connection.rollback(() => reject(err)); // Rollback if payment insertion fails
+                     }
+                     
+                     // Update the bill table to mark the bill as paid
+                     const billUpdateQuery = `
+                             UPDATE bill
+                             SET status = 'paid'
+                             WHERE bill_id = ?
+                         `;
+                     
+                     connection.query(billUpdateQuery, [billId], (err, updateResults) => {
+                        if (err) {
+                           return connection.rollback(() => reject(err)); // Rollback if bill update fails
+                        }
+                        
+                        // Commit the transaction if both queries are successful
+                        connection.commit((err) => {
+                           if (err) {
+                              return connection.rollback(() => reject(err)); // Rollback on commit failure
+                           }
+                           resolve(results);  // Resolve with the payment insertion results
+                        });
+                     });
+                  });
+               });
+            });
+         });
+      }
+      
+      
+      // Function to dispute a bill
+      async disputeBill(billId, orderId, reason) {
+         return new Promise((resolve, reject) => {
+            const query = `UPDATE bill SET status = 'Disputed', dispute_reason = ? WHERE bill_id = ?`;
+            
+            const queryParams = [reason, billId];
+            
+            connection.query(query, queryParams, (err, results) => {
+               if (err) {
+                  console.error('Error updating dispute:', err);
+                  return reject(err);
+               }
+               resolve(results);
+            });
+         });
+      }
+      
+      
+      
       
       // Get user profile by userId
       async getUserProfile(userId) {
@@ -470,11 +769,51 @@
             });
          });
       }
+      // Function to update the user profile in the database
+      async updateUserProfile(userId, first_name, last_name, email, phone, address, credit_card) {
+         return new Promise((resolve, reject) => {
+            const query = `
+                 UPDATE users SET 
+                     first_name = ?, 
+                     last_name = ?, 
+                     email = ?, 
+                     phone = ?, 
+                     address = ?, 
+                     credit_card = ? 
+                 WHERE id = ?
+             `;
+            const values = [first_name, last_name, email, phone, address, credit_card, userId];
+            
+            console.log('Executing query:', query);
+            console.log('With values:', values); // Log query and values for troubleshooting
+            
+            connection.query(query, values, (err, results) => {
+               if (err) {
+                  console.error('Database query error:', err); // Log the actual error
+                  return reject({ success: false, message: 'Error updating profile', details: err.message });
+               }
+               
+               if (results.affectedRows > 0) {
+                  resolve({ success: true });
+               } else {
+                  console.log('No rows affected. Maybe the user was not found.');
+                  resolve({ success: false, message: 'User not found or no changes made' });
+               }
+            });
+         });
+      }
       
       // Get payment history by userId
       async getPaymentHistory(userId) {
          return new Promise((resolve, reject) => {
-            const query = `SELECT * FROM payment WHERE user_id = ?`;
+            const query = `SELECT B.*, O.*, QR.*, S.service_name, O.status, S.proposed_price, CONCAT(U.first_name, ' ', U.last_name) AS name, U.email, U.credit_card
+           FROM bill B
+           JOIN orderofwork O ON O.order_id = B.order_id
+           JOIN requestforquote R ON R.request_id = O.request_id
+           JOIN users U ON U.id = R.client_id
+           JOIN quoteresponse QR ON QR.request_id = O.request_id
+           JOIN service_types S ON S.service_id = R.service_id
+           WHERE R.client_id = ?`;
             
             connection.query(query, [userId], (err, results) => {
                if (err) return reject(err);

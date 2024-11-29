@@ -189,7 +189,6 @@ function renderMenu() {
                 </li>
                 <li><a href="#" onclick="toggleSubMenu(event, 'billing')">Billing</a>
                     <ul class="submenu" id="billing">
-                        <li><a href="#" onclick="generateBill()">Generate Bill</a></li>
                         <li><a href="#" onclick="viewAllBills()">View All Bills</a></li>
                         <li><a href="#" onclick="manageDisputes()">Manage Disputes</a></li>
                     </ul>
@@ -224,8 +223,7 @@ function renderMenu() {
                 </li>
                 <li><a href="#" onclick="toggleSubMenu(event, 'billing')">Billing</a>
                     <ul class="submenu" id="billing">
-                        <li><a href="#" onclick="viewBills()">View Bills</a></li>
-                        <li><a href="#" onclick="payBill()">Pay Bill</a></li>
+                        <li><a href="#" onclick="viewAllBills()">View Bills</a></li>
                         <li><a href="#" onclick="disputeBill()">Dispute Bill</a></li>
                     </ul>
                 </li>
@@ -364,81 +362,85 @@ function viewNewRequests(type) {
                         <td>${request.urgency || 'N/A'}</td>
                         <td>${request.status || 'N/A'}</td>
                         <td>${request.owner_name || 'No Owner'}</td>
-                        <td>${!request.owner_name ? 
-                `<button onclick="handleRequestAction(${request.request_id},1)">Take Ownership</button>` : 
+                        <td>
+                ${!request.owner_name ? 
+                `<button onclick="handleRequestAction(${request.request_id}, 1)" title="Take ownership of this request">
+            <i class="fas fa-user-plus"></i> Take Ownership
+                </button>` : 
                 (request.owned_by === userId ? 
-                    `<button onclick="handleRequestAction(${request.request_id},2)">Remove Ownership</button>` : 
-                    `<span>Already Taken</span>`)
-                }
-                        </td>
+                    `<button onclick="handleRequestAction(${request.request_id}, 2)" title="Remove ownership of this request">
+                <i class="fas fa-user-minus"></i> Remove Ownership
+                    </button>` : 
+                    `<span title="This request is already taken">Already Taken</span>`)}
+                    </td>
                     </tr>
                 `;
-            });
-            
-            tableHTML += `</tbody>`;
-            table.innerHTML = tableHTML;
-        } else {
-            table.innerHTML = '<tr><td colspan="6">No new requests found.</td></tr>';
-        }
-    })
-    .catch(error => {
-        console.error('Error fetching new requests:', error);
-        showAlert('Error', 'There was an error fetching new requests. Please try again later.', 'failure');
-    });
-}
-
-function handleRequestAction(requestId, action_type) {
-    const userData = JSON.parse(sessionStorage.getItem('user'));
-    const userId = userData.userId;
-    
-    if (!userId) {
-        showAlert('Authentication Error', 'User not authenticated. Please log in again.', 'failure');
-        return;
+                });
+                
+                tableHTML += `</tbody>`;
+                table.innerHTML = tableHTML;
+            } else {
+                table.innerHTML = '<tr><td colspan="6">No new requests found.</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching new requests:', error);
+            showAlert('Error', 'There was an error fetching new requests. Please try again later.', 'failure');
+        });
     }
     
-    fetch(API_BASE_URL + '/take_ownership', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
-        },
-        body: JSON.stringify({ requestId, userId, action_type })
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Failed to take ownership');
-        return response.json();
-    })
-    .then(result => {
-        showAlert(`Success, ${result.message}`, 'success');
-        viewNewRequests(); // Refresh the table to show the updated ownership
-    })
-    .catch(error => {
-        console.error('Error taking action:', error);
-        showAlert('Error', 'Failed to take action. Please try again later.', 'failure');
-    });
-}
-
-function manageOrders() {
-    console.log("Managing Work Orders...");
-    const userData = JSON.parse(sessionStorage.getItem('user'));
-    const userId = userData.userId;
-    
-    fetch(API_BASE_URL + '/manage_orders', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('authToken')
-        },
-        body: JSON.stringify({ userId }) // Sending userId in the body of the request
-    })
-    .then(response => response.json())
-    .then(data => {
-        const table = document.getElementById('table');
-        document.getElementById('formContainer').style.display = 'none';
-        document.getElementById('table').style.display = 'block';
+    function handleRequestAction(requestId, action_type) {
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData.userId;
         
-        if (data && data.length > 0) {
-            let tableHTML = `
+        if (!userId) {
+            showAlert('Authentication Error', 'User not authenticated. Please log in again.', 'failure');
+            return;
+        }
+        
+        fetch(API_BASE_URL + '/take_ownership', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+            },
+            body: JSON.stringify({ requestId, userId, action_type })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to take ownership');
+            return response.json();
+        })
+        .then(result => {
+            showAlert(`Success, ${result.message}`, 'success');
+            viewNewRequests(); // Refresh the table to show the updated ownership
+        })
+        .catch(error => {
+            console.error('Error taking action:', error);
+            showAlert('Error', 'Failed to take action. Please try again later.', 'failure');
+        });
+    }
+    
+    function manageOrders() {
+        console.log("Managing Work Orders...");
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData.userId;
+        
+        fetch(API_BASE_URL + '/manage_orders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+            },
+            body: JSON.stringify({ userId }) // Sending userId in the body of the request
+        })
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('table');
+            document.getElementById('formContainer').style.display = 'none';
+            document.getElementById('table').style.display = 'block';
+            
+            if (data && data.length > 0) {
+                let tableHTML = `
                 <thead>
                     <tr>
                         <th>Order ID</th>
@@ -448,42 +450,58 @@ function manageOrders() {
                         <th>Quote Note</th>
                         <th>Counter Price</th>
                         <th>Time Window</th>
-                        <th>Manage</th>
+                        <th>quote</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
             `;
-            
-            data.forEach(order => {
-                // Formatting the time window as 'Start - End'
-                const timeWindow = `${new Date(order.time_window_start).toISOString().split('T')[0]} - ${new Date(order.time_window_end).toISOString().split('T')[0]}`;
                 
-                tableHTML += `<tr>
-                            <td>${order.order_id}</td>
-                            <td>${order.request_id}</td>
-                            <td>${new Date(order.accepted_date).toLocaleDateString()}</td>
-                            <td>${order.status}</td>
-                            <td>${order.response_note || 'N/A'}</td>
-                            <td>${order.counter_price || 'N/A'}</td>
-                            <td>${timeWindow}</td>
-                            <td>
-                            <button onclick="manageQuote(
-                            ${order.request_id}, 
-                            '${order.response_note || ''}', 
-                            '${order.counter_price || ''}', 
-                            '${order.time_window_start || ''}', 
-                            '${order.time_window_end || ''}')">
-                            Quote
-                            </button>
-                            </td>
-                            <td>
-                            ${order.status === 'In Progress' ? 
-                            `<button onclick="updateOrderStatus(${order.order_id}, 'Completed')">Mark as Completed</button>` : 
-                            (order.status === 'Completed' ? 
-                            `<span>Completed</span>` : 
-                            `<button onclick="updateOrderStatus(${order.order_id}, 'Cancelled')">Cancel</button>`)}
-                            </td>
+                data.forEach(order => {
+                    // Formatting the time window as 'Start - End'
+                    const timeWindow = `${new Date(order.time_window_start).toISOString().split('T')[0]} - ${new Date(order.time_window_end).toISOString().split('T')[0]}`;
+                    
+                    tableHTML += `<tr>
+                              <td>${order.order_id}</td>
+                              <td>${order.request_id}</td>
+                              <td>${new Date(order.accepted_date).toLocaleDateString()}</td>
+                              <td>${order.status}</td>
+                              <td>${order.response_note || 'N/A'}</td>
+                              <td>${order.counter_price ? `$${order.counter_price.toFixed(2)}` : "N/A"}</td>
+                              <td>${timeWindow}</td>
+                              <td>
+                                  <button class="icon-btn" onclick="manageQuote(
+                                      ${order.request_id}, 
+                                      '${order.response_note || ''}', 
+                                      '${order.counter_price || ''}', 
+                                      '${order.time_window_start || ''}', 
+                                      '${order.time_window_end || ''}')"
+                                      title="Manage Quote">
+                                      <i class="fas fa-quote-left"></i> Quote
+                                  </button>
+                              </td>
+                              <td>
+                                  <button class="icon-btn" onclick="openChatPopup(
+                                      ${order.order_id}, 
+                                      ${order.client_id}, 
+                                      ${order.owned_by}, 
+                                      '${order.client_name}')"
+                                      title="Chat with ${order.client_name}">
+                                      <i class="fas fa-comments"></i> Chat with ${order.client_name}
+                                  </button>
+                                  <button class="icon-btn" onclick="generateBill(
+                                      ${order.order_id}, 
+                                      ${order.request_id}, 
+                                      ${order.amount}, 
+                                      ${order.discount}, 
+                                      '${order.generated_date}', 
+                                      '${order.due_date}', 
+                                      '${order.bill_status}', 
+                                      '${order.counter_price || ''}')" 
+                                      title="Generate Bill">
+                                    <i class="fas fa-file-invoice-dollar"></i> Generate Bill
+                                    </button>
+                                </td>
                             </tr>`;
                     
                 });
@@ -500,10 +518,44 @@ function manageOrders() {
         });
     }
     
-    function updateOrderStatus(orderId, status) {
-        // Show confirmation for changing status
-        if (confirm(`Are you sure you want to mark this order as ${status}?`)) {
-            fetch(API_BASE_URL + '/update_order_status', {
+    // Function to open the chat modal
+    function openChatPopup(orderId, receiverId, senderId, receivername) {
+        // Show the chat modal
+        chatModal.style.display = 'flex';
+        
+        // Fetch chat history from the server
+        fetch(API_BASE_URL + '/get_chat?orderId=' + orderId)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const chatMessages = document.getElementById('chat-messages');
+                const receiverName = document.getElementById('chat-receiver-name');
+                receiverName.textContent = receivername; // Set receiver's name
+                chatMessages.innerHTML = ''; // Clear existing messages
+                
+                // Append all messages to the chat window
+                data.messages.forEach(message => {
+                    const messageElement = document.createElement('div');
+                    messageElement.textContent = `${message.sender_name}: ${message.message}`;
+                    chatMessages.appendChild(messageElement);
+                });
+            } else {
+                showAlert('Failed to load chat history.', 'failure');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching chat history:', error);
+            showAlert('Error fetching chat history. Please try again later.', 'failure');
+        });
+        
+        // Handle chat form submission
+        document.getElementById('chat-form').onsubmit = function (e) {
+            e.preventDefault();
+            
+            const chatMessage = document.getElementById('chat-input').value;
+            
+            // Send chat message to the server
+            fetch(API_BASE_URL + '/send_chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -511,53 +563,68 @@ function manageOrders() {
                 },
                 body: JSON.stringify({
                     orderId: orderId,
-                    status: status
+                    senderId: senderId,  // or contractorId based on who is sending
+                    receiverId: receiverId, // or clientId based on who is receiving
+                    message: chatMessage
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert(`Order ${status} successfully.`);
-                    manageOrders();  // Reload the orders to reflect the updated status
+                    // Append new chat message to the chat window
+                    const chatMessages = document.getElementById('chat-messages');
+                    const messageElement = document.createElement('div');
+                    messageElement.textContent = `${senderId}: ${chatMessage}`;
+                    chatMessages.appendChild(messageElement);
+                    openChatPopup(orderId, receiverId, senderId, receivername)
+                    
+                    // Clear the chat input
+                    document.getElementById('chat-input').value = '';
                 } else {
-                    alert('Failed to update order status.');
+                    showAlert('Failed to send message.', 'failure');
                 }
             })
             .catch(error => {
-                console.error('Error updating order status:', error);
-                alert('Error updating order status. Please try again later.');
+                console.error('Error sending message:', error);
+                showAlert('Error sending message. Please try again later.', 'failure');
             });
-        }
+        };
     }
+    
+    
+    
+    
+    
+    
     
     function manageQuote(requestId, quoteNote, counterPrice, timeWindowStart, timeWindowEnd) {
         // Show the Manage Quote modal
         manageQuoteModal.style.display = 'flex';
-    
+        
         // Set the Request ID in the modal title
         document.getElementById('request-id-span').textContent = requestId;
-    
+        
         // Populate the modal fields with the passed data
         document.getElementById('quote-note-input').value = quoteNote || '';
         document.getElementById('counter-price-input').value = counterPrice || '';
-    
+        
         // Convert timeWindowStart and timeWindowEnd to `YYYY-MM-DD` format
         const startDate = timeWindowStart ? new Date(timeWindowStart).toISOString().split('T')[0] : '';
         const endDate = timeWindowEnd ? new Date(timeWindowEnd).toISOString().split('T')[0] : '';
-    
+        
         // Populate date inputs
         document.getElementById('time-window-start-input').value = startDate;
         document.getElementById('time-window-end-input').value = endDate;
-    
+        
         // Handle form submission as before
         document.getElementById('manage-quote-form').onsubmit = function (e) {
             e.preventDefault();
-    
+            
             const updatedQuoteNote = document.getElementById('quote-note-input').value;
             const updatedCounterPrice = document.getElementById('counter-price-input').value;
             const updatedTimeWindowStart = document.getElementById('time-window-start-input').value;
             const updatedTimeWindowEnd = document.getElementById('time-window-end-input').value;
-    
+            
             // Submit updated data to the server
             fetch(API_BASE_URL + '/manage_quotes', {
                 method: 'POST',
@@ -574,20 +641,20 @@ function manageOrders() {
                     status: 'Accepted'
                 })
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Quote updated successfully!');
-                        closeModal(manageQuoteModal);
-                        manageOrders();
-                    } else {
-                        alert('Failed to update quote.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error submitting quote:', error);
-                    alert('Error submitting quote. Please try again later.');
-                });
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Quote updated successfully!');
+                    closeModal(manageQuoteModal);
+                    manageOrders();
+                } else {
+                    alert('Failed to update quote.');
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting quote:', error);
+                alert('Error submitting quote. Please try again later.');
+            });
         };
     }
     
@@ -595,22 +662,22 @@ function manageOrders() {
     
     function viewActiveOrders(orderType) {
         console.log(`Viewing ${orderType === 1 ? 'Active' : 'Completed'} Orders...`);
-    
+        
         const userData = JSON.parse(sessionStorage.getItem('user'));
         const userId = userData?.userId;
-    
+        
         if (!userId) {
             console.error('User is not authenticated');
             return;
         }
-    
+        
         document.getElementById('table').style.display = 'block';
         document.getElementById('formContainer').style.display = 'none';
-    
+        
         // Determine the URL based on order type
         const orderStatus = orderType === 1 ? 'In Progress' : 'Completed';
-    
-        fetch(API_BASE_URL + '/view_orders', {
+        
+        fetch(API_BASE_URL + '/viewActiveorders', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -628,6 +695,7 @@ function manageOrders() {
                         <th>Request No</th>
                         <th>Service</th>
                         <th>Proposed Price</th>
+                        <th>Counter Price</th>
                         <th>Accepted Date</th>
                         <th>Status</th>
                     </tr>
@@ -641,6 +709,7 @@ function manageOrders() {
                         <td>${order.request_id || 'N/A'}</td>
                         <td>${order.service_name || 'N/A'}</td>
                         <td>${order.proposed_price ? `$${order.proposed_price.toFixed(2)}` : "Not provided"}</td>
+                        <td>${order.counter_price ? `$${order.counter_price.toFixed(2)}` : "Not provided"}</td>
                         <td>${order.accepted_date ? new Date(order.accepted_date).toLocaleDateString() : 'N/A'}</td>
                         <td>${order.status || 'N/A'}</td>
                     </tr>
@@ -660,30 +729,361 @@ function manageOrders() {
     
     
     
-    function viewCompletedOrders() {
-        console.log("Viewing Completed Work Orders...");
-        // Add logic to handle this action
+    
+    function generateBill(orderId, requestId, amount, discount, generated_date, due_date, status, counterPrice) {
+        // Show the Generate Bill modal
+        const generateBillModal = document.getElementById('generate-bill-modal');
+        generateBillModal.style.display = 'flex';
+        
+        // Set the Order ID in the modal title
+        document.getElementById('bill-order-id-span').textContent = orderId;
+        
+        // Populate the modal fields with the passed data
+        document.getElementById('amount-input').value = counterPrice || '';  // Using counterPrice as default amount
+        document.getElementById('discount-input').value = discount || '';  // Default discount passed as argument
+        
+        // Check if due_date is valid
+        if (due_date && !isNaN(new Date(due_date).getTime())) {
+            // Format due_date to "YYYY-MM-DD" if it's a valid date string
+            const formattedDate = new Date(due_date).toISOString().split('T')[0]; // Convert to "YYYY-MM-DD"
+            document.getElementById('due-date-input').value = formattedDate;  // Set formatted date
+        } else {
+            document.getElementById('due-date-input').value = '';  // Empty if not provided or invalid
+        }
+        
+        // Ensure the status is set properly
+        const statusSelect = document.getElementById('status-select');
+        if (status) {
+            statusSelect.value = status; // If status exists, set it
+        } else {
+            statusSelect.value = 'Pending';  // Default to 'Pending' if no status is provided
+        }
+        
+        // Handle form submission
+        document.getElementById('generate-bill-form').onsubmit = function (e) {
+            e.preventDefault();
+            
+            // Get the updated values from the modal form
+            const updatedAmount = parseFloat(document.getElementById('amount-input').value);
+            const updatedDiscount = parseFloat(document.getElementById('discount-input').value);
+            const updatedDueDate = document.getElementById('due-date-input').value;
+            const updatedStatus = document.getElementById('status-select').value;
+            
+            // Validate the amount and discount
+            if (isNaN(updatedAmount) || isNaN(updatedDiscount)) {
+                alert('Please enter valid amount and discount values.');
+                return;
+            }
+            
+            // Calculate the final amount after applying the discount
+            const finalAmount = updatedAmount - updatedDiscount;
+            
+            // Send the data to the server
+            fetch(API_BASE_URL + '/generateBill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('authToken')  // Assuming token-based authentication
+                },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    requestId: requestId,
+                    amount: finalAmount,  // Send the final amount after discount
+                    discount: updatedDiscount,
+                    dueDate: updatedDueDate,
+                    status: updatedStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Bill generated successfully!');
+                    closeModal(generateBillModal);
+                    manageOrders();  // Adjust if needed
+                } else {
+                    alert('Failed to generate bill.');
+                }
+            })
+            .catch(error => {
+                console.error('Error generating bill:', error);
+                alert('Error generating bill. Please try again later.');
+            });
+        };
     }
     
-    function manageOrderDetails() {
-        console.log("Managing Order Details...");
-        // Add logic to handle this action
+    
+    function viewAllBills(ifdispute) {
+        console.log('View All Bills clicked');
+        // Fetch user information
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+        const userType = userData?.user_type;
+        
+        if (!userId) {
+            showAlert('User is not authenticated.', 'failure');
+            return;
+        }
+        
+        // API call to fetch all bills
+        fetch(API_BASE_URL + '/viewAllBills', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, userType }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch bills');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data && Array.isArray(data) && data.length > 0) {
+                // Render bills table
+                let billsHTML = `
+                    <h3>Bills</h3>
+                    <table>
+                        <tr>
+                            <th>Bill ID</th>
+                            <th>Initial Amount</th>
+                            <th>Discount</th>
+                            <th>Final Amount</th>
+                            <th>Generated Date</th>
+                            <th>Due Date</th>
+                            <th>Bill Status</th>
+                            <th>Order Status</th>
+                `;
+                
+                // Add "Pay Bill" column only if userType is 3
+                if (userType === 3 && ifdispute !== 'dispute') {
+                    billsHTML += `<th>Pay Bill</th>`;
+                }
+                if (ifdispute === 'dispute') {
+                    billsHTML += `<th>Dispute Bill</th>`;
+                }
+                
+                billsHTML += `</tr>`;
+                
+                // Loop through bills and build table rows
+                data.forEach(bill => {
+                    const generatedDate = bill.generated_date ? new Date(bill.generated_date).toLocaleDateString() : 'N/A';
+                    const dueDate = bill.due_date ? new Date(bill.due_date).toLocaleDateString() : 'N/A';
+                    const billStatus = bill.bill_status ?? 'Unknown';
+                    const orderStatus = bill.order_status ?? 'Unknown';
+                    const propertyAddress = bill.property_address ?? 'N/A';
+                    
+                    billsHTML += `
+                        <tr>
+                            <td>${bill.bill_id}</td>
+                            <td>$${bill.counter_price.toFixed(2)}</td>
+                            <td>$${bill.discount.toFixed(2)}</td>
+                            <td>$${bill.amount.toFixed(2)}</td>
+                            <td>${generatedDate}</td>
+                            <td>${dueDate}</td>
+                            <td>${billStatus}</td>
+                            <td>${orderStatus}</td>
+                    `;
+                    
+                    // Check if the bill is paid or not
+                    if (userType === 3 && ifdispute !== 'dispute') {
+                        if (billStatus === 'Paid') {
+                            // Show a "Paid" icon if the bill is paid
+                            billsHTML += `
+                            <td>
+                                <i class="fas fa-check-circle" style="color: green;" title="Paid"></i> Paid
+                            </td>`;
+                        } else {
+                            // Show "Pay Bill" button if the bill is not paid
+                            billsHTML += `
+                            <td>
+                                <button class="icon-btn" onclick="payBill(
+                                ${bill.bill_id}, 
+                                ${bill.order_id}, 
+                                ${bill.amount}, 
+                                ${bill.discount}, 
+                                '${bill.generated_date}', 
+                                '${bill.due_date}', 
+                                '${billStatus}'
+                                )" title="Pay Bill">
+                                <i class="fas fa-file-invoice-dollar"></i> Pay Bill
+                                </button>
+                            </td>`;
+                        }
+                    }
+                    
+                    // Show "Dispute Bill" button if needed
+                    if (ifdispute === 'dispute') {
+                        if (billStatus === 'Disputed') {
+                            billsHTML += `
+                            <td>
+                                <i class="fas fa-exclamation-triangle" style="color: red;" title="${bill.dispute_reason}"></i> Disputed 
+                                <span style="font-size: 12px; margin-left: 5px; color: red;">(you:${bill.dispute_reason})</span>
+                                <span style="font-size: 12px; margin-left: 5px; color: green;">(cont:${bill.dispute_resolve})</span>
+                            </td>`;
+                        } else if (billStatus === 'Resolved') {
+                            billsHTML += `
+                            <td>
+                                <i class="fas fa-thumbs-up" style="color: green;" title="${bill.dispute_resolve}"></i> Resolved
+                                <span style="font-size: 12px; margin-left: 5px; color: red;">(you:${bill.dispute_reason})</span>
+                                <span style="font-size: 12px; margin-left: 5px; color: green;">(cont:${bill.dispute_resolve})</span>
+                            </td>`;
+                        } else {
+                            billsHTML += `
+                            <td>
+                                <button class="icon-btn" onclick="disputeThebill(
+                                ${bill.bill_id}, 
+                                ${bill.order_id},
+                                '${bill.dispute_reason}'
+                                )" title="Dispute Bill">
+                                <i class="fas fa-exclamation-triangle"></i> Dispute Bill
+                                </button>
+                            </td>`;
+                        }
+                    }
+                    
+                    billsHTML += '</tr>';
+                });
+                
+                billsHTML += '</table>';
+                document.getElementById('table').innerHTML = billsHTML;
+            } else {
+                showAlert('No bills found.', 'failure');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching bills:', error);
+            showAlert('There was an error fetching bills. Please try again later.', 'failure');
+        });
     }
     
-    function generateBill() {
-        console.log("Generating Bill...");
-        // Add logic to handle this action
-    }
     
-    function viewAllBills() {
-        console.log("Viewing All Bills...");
-        // Add logic to handle this action
-    }
     
+    
+    
+    // Manage Disputes Logic
     function manageDisputes() {
-        console.log("Managing Disputes...");
-        // Add logic to handle this action
+        console.log('Manage Disputes clicked');
+        
+        // Fetch user data
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+        const userType = userData?.user_type;
+        
+        if (!userId) {
+            showAlert('User is not authenticated.', 'failure');
+            return;
+        }
+        
+        // Example API call to fetch disputes
+        fetch(API_BASE_URL + '/viewAllBills', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId, userType })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Check if data is available
+            if (data && data.length > 0) {
+                // Start building the table HTML
+                let tableHTML = '<tr><th>Bill ID</th><th>Order ID</th><th>Amount</th><th>Due Date</th><th>Dispute Reason</th><th>Status</th><th>Action</th></tr>';
+                
+                // Loop through disputes and create rows
+                data.forEach(dispute => {
+                    if (dispute.bill_status === 'Disputed') {
+                        tableHTML += `
+                            <tr>
+                                <td>${dispute.bill_id}</td>
+                                <td>${dispute.order_id}</td>
+                                <td>${dispute.amount}</td>
+                                <td>${new Date(dispute.due_date).toLocaleString()}</td>
+                                <td>${dispute.dispute_reason || 'No reason provided'}</td> <!-- Display dispute reason -->
+                                <td>${dispute.bill_status}</td>
+                                <td><button onclick="resolveDispute(${dispute.bill_id})" title="Resolve the dispute"><i class="fas fa-file-invoice-dollar"></i> Resolve</button></td>
+                            </tr>`;
+                    }
+                });
+                
+                // If no disputes are found
+                if (tableHTML === '<tr><th>Bill ID</th><th>Order ID</th><th>Amount</th><th>Due Date</th><th>Dispute Reason</th><th>Status</th><th>Action</th></tr>') {
+                    tableHTML += '<tr><td colspan="7">No active disputes found.</td></tr>';
+                }
+                
+                // Populate the table with the generated rows
+                document.getElementById('table').innerHTML = tableHTML;
+            } else {
+                showAlert('No active disputes found.', 'failure');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching disputes:', error);
+            showAlert('There was an error fetching disputes. Please try again later.', 'failure');
+        });
     }
+    
+    
+    // Function to resolve a dispute
+    function resolveDispute(billId) {
+        // Get modal elements
+        const resolveDisputeModal = document.getElementById('dispute-bill-modal');  // Reusing same modal
+        const closeResolveDispute = document.getElementById('close-dispute-bill');  // Close button
+        const disputeReasonInput = document.getElementById('dispute-reason-input');  // Input for the reason
+        
+        // Open the modal (if not already open)
+        resolveDisputeModal.style.display = "flex";
+        
+        // Close modal when clicking on the close button
+        closeResolveDispute.addEventListener('click', function() {
+            resolveDisputeModal.style.display = "none";
+        });
+        
+        // Function to submit the dispute once the reason is provided
+        document.getElementById('submit-dispute-btn').addEventListener('click', function () {
+            const reason = disputeReasonInput.value.trim();
+            
+            // Check if reason is empty
+            if (!reason) {
+                alert("Please provide a reason for resolving the dispute.");
+                return; // Don't proceed if the reason is empty
+            }
+            
+            // Close the modal after capturing the reason
+            resolveDisputeModal.style.display = "none";
+            
+            console.log("Resolving Dispute with Bill ID:", billId);
+            console.log("Reason:", reason);
+            
+            // Example API call to send the resolution request
+            fetch(API_BASE_URL + '/resolveDispute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('authToken')  // Assuming token-based auth
+                },
+                body: JSON.stringify({
+                    billId,
+                    reason
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Dispute resolved successfully') {
+                    showAlert('Dispute resolved successfully!', 'success');
+                    manageDisputes();
+                } else {
+                    showAlert('Failed to resolve dispute. Please try again.', 'failure');
+                }
+            })
+            .catch(error => {
+                console.error('Error resolving dispute:', error);
+                showAlert('There was an error resolving the dispute. Please try again later.', 'failure');
+            });
+        });
+    }
+    
+    
     
     function viewReports() {
         console.log("Viewing Reports...");
@@ -888,7 +1288,7 @@ function manageOrders() {
                         <td>${request.status ? request.status : 'N/A'}</td>
                         <td>${new Date(request.created_at).toLocaleString()}</td>
                         <td>${request.image_urls ? request.image_urls.split(', ').map(url => `<a href="${url}" target="_blank"><img src="${url}" alt="Request Image" style="width: 100px; height: 100px; display: inline; margin-right: 10px;" /></a>`).join('') : 'No Images'}</td>
-                        <td><button class="delete-row-btn" data-id=${request.request_id}>Delete</button></td>
+                        <td><button class="delete-row-btn" data-id=${request.request_id} title="Delete Request"><i class="fas fa-trash-alt"></i></button></td>
                     </tr>
                 `;
                 });
@@ -1035,6 +1435,7 @@ function manageOrders() {
                         <th>Time Window</th>
                         <th>Response Note</th>
                         <th>Status</th>
+                        <th>Negotiate</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -1043,19 +1444,19 @@ function manageOrders() {
                 
                 // Dynamically populate rows
                 data.forEach(order => {
+                    const timeWindow = `${new Date(order.time_window_start).toLocaleDateString()} - ${new Date(order.time_window_end).toLocaleDateString()}`;
+                    
                     tableHTML += `
                     <tr>
                         <td>${order.order_id}</td>
                         <td>${order.proposed_price ? `$${order.proposed_price.toFixed(2)}` : "Not provided"}</td>
                         <td>${order.counter_price ? `$${order.counter_price.toFixed(2)}` : "Not provided"}</td>
-                        <td>${order.time_window_start && order.time_window_end 
-                    ? `${order.time_window_start} to ${order.time_window_end}` 
-                    : "Not specified"}</td>
+                        <td>${timeWindow}</td>
                         <td>${order.response_note || "No notes provided"}</td>
                         <td>${order.status}</td>
-                        <td>
-                            <button onclick="handleNegotiation(${order.response_id}, 'Accept')">Accept</button>
-                            <button onclick="handleNegotiation(${order.response_id}, 'Decline')">Decline</button>
+                        <td><button onclick="openChatPopup(${order.order_id}, ${order.owned_by}, ${order.client_id}, '${order.owner_name}')" title="Chat with ${order.owner_name}"><i class="fas fa-comments"></i> Chat with ${order.owner_name}</button></td>
+                        <td><button onclick="handleNegotiation(${order.response_id}, 'Accept')" title="Accept the offer"><i class="fas fa-check"></i> Accept</button>
+                        <button onclick="handleNegotiation(${order.response_id}, 'Decline')" title="Decline the offer"><i class="fas fa-times"></i> Decline</button>
                         </td>
                     </tr>
                 `;
@@ -1100,20 +1501,217 @@ function manageOrders() {
     }
     
     
-    function viewBills() {
-        console.log("Viewing Bills...");
-        // Add logic to handle this action
+    // Pay Bill Modal functionality
+    function payBill(billId, orderId, amount, discount, generatedDate, dueDate, billStatus) {
+        console.log('Pay Bill clicked for Bill ID:', billId);
+        
+        // Fetch user information from sessionStorage
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+        const userType = userData?.user_type;
+        
+        if (!userId) {
+            showAlert('User is not authenticated.', 'failure');
+            return;
+        }
+        
+        // Fetch the user's profile and bill details from the server
+        fetch(API_BASE_URL + '/getBill', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Pass the token
+            },
+            body: JSON.stringify({ userId, billId, orderId }) // Send the userId, billId, and orderId in the request body
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch bill details');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!data || data.length === 0) {
+                showAlert('No bill details found.', 'failure');
+                return;
+            }
+            
+            // Display the user's profile information in the modal
+            const user = data[0];  // Assuming data contains the first user's profile
+            document.getElementById('user-name').textContent = user.name;
+            document.getElementById('user-email').textContent = user.email;
+            
+            // Display the bill details
+            document.getElementById('bill-id').textContent = billId;
+            document.getElementById('order-id').textContent = orderId;
+            document.getElementById('amount-to-pay').textContent = amount.toFixed(2);
+            document.getElementById('discount').textContent = discount.toFixed(2);
+            document.getElementById('generated-date').textContent = new Date(generatedDate).toLocaleDateString();
+            document.getElementById('due-date').textContent = new Date(dueDate).toLocaleDateString();
+            document.getElementById('bill-status').textContent = billStatus;
+            document.getElementById('card-number').value = user.credit_card;
+            
+            // Enable the payment amount field and set it to the amount
+            const paymentAmountField = document.getElementById('payment-amount');
+            paymentAmountField.value = amount.toFixed(2);
+            paymentAmountField.disabled = false;
+            
+            // Show the modal
+            const payBillModal = document.getElementById('pay-bill-modal');
+            payBillModal.style.display = "flex";
+            
+            // Handle payment submission
+            document.getElementById('submit-payment').onclick = function () {
+                // Get credit card details
+                const cardNumber = document.getElementById('card-number').value;
+                const cardExpiry = document.getElementById('card-expiry').value;
+                const cardCVC = document.getElementById('card-cvc').value;
+                
+                // Validation for the card fields
+                if (!cardNumber || !cardExpiry || !cardCVC) {
+                    showAlert('Please fill in all credit card details.', 'failure');
+                    return;
+                }
+                
+                // Submit the payment with bill ID, amount, and credit card details
+                submitPayment(billId, userId, amount, cardNumber, cardExpiry, cardCVC);
+            };
+        })
+        .catch(error => {
+            console.error('Error fetching bill details:', error);
+            showAlert('Error fetching bill data. Please try again later.', 'failure');
+        });
     }
     
-    function payBill() {
-        console.log("Paying Bill...");
-        // Add logic to handle this action
+    
+    // Function to show the payment section and hide the review section
+    function showPaymentSection() {
+        document.getElementById('review-section').style.display = 'none';
+        document.getElementById('payment-section').style.display = 'block';
     }
+    
+    // Function to show the review section and hide the payment section
+    function showReviewSection() {
+        document.getElementById('payment-section').style.display = 'none';
+        document.getElementById('review-section').style.display = 'block';
+    }
+    
+    
+    // Submit Payment Function
+    function submitPayment(billId, userId, amount, cardNumber, cardExpiry, cardCVC) {
+        // Log payment submission for debugging
+        console.log('Payment submitted:', cardNumber, cardExpiry, cardCVC, amount);
+        
+        // Close the modal after submitting payment
+        document.getElementById('pay-bill-modal').style.display = 'none';
+        
+        // Prepare payment details to send to the server
+        const paymentDetails = {
+            billId,
+            userId,
+            amount,
+            cardNumber,
+            cardExpiry,
+            cardCVC
+        };
+        
+        // Send the payment details to the server via a POST request
+        fetch(API_BASE_URL + '/submitPayment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Include token for authorization
+            },
+            body: JSON.stringify(paymentDetails)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle the response from the server
+            if (data.message) {
+                if (data.message === 'This bill has already been paid.') {
+                    showAlert('This bill has already been paid.', 'failure');
+                } else {
+                    showAlert('Payment successful!', 'success');
+                    viewAllBills()
+                }
+            } else {
+                showAlert('Payment failed. Please try again.', 'failure');
+            }
+        })
+        .catch(error => {
+            // Handle errors during the fetch request
+            console.error('Error processing payment:', error);
+            showAlert('Error processing payment. Please try again later.', 'failure');
+        });
+    }
+    
+    
+    
+    
+    
     
     function disputeBill() {
         console.log("Disputing Bill...");
-        // Add logic to handle this action
+        viewAllBills('dispute')
     }
+    
+    
+    function disputeThebill(billId, orderId, reason) {
+        // Get modal elements
+        const disputeBillModal = document.getElementById('dispute-bill-modal');
+        const closeDisputeBill = document.getElementById('close-dispute-bill');
+        const disputeReasonInput = document.getElementById('dispute-reason-input');
+        
+        // Open the modal (if not already open)
+        disputeBillModal.style.display = "flex";
+        
+        
+        // Function to submit the dispute once the reason is provided
+        document.getElementById('submit-dispute-btn').addEventListener('click', function () {
+            const reason = disputeReasonInput.value.trim();
+            
+            if (!reason) {
+                alert("Please provide a reason for disputing the bill.");
+                return; // Don't proceed if the reason is empty
+            }
+            
+            // Close the modal after capturing the reason
+            disputeBillModal.style.display = "none";
+            
+            console.log("Disputing Bill with ID:", billId);
+            console.log("Order ID:", orderId);
+            console.log("Reason:", reason);
+            
+            // Example API call to send the dispute request along with the reason
+            fetch(API_BASE_URL + '/disputeBill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+                },
+                body: JSON.stringify({
+                    billId,
+                    orderId,
+                    reason
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Bill dispute raised successfully.', 'success');
+                    disputeBill()
+                } else {
+                    showAlert('Failed to raise dispute. Please try again later.', 'failure');
+                }
+            })
+            .catch(error => {
+                console.error('Error disputing the bill:', error);
+                showAlert('There was an error. Please try again later.', 'failure');
+            });
+        });
+    }
+    
+    
     
     
     function viewProfile() {
@@ -1121,11 +1719,12 @@ function manageOrders() {
         
         // Retrieve user data from sessionStorage
         const userData = JSON.parse(sessionStorage.getItem('user'));
-        const userId = userData.userId;  // Get the userId from session data
+        const userId = userData ? userData.userId : null;  // Safely get userId
         
         // Check if userId is present
         if (!userId) {
             console.error('User is not authenticated');
+            showAlert('You must be logged in to view your profile.', 'failure');
             return;
         }
         
@@ -1134,6 +1733,7 @@ function manageOrders() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Pass the token
             },
             body: JSON.stringify({ userId: userId })  // Send userId in the request body
         })
@@ -1143,40 +1743,39 @@ function manageOrders() {
             document.getElementById('formContainer').style.display = 'block';
             document.getElementById('table').style.display = 'none';
             
-            
-            if (data) {
+            if (data && data.first_name) { // Ensure valid profile data
                 formContainer.innerHTML = `
-                <form id="profileForm">
-                <h2>Edit User Profile</h2>
-                    <div class="input-container">
-                        <label for="firstName">First Name:</label>
-                        <input type="text" id="firstName" name="firstName" value="${data.first_name}" required />
-                    </div>
-                    <div class="input-container">
-                        <label for="lastName">Last Name:</label>
-                        <input type="text" id="lastName" name="lastName" value="${data.last_name}" required />
-                    </div>
-                    <div class="input-container">
-                        <label for="email">Email:</label>
-                        <input type="email" id="email" name="email" value="${data.email}" required />
-                    </div>
-                    <div class="input-container">
-                        <label for="phone">Phone:</label>
-                        <input type="text" id="phone" name="phone" value="${data.phone}" required />
-                    </div>
-                    <div class="input-container">
-                        <label for="address">Address:</label>
-                        <textarea id="address" name="address" required>${data.address}</textarea>
-                    </div>
-                    <div class="input-container">
-                        <label for="creditCard">Credit Card:</label>
-                        <input type="text" id="creditCard" name="creditCard" value="${data.credit_card}" required />
-                    </div>
-                    <div class="button-container">
-                        <button type="submit">Save Changes</button>
-                    </div>
-                </form>
-            `;
+                    <form id="profileForm">
+                        <h2>Edit User Profile</h2>
+                        <div class="input-container">
+                            <label for="firstName">First Name:</label>
+                            <input type="text" id="firstName" name="firstName" value="${data.first_name}" required />
+                        </div>
+                        <div class="input-container">
+                            <label for="lastName">Last Name:</label>
+                            <input type="text" id="lastName" name="lastName" value="${data.last_name}" required />
+                        </div>
+                        <div class="input-container">
+                            <label for="email">Email:</label>
+                            <input type="email" id="email" name="email" value="${data.email}" required />
+                        </div>
+                        <div class="input-container">
+                            <label for="phone">Phone:</label>
+                            <input type="text" id="updatephone" name="updatephone" value="${data.phone}" required />
+                        </div>
+                        <div class="input-container">
+                            <label for="address">Address:</label>
+                            <textarea id="updateaddress" name="updateaddress" required>${data.address}</textarea>
+                        </div>
+                        <div class="input-container">
+                            <label for="creditCard">Credit Card:</label>
+                            <input type="text" id="creditCard" name="creditCard" maxlength="16" value="${data.credit_card}" required />
+                        </div>
+                        <div class="button-container">
+                            <button type="submit">Save Changes</button>
+                        </div>
+                    </form>
+                `;
                 
                 // Add an event listener to handle the form submission
                 document.getElementById('profileForm').addEventListener('submit', function(e) {
@@ -1188,16 +1787,18 @@ function manageOrders() {
                         first_name: document.getElementById('firstName').value,
                         last_name: document.getElementById('lastName').value,
                         email: document.getElementById('email').value,
-                        phone: document.getElementById('phone').value,
-                        address: document.getElementById('address').value,
+                        phone: document.getElementById('updatephone').value,
+                        address: document.getElementById('updateaddress').value,
                         credit_card: document.getElementById('creditCard').value,
                     };
+                    console.log("Sending updated data:", updatedData);  // Debug log
                     
                     // Send the updated data to the server
                     fetch(API_BASE_URL + '/update_profile', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Pass the token
                         },
                         body: JSON.stringify(updatedData)
                     })
@@ -1224,6 +1825,8 @@ function manageOrders() {
         });
     }
     
+    
+    
     function viewPaymentHistory() {
         console.log("Viewing Payment History...");
         
@@ -1247,7 +1850,7 @@ function manageOrders() {
         })
         .then(response => response.json())
         .then(data => {
-            const paymentHistoryContainer = document.getElementById('paymentHistoryContainer');
+            const paymentHistoryContainer = document.getElementById('table');
             
             if (data && data.length > 0) {
                 let tableHTML = `
@@ -1561,6 +2164,14 @@ function manageOrders() {
     const closeUpdateRow = document.getElementById('close-update-row');
     const manageQuoteModal = document.getElementById('manage-quote-modal');
     const closeManageQuote = document.getElementById('close-manage-quote');
+    const chatModal = document.getElementById('chat-modal');
+    const closeChatModal = document.getElementById('close-chat-modal');
+    const generateBillModal = document.getElementById('generate-bill-modal');
+    const closeGenerateBill = document.getElementById('close-generate-bill');
+    const payBillModal = document.getElementById('pay-bill-modal');
+    const closePayBillModal = document.getElementById('close-pay-bill-modal');
+    const disputeBillModal = document.getElementById('dispute-bill-modal');
+    const closeDisputeBill = document.getElementById('close-dispute-bill');
     
     // Elements for sign-in status
     const signedInSection = document.getElementById('signed-in-section');
@@ -1578,6 +2189,10 @@ function manageOrders() {
     closeSignUp.addEventListener('click', () => closeModal(signUpModal));
     closeSignIn.addEventListener('click', () => closeModal(signInModal));
     closeManageQuote.addEventListener('click', () => closeModal(manageQuoteModal));
+    closeChatModal.addEventListener('click', () => closeModal(chatModal));
+    closeGenerateBill.addEventListener('click', () => closeModal(generateBillModal));
+    closePayBillModal.addEventListener('click', () => closeModal(payBillModal));
+    closeDisputeBill.addEventListener('click', () => closeModal(disputeBillModal));
     
     
     // Close modal when clicking outside of the modal content
@@ -1586,6 +2201,11 @@ function manageOrders() {
         if (event.target === signInModal) closeModal(signInModal);
         if (event.target === updateModal) closeModal(updateModal);
         if (event.target === manageQuoteModal) closeModal(manageQuoteModal);
+        if (event.target === chatModal) closeModal(chatModal);  
+        if (event.target === generateBillModal) closeModal(generateBillModal);
+        if (event.target === payBillModal) closeModal(payBillModal);
+        if (event.target === disputeBillModal) closeModal(disputeBillModal);
+        
     });
     
     // Function to toggle sign-in status

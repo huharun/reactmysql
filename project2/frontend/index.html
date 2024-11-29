@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="miles.ico.png">
     <link rel="stylesheet" href="stylesheet.css">
     <title>DBMS Project 2</title>
@@ -44,7 +45,7 @@
             <form id="sign-up-form" style="display: none;" autocomplete="on">
                 <!-- Hidden input to record user type -->
                 <input type="hidden" id="user-type" name="user-type">
-                <button type="button" id="back-btn" style="margin-top: 10px;">Back to Select User Type</button>
+                <button type="button" id="back-btn" style="margin-top: 10px; margin-left: 260px;">Back to Select User Type</button>
                 
                 <div class="input-container">
                     <label for="first-name">First Name:</label>
@@ -180,6 +181,148 @@
             </form>
         </div>
     </div>
+    
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="modal" role="dialog" aria-labelledby="chat-title" aria-describedby="chat-description">
+        <div class="modal-content">
+            <span class="close" id="close-chat-modal">&times;</span>
+            <h2 id="chat-title" style="text-align: center; padding-bottom: 20px;">
+                Chat with <span id="chat-receiver-name"></span>
+            </h2>
+            <div id="chat-messages" class="chat-messages" aria-live="polite" aria-relevant="additions">
+                <!-- Chat messages will be dynamically loaded here -->
+            </div>
+            <form id="chat-form">
+                <div class="input-container">
+                    <textarea id="chat-input" placeholder="Type your message..." required></textarea>
+                </div>
+                <div class="button-container">
+                    <button type="submit" id="send-chat-btn">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Generate Bill Modal -->
+    <div id="generate-bill-modal" class="modal" role="dialog" aria-labelledby="generate-bill-title" aria-describedby="generate-bill-description">
+        <div class="modal-content">
+            <span class="close" id="close-generate-bill">&times;</span>
+            <h2 id="generate-bill-title" style="text-align: center; padding-bottom: 50px;">
+                Generate Bill for Order ID: <span id="bill-order-id-span"></span>
+            </h2>
+            <form id="generate-bill-form">
+                <div class="input-container">
+                    <label for="amount-input">Amount:</label>
+                    <input type="number" id="amount-input" placeholder="Enter amount" step="0.01" required>
+                </div>
+                <div class="input-container">
+                    <label for="discount-input">Discount:</label>
+                    <input type="number" id="discount-input" placeholder="Enter discount" step="0.01" required>
+                </div>
+                <div class="input-container">
+                    <label for="due-date-input">Due Date:</label>
+                    <input type="date" id="due-date-input">
+                </div>
+                <div class="input-container">
+                    <label for="status-select">Status:</label>
+                    <select id="status-select" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                        <option value="Disputed">Disputed</option>
+                    </select>
+                </div>
+                <div class="button-container">
+                    <button type="submit" id="submit-bill-btn">Generate Bill</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Pay Bill Modal -->
+    <div id="pay-bill-modal" class="modal" role="dialog" aria-labelledby="pay-bill-title" aria-describedby="pay-bill-description">
+        <div class="modal-content">
+            <span class="close" id="close-pay-bill-modal">&times;</span>
+            
+            <!-- Title -->
+            <h2 id="pay-bill-title" style="text-align: center; padding-bottom: 20px;">Pay Bill</h2>
+            
+            <!-- Review Bill Section -->
+            <div id="review-section">
+                <h3>Review Your Bill</h3>
+                <!-- User Information -->
+                <div id="user-info">
+                    <p><strong>Name:</strong> <span id="user-name"></span></p>
+                    <p><strong>Email:</strong> <span id="user-email"></span></p>
+                </div>
+                
+                <!-- Bill Information -->
+                <div id="pay-bill-details">
+                    <p><strong>Bill ID:</strong> <span id="bill-id"></span></p>
+                    <p><strong>Order ID:</strong> <span id="order-id"></span></p>
+                    <p><strong>Amount to Pay:</strong> $<span id="amount-to-pay"></span></p>
+                    <p><strong>Discount:</strong> $<span id="discount"></span></p>
+                    <p><strong>Generated Date:</strong> <span id="generated-date"></span></p>
+                    <p><strong>Due Date:</strong> <span id="due-date"></span></p>
+                    <p><strong>Bill Status:</strong> <span id="bill-status"></span></p>
+                </div>
+                
+                <div class="button-container">
+                    <!-- Button to proceed to Payment Section -->
+                    <button type="button" id="next-to-payment-btn" onclick="showPaymentSection()">Next: Payment</button>
+                </div>
+            </div>
+            
+            <!-- Payment Section (hidden initially) -->
+            <div id="payment-section" style="display: none;">
+                <h3>Enter Payment Information</h3>
+                <button type="button" id="back-to-review-btn" onclick="showReviewSection()" style="margin-top: 10px; margin-left: 320px;">Back to Review</button>
+                
+                <!-- Credit Card Information -->
+                <div class="input-container">
+                    <label for="card-number">Credit Card Number</label>
+                    <input type="text" id="card-number" placeholder="Enter Card Number" required readonly>
+                </div>
+                <div class="input-container">
+                    <label for="card-expiry">Expiry Date (MM/YY)</label>
+                    <input type="text" id="card-expiry" placeholder="MM/YY" required>
+                </div>
+                <div class="input-container">
+                    <label for="card-cvc">CVC</label>
+                    <input type="text" id="card-cvc" placeholder="CVC" required>
+                </div>
+                
+                <!-- Payment Amount -->
+                <div class="input-container">
+                    <label for="payment-amount">Amount to Pay</label>
+                    <input type="number" id="payment-amount" disabled placeholder="Amount to pay" readonly/>
+                </div>
+                
+                <div class="button-container">
+                    <button id="submit-payment" onclick="submitPayment()">Submit Payment</button>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <div id="dispute-bill-modal" class="modal" role="dialog" aria-labelledby="dispute-bill-title" aria-describedby="dispute-bill-description">
+        <div class="modal-content">
+            <span class="close" id="close-dispute-bill">&times;</span>
+            <h2 id="dispute-bill-title" style="text-align: center; padding-bottom: 20px;">
+                Dispute Bill for Bill ID: <span id="bill-id-span"></span>
+            </h2>
+            <form id="dispute-bill-form">
+                <div class="input-container">
+                    <label for="dispute-reason-input">Reason:</label>
+                    <textarea id="dispute-reason-input" placeholder="Enter your reason for disputing the bill" rows="5" required></textarea>
+                </div>
+                <div class="button-container">
+                    <button type="submit" id="submit-dispute-btn">Submit Dispute</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     
     
     <main>
