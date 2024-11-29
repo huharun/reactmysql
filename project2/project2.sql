@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2024 at 01:04 PM
+-- Generation Time: Nov 29, 2024 at 09:06 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -46,7 +46,8 @@ CREATE TABLE `bill` (
 INSERT INTO `bill` (`bill_id`, `order_id`, `amount`, `discount`, `generated_date`, `due_date`, `status`, `dispute_reason`, `dispute_resolve`) VALUES
 (1, 12, 1100.00, 100, '2024-11-28', '2024-11-30', 'Disputed', 'noo', 'yess'),
 (2, 9, 330000.00, 3333, '2024-11-28', '2024-12-06', 'Resolved', 'i want to less the price more', 'cant'),
-(3, 10, 399556.00, 444, '2024-11-28', '2024-12-26', 'Paid', NULL, '');
+(3, 10, 399556.00, 444, '2024-11-28', '2024-12-26', 'Paid', NULL, ''),
+(4, 13, 11000.00, 2000, '2024-11-29', '2024-12-03', 'Paid', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -82,7 +83,14 @@ INSERT INTO `chat_messages` (`chat_id`, `order_id`, `sender_id`, `receiver_id`, 
 (12, 11, 8, 3, 'okay', '2024-11-29 00:10:45'),
 (13, 11, 3, 8, 'okay', '2024-11-29 00:13:01'),
 (14, 11, 8, 3, 'okay', '2024-11-29 00:13:20'),
-(15, 10, 3, 8, 'ty', '2024-11-29 04:40:08');
+(15, 10, 3, 8, 'ty', '2024-11-29 04:40:08'),
+(16, 13, 1, 8, 'hii', '2024-11-29 18:05:21'),
+(17, 13, 8, 1, 'hey', '2024-11-29 18:05:36'),
+(18, 13, 1, 8, 'can you give discount', '2024-11-29 18:05:47'),
+(19, 13, 8, 1, 'yes you we can', '2024-11-29 18:06:14'),
+(20, 13, 1, 8, 'thank you', '2024-11-29 18:06:22'),
+(21, 13, 8, 1, 'discount will be available after the bill generated', '2024-11-29 18:07:01'),
+(22, 13, 1, 8, 'oh okay', '2024-11-29 18:07:07');
 
 -- --------------------------------------------------------
 
@@ -112,7 +120,10 @@ INSERT INTO `images` (`image_id`, `request_id`, `image_url`) VALUES
 (9, 6, 'uploads\\1732550309444-wizarding-world-portrait.png'),
 (10, 7, 'uploads\\1732553626401-download.jpeg'),
 (11, 8, 'uploads\\1732627433947-pothole-1.jpg'),
-(12, 8, 'uploads\\1732627433948-cracked-concrete-driveways-nz-8-1024x683.webp');
+(12, 8, 'uploads\\1732627433948-cracked-concrete-driveways-nz-8-1024x683.webp'),
+(13, 9, 'uploads\\1732902616643-download.jpg'),
+(14, 9, 'uploads\\1732902616650-images (1).jpg'),
+(15, 9, 'uploads\\1732902616651-images.jpg');
 
 -- --------------------------------------------------------
 
@@ -133,11 +144,12 @@ CREATE TABLE `orderofwork` (
 --
 
 INSERT INTO `orderofwork` (`order_id`, `request_id`, `accepted_date`, `status`, `is_deleted`) VALUES
-(8, 8, '2024-11-26 16:50:46', 'In Progress', 0),
+(8, 8, '2024-11-29 17:54:25', 'In Progress', 0),
 (9, 7, '2024-11-26 16:51:43', 'Completed', 0),
 (10, 6, '2024-11-26 21:16:53', 'In Progress', 0),
 (11, 5, '2024-11-29 00:07:57', 'In Progress', 0),
-(12, 2, '2024-11-28 21:22:23', 'In Progress', 0);
+(12, 2, '2024-11-28 21:22:23', 'In Progress', 0),
+(13, 9, '2024-11-29 18:00:27', 'In Progress', 0);
 
 -- --------------------------------------------------------
 
@@ -152,7 +164,7 @@ CREATE TABLE `payment` (
   `amount` decimal(10,2) NOT NULL,
   `user_id` int(11) NOT NULL,
   `card_number` varchar(255) NOT NULL,
-  `card_expiry` date NOT NULL,
+  `card_expiry` varchar(5) NOT NULL,
   `card_cvc` varchar(4) NOT NULL,
   `payment_status` varchar(50) NOT NULL,
   `payment_method` varchar(50) NOT NULL,
@@ -164,10 +176,11 @@ CREATE TABLE `payment` (
 --
 
 INSERT INTO `payment` (`payment_id`, `bill_id`, `payment_date`, `amount`, `user_id`, `card_number`, `card_expiry`, `card_cvc`, `payment_status`, `payment_method`, `transaction_id`) VALUES
-(1, 1, '2024-11-29', 1100.00, 3, '2342234123423542', '0000-00-00', '234', 'successful', 'card', 'TX-173286353290-bno7tq9k'),
-(2, 2, '2024-11-29', 330000.00, 3, '2342234123423542', '0000-00-00', '234', 'successful', 'card', 'TX-1732863927690-bno7tq9k'),
-(3, 3, '2024-11-29', 399556.00, 3, '2342234123423542', '0000-00-00', '234', 'successful', 'card', 'TX-1732864746552-wwo99vtn'),
-(4, 3, '2024-11-29', 399556.00, 3, '2342234123423542', '0000-00-00', '232', 'successful', 'card', 'TX-1732864947856-4bjkz0w5');
+(1, 1, '2024-11-29', 1100.00, 3, '2342234123423542', '22/23', '234', 'successful', 'card', 'TX-173286353290-bno7tq9k'),
+(2, 2, '2024-11-29', 330000.00, 3, '2342234123423542', '0000-', '234', 'successful', 'card', 'TX-1732863927690-bno7tq9k'),
+(3, 3, '2024-11-29', 399556.00, 3, '2342234123423542', '0000-', '234', 'successful', 'card', 'TX-1732864746552-wwo99vtn'),
+(4, 3, '2024-11-29', 399556.00, 3, '2342234123423542', '0000-', '232', 'successful', 'card', 'TX-1732864947856-4bjkz0w5'),
+(5, 4, '2024-11-29', 11000.00, 1, '3294819273648721', '0000-', '222', 'successful', 'card', 'TX-1732903756297-si06t1sc');
 
 -- --------------------------------------------------------
 
@@ -193,7 +206,8 @@ INSERT INTO `quoteresponse` (`response_id`, `request_id`, `counter_price`, `time
 (1, 2, 1200.00, '2024-11-12', '2024-11-27', 'DER', 'Accepted'),
 (2, 7, 333333.00, '2024-11-28', '2024-12-10', 'new', 'Accepted'),
 (4, 6, 400000.00, '2024-11-20', '2024-11-30', 'final\n\nupdated after request', 'Accepted'),
-(5, 5, 300000.00, '2024-11-29', '2024-11-30', 'new', 'Accepted');
+(5, 5, 300000.00, '2024-11-29', '2024-11-30', 'new', 'Accepted'),
+(6, 9, 13000.00, '2024-12-06', '2024-12-11', 'new price', 'Accepted');
 
 -- --------------------------------------------------------
 
@@ -228,7 +242,8 @@ INSERT INTO `requestforquote` (`request_id`, `client_id`, `service_id`, `owned_b
 (5, 3, 1, 8, 'wqeqd', 0, 'wqeqd', 'Medium', 'Pending', '2024-11-25 15:42:12', '2024-11-29 00:07:57', 0),
 (6, 3, 1, 8, 'af', 0, 'af', 'Low', 'Pending', '2024-11-25 15:58:29', '2024-11-26 21:16:53', 0),
 (7, 3, 1, 8, 'sf', 0, 'sf', 'Low', 'Pending', '2024-11-25 16:53:46', '2024-11-26 16:51:43', 0),
-(8, 1, 1, 9, 'hole', 0, 'hole', 'High', 'Pending', '2024-11-26 13:23:53', '2024-11-26 16:50:46', 0);
+(8, 1, 1, 9, 'hole', 0, 'hole', 'High', 'Pending', '2024-11-26 13:23:53', '2024-11-29 17:54:25', 0),
+(9, 1, 7, 8, 'regrav', 0, 'regrav', 'High', 'Pending', '2024-11-29 17:50:16', '2024-11-29 18:00:27', 0);
 
 -- --------------------------------------------------------
 
@@ -285,15 +300,15 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `first_name`, `last_name`, `phone`, `email`, `password`, `address`, `credit_card`, `registration_date`, `last_sign_in`, `failed_attempts`, `locked`, `user_type`, `is_deleted`) VALUES
-(1, 'Arun', 'T', '3136397215', 'arunramkrishna997@gmail.com', '$2b$10$HCU/BZhiwwVh4p1yW8MP7ufc0ie89gG2oDUGnGED4fIt5jAKGFYjy', 'University Tower, 4500, Cass Avenue, Midtown, Detroit, Wayne County, Michigan, 48201, United States', '', '2024-11-11 17:21:01', '2024-11-26 16:51:02', 0, 0, 3, 0),
+(1, 'Arun', 'T', '3136397215', 'arunramkrishna997@gmail.com', '$2b$10$HCU/BZhiwwVh4p1yW8MP7ufc0ie89gG2oDUGnGED4fIt5jAKGFYjy', 'University Tower, 4500, Cass Avenue, Midtown, Detroit, Wayne County, Michigan, 48201, United States', '3294819273648721', '2024-11-11 17:21:01', '2024-11-29 19:33:58', 0, 0, 3, 0),
 (2, 'as', 'as', 'as', 'asas@gmail.co', '$2b$10$vr41rjxNMOWBAWRDuhw8c.HcrTjoNSdYekLQxXMZDUU85CgtjkJR.', 'Ads, Fourth Estate, San Antonio, Parañaque, Southern Manila District, Metro Manila, 1700, Philippines', '', '2024-11-11 17:22:27', '2024-11-11 17:22:27', 0, 0, 0, 0),
-(3, 'lion', 'king', '3136397215', 'lion@gmail.com', '$2b$10$Ymh7pd61XujSkYMMuObxguh5k2FA5qhsOmQVw4Mye9at9kHQW2kkS', 'University Tower, 4500, Cass Avenue, Midtown, Detroit, Wayne County, Michigan, 48201, United States', '2342234123423542', '2024-11-11 17:48:19', '2024-11-29 11:07:07', 0, 0, 3, 0),
+(3, 'lion', 'king', '3136397215', 'lion@gmail.com', '$2b$10$Ymh7pd61XujSkYMMuObxguh5k2FA5qhsOmQVw4Mye9at9kHQW2kkS', 'University Tower, 4500, Cass Avenue, Midtown, Detroit, Wayne County, Michigan, 48201, United States', '2342234123423542', '2024-11-11 17:48:19', '2024-11-29 18:43:32', 0, 0, 3, 0),
 (4, 'Arun', 'Ramkrishna', '+918072087295', 'arunramkrishna997@gmail.co', '$2b$10$g58EdAIl3C4w9D0Jog6.JOmJR6jwlDLidk4o6LvQdqv7dPprH9.sO', 'Ligne 15 Ouest, Avenue Laurent Cély, Les Grésillons, Gennevilliers, Arrondissement of Nanterre, Hauts-de-Seine, Ile-de-France, Metropolitan France, 92230, France', '', '2024-11-11 17:50:46', '2024-11-11 17:50:46', 0, 0, 0, 0),
 (5, 'Arun', 'Thangapalam', '+918072087295', 'arunramkrishna997@il.com', '$2b$10$/npe8TYpeCpKzq3lkGN5buJV9YnV/SGIjM5WVmjOQueIw1ymFWEUa', '15 3/10 Road, Mesa County, Colorado, United States', '', '2024-11-11 19:17:26', '2024-11-11 19:17:26', 0, 0, 0, 0),
 (6, 'Arun', 'Ramkrishna', '+918072087295', 'arunramkris997@gmail.com', '$2b$10$pk2W7hVT58tgCVmrTQDuHeAKbhpXiKNtvKbo4K.46/C5hd0owi5S6', '15-3-60', '', '2024-11-18 01:21:07', '2024-11-18 01:21:07', 0, 0, 3, 0),
 (7, 'Arun', 'Ramkrishna', '+918072087295', 'arunramkri997@gmail.com', '$2b$10$lPtla4OBTrmcF..wVHvpxORT.qUY9Y4SmpXEmat4k1LcH2KUy99nC', '15-3-60', '', '2024-11-18 01:21:20', '2024-11-18 01:21:20', 0, 0, 3, 0),
-(8, 'Joker', 'folie', '3452435234', 'joker@gmail.com', '$2b$10$xb2OBsFuzJbQnVH2NPUNJOvUFFpSXUq8MQorflpE4wn6jU2EdP.ee', '4500 fass ave madras', '', '2024-11-26 13:17:49', '2024-11-29 11:20:58', 0, 0, 2, 0),
-(9, 'ani', 'ru', '34532424', 'ani@gmail.com', '$2b$10$4ri/2yR9CXlUfmVmDg517.jdANZwavaUVTUmmjuk3Q339qstRKtCO', '456 dsfg ert', '', '2024-11-26 15:10:36', '2024-11-26 16:28:56', 0, 0, 2, 0);
+(8, 'Joker', 'folie', '3452435234', 'joker@gmail.com', '$2b$10$xb2OBsFuzJbQnVH2NPUNJOvUFFpSXUq8MQorflpE4wn6jU2EdP.ee', '4500 fass ave madras', '', '2024-11-26 13:17:49', '2024-11-29 19:51:39', 0, 0, 2, 0),
+(9, 'ani', 'ru', '34532424', 'ani@gmail.com', '$2b$10$4ri/2yR9CXlUfmVmDg517.jdANZwavaUVTUmmjuk3Q339qstRKtCO', '456 dsfg ert', '', '2024-11-26 15:10:36', '2024-11-29 17:53:34', 0, 0, 2, 0);
 
 -- --------------------------------------------------------
 
@@ -419,7 +434,15 @@ INSERT INTO `user_login` (`id`, `user_id`, `login_time`, `status`, `ip_address`)
 (103, 3, '2024-11-29 10:05:08', 'success', '::ffff:35.16.1.228'),
 (104, 8, '2024-11-29 10:10:02', 'success', '::ffff:35.16.1.228'),
 (105, 3, '2024-11-29 11:07:07', 'success', '::ffff:35.16.1.228'),
-(106, 8, '2024-11-29 11:20:58', 'success', '::ffff:35.16.1.228');
+(106, 8, '2024-11-29 11:20:58', 'success', '::ffff:35.16.1.228'),
+(107, 8, '2024-11-29 17:36:54', 'success', '::ffff:35.16.1.228'),
+(108, 3, '2024-11-29 17:38:55', 'success', '::ffff:35.16.1.228'),
+(109, 1, '2024-11-29 17:43:14', 'success', '::ffff:35.16.1.228'),
+(110, 9, '2024-11-29 17:53:34', 'success', '::ffff:35.16.1.228'),
+(111, 8, '2024-11-29 17:54:40', 'success', '::ffff:35.16.1.228'),
+(112, 3, '2024-11-29 18:43:32', 'success', '::ffff:35.16.1.228'),
+(113, 1, '2024-11-29 19:33:58', 'success', '::ffff:35.16.1.228'),
+(114, 8, '2024-11-29 19:51:39', 'success', '::ffff:35.16.1.228');
 
 -- --------------------------------------------------------
 
@@ -529,43 +552,43 @@ ALTER TABLE `user_type`
 -- AUTO_INCREMENT for table `bill`
 --
 ALTER TABLE `bill`
-  MODIFY `bill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `bill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `chat_messages`
 --
 ALTER TABLE `chat_messages`
-  MODIFY `chat_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `chat_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `images`
 --
 ALTER TABLE `images`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `orderofwork`
 --
 ALTER TABLE `orderofwork`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `payment`
 --
 ALTER TABLE `payment`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `quoteresponse`
 --
 ALTER TABLE `quoteresponse`
-  MODIFY `response_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `response_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `requestforquote`
 --
 ALTER TABLE `requestforquote`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `service_types`
@@ -583,7 +606,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_login`
 --
 ALTER TABLE `user_login`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
 
 --
 -- AUTO_INCREMENT for table `user_type`
