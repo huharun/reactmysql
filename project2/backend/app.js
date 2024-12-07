@@ -360,7 +360,7 @@ app.get('/get_chat', async (req, res) => {
 // API route for submitting a new service request
 app.post('/submit_request', upload.array('images', 5), async (req, res) => {
     try {
-        const { clientId, clientName, userType, serviceType, propertyAdress, description, urgency } = req.body;
+        const { clientId, clientName, userType, serviceType, propertyAdress, square_feet, description, urgency } = req.body;
         const images = req.files || [];  // Get uploaded images (array of files)
         const db = dbService.getDbServiceInstance();
         
@@ -374,6 +374,7 @@ app.post('/submit_request', upload.array('images', 5), async (req, res) => {
             userType,
             serviceType,
             propertyAdress,
+            square_feet,
             description,
             urgency,
             images: images.map(image => image.path),  // Map file paths for images
@@ -461,6 +462,31 @@ app.post('/viewActiveorders', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch orders', details: error.message });
     }
 });
+
+app.post('/updateOrderStatus', async (req, res) => {
+    try {
+        const { userId, orderId, requestId, newStatus } = req.body;
+        
+        // Validate inputs
+        const validStatuses = ['In Progress', 'Completed'];
+        if (!userId || isNaN(userId) || !orderId || isNaN(orderId) || !validStatuses.includes(newStatus)) {
+            return res.status(400).json({ error: 'Invalid input provided' });
+        }
+        
+        const db = dbService.getDbServiceInstance();
+        const result = await db.updateOrderStatus(orderId, newStatus);
+        
+        if (result.affectedRows > 0) {
+            res.status(200).json({ success: true });
+        } else {
+            res.status(404).json({ error: 'Order not found or status unchanged' });
+        }
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        res.status(500).json({ error: 'Failed to update order status', details: error.message });
+    }
+});
+
 
 
 
@@ -809,6 +835,23 @@ app.post('/view_payment_history', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch payment history', details: error.message });
     }
 });
+
+
+// Endpoint to fetch reports based on the report type
+app.get('/report/:type', async (req, res) => {
+    const type = req.params.type;
+    try {
+        const db = dbService.getDbServiceInstance();
+        const reportData = await db.getReport(type);
+        
+        // Return the list of report data as JSON
+        res.status(200).json(reportData);
+    } catch (error) {
+        console.error('Error fetching report data:', error);
+        res.status(500).json({ error: 'Failed to fetch report data', details: error.message });
+    }
+});
+
 
 
 

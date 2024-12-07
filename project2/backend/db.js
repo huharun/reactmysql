@@ -187,6 +187,114 @@
          });
       }
       
+      async getReport(type) {
+         return new Promise((resolve, reject) => {
+             let query = "";
+     
+             // Define queries based on the report type
+             if (type === 'bigClients') {
+                 query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, COUNT(O.order_id) AS total_orders
+                     FROM orderofwork O
+                     JOIN requestforquote R ON R.request_id = O.request_id
+                     JOIN users U ON U.id = R.client_id
+                     WHERE O.status = 'Completed' AND R.is_deleted = 0
+                     GROUP BY U.id
+                     HAVING total_orders = (
+                         SELECT MAX(client_orders) 
+                         FROM (
+                             SELECT COUNT(O.order_id) AS client_orders 
+                             FROM orderofwork O
+                             JOIN requestforquote R ON R.request_id = O.request_id
+                             JOIN users U ON U.id = R.client_id
+                             WHERE O.status = 'Completed' AND R.is_deleted = 0
+                             GROUP BY U.id
+                         ) subquery
+                     );
+                 `;
+             } else if (type === 'difficultClients') {
+                 query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, COUNT(O.order_id) AS difficult_orders
+                     FROM orderofwork O
+                     JOIN requestforquote R ON R.request_id = O.request_id
+                     JOIN users U ON U.id = R.client_id
+                     WHERE O.status = 'Difficult' AND R.is_deleted = 0
+                     GROUP BY U.id
+                     ORDER BY difficult_orders DESC;
+                 `;
+             } else if (type === 'thisMonthQuotes') {
+                 query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, O.order_id, S.service_name, O.order_date
+                     FROM orderofwork O
+                     JOIN requestforquote R ON R.request_id = O.request_id
+                     JOIN users U ON U.id = R.client_id
+                     JOIN service_types S ON S.service_id = R.service_id
+                     WHERE MONTH(O.order_date) = MONTH(CURRENT_DATE()) AND R.is_deleted = 0
+                     ORDER BY O.order_date DESC;
+                 `;
+             } else if (type === 'prospectiveQuotes') {
+                 query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, R.request_id, S.service_name, R.status
+                     FROM requestforquote R
+                     JOIN users U ON U.id = R.client_id
+                     JOIN service_types S ON S.service_id = R.service_id
+                     WHERE R.status = 'Prospective' AND R.is_deleted = 0
+                     ORDER BY R.request_id DESC;
+                 `;
+             } else if (type === 'largestDriveway') {
+                 query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, R.request_id, R.driveway_size, S.service_name
+                     FROM requestforquote R
+                     JOIN users U ON U.id = R.client_id
+                     JOIN service_types S ON S.service_id = R.service_id
+                     WHERE R.driveway_size = (
+                         SELECT MAX(driveway_size) FROM requestforquote WHERE is_deleted = 0
+                     ) AND R.is_deleted = 0;
+                 `;
+             } else if (type === 'overdueBills') {
+                 query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, B.bill_id, B.amount, B.due_date
+                     FROM bill B
+                     JOIN orderofwork O ON O.order_id = B.order_id
+                     JOIN requestforquote R ON R.request_id = O.request_id
+                     JOIN users U ON U.id = R.client_id
+                     WHERE B.due_date < CURRENT_DATE() AND B.status != 'Paid' AND R.is_deleted = 0
+                     ORDER BY B.due_date ASC;
+                 `;
+             } else if (type === 'badClients') {
+                 query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, COUNT(O.order_id) AS bad_orders
+                     FROM orderofwork O
+                     JOIN requestforquote R ON R.request_id = O.request_id
+                     JOIN users U ON U.id = R.client_id
+                     WHERE O.status = 'Bad' AND R.is_deleted = 0
+                     GROUP BY U.id
+                     ORDER BY bad_orders DESC;
+                 `;
+             } else if (type === 'goodClients') {
+                 query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, COUNT(O.order_id) AS good_orders
+                     FROM orderofwork O
+                     JOIN requestforquote R ON R.request_id = O.request_id
+                     JOIN users U ON U.id = R.client_id
+                     WHERE O.status = 'Good' AND R.is_deleted = 0
+                     GROUP BY U.id
+                     ORDER BY good_orders DESC;
+                 `;
+             } else {
+                 return reject(new Error("Invalid report type"));
+             }
+     
+             // Execute the query
+             connection.query(query, (err, results) => {
+                 if (err) {
+                     return reject(err);
+                 }
+                 resolve(results);
+             });
+         });
+     }
+     
       
       async takeOwnership(requestId, userId, action_type) {
          return new Promise((resolve, reject) => {
@@ -354,13 +462,13 @@
       
       
       // Function to save the service request to the database
-      async saveRequestToDB({ clientId, serviceType, propertyAdress, description, urgency, images }) {
+      async saveRequestToDB({ clientId, serviceType, propertyAdress, square_feet, description, urgency, images }) {
          return new Promise((resolve, reject) => {
             const query = `
-           INSERT INTO requestforquote (client_id, service_id, property_address, note, urgency, status)
-           VALUES (?, ?, ?, ?, ?, ?)
+           INSERT INTO requestforquote (client_id, service_id, property_address, square_feet, note, urgency, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?)
        `;
-            const values = [clientId, serviceType, propertyAdress, description, urgency, 'Pending'];
+            const values = [clientId, serviceType, propertyAdress, square_feet, description, urgency, 'Pending'];
             
             connection.query(query, values, (err, results) => {
                if (err) return reject(err);
@@ -406,7 +514,7 @@
       // getOrdersByUserId
       async getOrdersByUserId(userId) {
          return new Promise((resolve, reject) => {
-            const query = `SELECT O.*, R.*, QR.*, B.*, S.service_name, O.status, S.proposed_price
+            const query = `SELECT O.*, R.*, QR.*, B.*, S.service_name, O.status, S.proposed_price, O.order_id
                            FROM orderofwork O
                            LEFT JOIN bill B ON B.order_id = O.order_id
                            JOIN requestforquote R ON R.request_id = O.request_id
@@ -443,6 +551,23 @@
                   return reject(err);
                }
                resolve(results);
+            });
+         });
+      }
+      
+      async updateOrderStatus(orderId, newStatus) {
+         return new Promise((resolve, reject) => {
+            const query = `
+                 UPDATE orderofwork
+                 SET status = ?
+                 WHERE order_id = ? AND is_deleted = 0
+             `;
+            connection.query(query, [newStatus, orderId], (err, result) => {
+               if (err) {
+                  console.error('Database error:', err);
+                  return reject(err);
+               }
+               resolve(result);
             });
          });
       }

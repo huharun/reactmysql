@@ -5,7 +5,7 @@
 // Constants for API base URLs
 const LOCAL_API_BASE_URL = 'http://localhost:5050';
 // const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
-const PUBLIC_API_BASE_URL = 'http://35.16.1.228:5050';
+const PUBLIC_API_BASE_URL = 'http://35.16.81.183:5050';
 
 // Choose the API base URL based on the environment
 const API_BASE_URL = window.location.hostname === 'localhost' ? LOCAL_API_BASE_URL : PUBLIC_API_BASE_URL;
@@ -195,10 +195,14 @@ function renderMenu() {
                 </li>
                 <li><a href="#" onclick="toggleSubMenu(event, 'reports')">Reports</a>
                     <ul class="submenu" id="reports">
-                        <li><a href="#" onclick="viewRevenueReport()">Revenue Report</a></li>
-                        <li><a href="#" onclick="viewBigClients()">List of Big Clients</a></li>
-                        <li><a href="#" onclick="viewOverdueBills()">Overdue Bills</a></li>
-                        <li><a href="#" onclick="viewClientRatings()">Good and Bad Clients</a></li>
+                        <li><a href="#" onclick="viewReport('bigClients')">List of Big Clients</a></li>
+                        <li><a href="#" onclick="viewReport('difficultClients')">Difficult Clients</a></li>
+                        <li><a href="#" onclick="viewReport('thisMonthQuotes')">This Month Quotes</a></li>
+                        <li><a href="#" onclick="viewReport('prospectiveQuotes')">Prospective Quotes</a></li>
+                        <li><a href="#" onclick="viewReport('largestDriveway')">Largest Driveway</a></li>
+                        <li><a href="#" onclick="viewReport('overdueBills')">Overdue Bills</a></li>
+                        <li><a href="#" onclick="viewReport('badClients')">Bad Clients</a></li>
+                        <li><a href="#" onclick="viewReport('goodClients')">Good Clients</a></li>
                     </ul>
                 </li>
             </ul>
@@ -711,7 +715,10 @@ function viewNewRequests(type) {
                         <td>${order.proposed_price ? `$${order.proposed_price.toFixed(2)}` : "Not provided"}</td>
                         <td>${order.counter_price ? `$${order.counter_price.toFixed(2)}` : "Not provided"}</td>
                         <td>${order.accepted_date ? new Date(order.accepted_date).toLocaleDateString() : 'N/A'}</td>
-                        <td>${order.status || 'N/A'}</td>
+                        <td>${order.status !== 'Completed' ? `<button class="icon-btn" 
+                            onclick="completeOrder(${orderType}, ${order.order_id}, ${order.request_id}, 'Completed')" 
+                            title="Complete order"><i class="fas fa-check"></i> Complete Order</button>` : 'Complete'}
+                        </td>
                     </tr>
                 `;
                 });
@@ -724,6 +731,45 @@ function viewNewRequests(type) {
         .catch(error => {
             console.error('Error fetching orders:', error);
             showAlert('There was an error fetching orders. Please try again later.', 'failure');
+        });
+    }   
+    
+    
+    function completeOrder(orderType, orderId, requestId, newStatus) {
+        console.log("Updating order status...");
+        
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+        
+        
+        if (!userId) {
+            console.error('User is not authenticated');
+            return;
+        }
+        
+        fetch(API_BASE_URL + '/updateOrderStatus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('authToken')  // Assuming token-based authentication
+                
+            },
+            body: JSON.stringify({ userId, orderId, requestId, newStatus }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Order status updated successfully!');
+                showAlert(`Order status updated to ${newStatus}`, 'success');
+                viewActiveOrders(orderType)
+            } else {
+                console.error('Failed to update order status:', data.error);
+                showAlert('Failed to update order status. Please try again.', 'failure');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating order status:', error);
+            showAlert('An error occurred while updating the order status.', 'failure');
         });
     }
     
@@ -855,7 +901,7 @@ function viewNewRequests(type) {
                             <th>Generated Date</th>
                             <th>Due Date</th>
                             <th>Bill Status</th>
-                            <th>Order Status</th>
+                            <th>Order Status</th>   
                 `;
                 
                 // Add "Pay Bill" column only if userType is 3
@@ -1106,20 +1152,20 @@ function viewNewRequests(type) {
     
     function viewRevenueReport() {
         console.log("Viewing Revenue Report...");
-    
+        
         // Assume the user is authenticated and has a userId stored in sessionStorage
         const userData = JSON.parse(sessionStorage.getItem('user'));
         const userId = userData?.userId;
-    
+        
         if (!userId) {
             console.error('User is not authenticated');
             return;
         }
-    
+        
         // Hide or show relevant elements
         document.getElementById('table').style.display = 'block';
         document.getElementById('formContainer').style.display = 'none';
-    
+        
         // Fetch the revenue report data
         fetch(API_BASE_URL + '/revenue_report', {
             method: 'POST',
@@ -1165,20 +1211,20 @@ function viewNewRequests(type) {
     
     function viewBigClients() {
         console.log("Viewing List of Big Clients...");
-    
+        
         // Assume user authentication as before
         const userData = JSON.parse(sessionStorage.getItem('user'));
         const userId = userData?.userId;
-    
+        
         if (!userId) {
             console.error('User is not authenticated');
             return;
         }
-    
+        
         // Hide or show relevant elements
         document.getElementById('table').style.display = 'block';
         document.getElementById('formContainer').style.display = 'none';
-    
+        
         // Fetch list of big clients
         fetch(API_BASE_URL + '/big_clients', {
             method: 'POST',
@@ -1224,20 +1270,20 @@ function viewNewRequests(type) {
     
     function viewOverdueBills() {
         console.log("Viewing Overdue Bills...");
-    
+        
         // Assume user authentication as before
         const userData = JSON.parse(sessionStorage.getItem('user'));
         const userId = userData?.userId;
-    
+        
         if (!userId) {
             console.error('User is not authenticated');
             return;
         }
-    
+        
         // Hide or show relevant elements
         document.getElementById('table').style.display = 'block';
         document.getElementById('formContainer').style.display = 'none';
-    
+        
         // Fetch overdue bills data
         fetch(API_BASE_URL + '/overdue_bills', {
             method: 'POST',
@@ -1285,20 +1331,20 @@ function viewNewRequests(type) {
     
     function viewClientRatings() {
         console.log("Viewing Client Ratings...");
-    
+        
         // Assume user authentication as before
         const userData = JSON.parse(sessionStorage.getItem('user'));
         const userId = userData?.userId;
-    
+        
         if (!userId) {
             console.error('User is not authenticated');
             return;
         }
-    
+        
         // Hide or show relevant elements
         document.getElementById('table').style.display = 'block';
         document.getElementById('formContainer').style.display = 'none';
-    
+        
         // Fetch client ratings data
         fetch(API_BASE_URL + '/client_ratings', {
             method: 'POST',
@@ -1389,6 +1435,11 @@ function viewNewRequests(type) {
                 <label for="description">Property Adress:</label>
                 <textarea id="propertyAdress" name="propertyAdress" placeholder="Adress of the property.." required></textarea>
             </div>
+        
+            <div class="input-container">
+                <label for="description">Square Feet:</label>
+                <input type="number" id="square_feet" name="square_feet" placeholder="Square feet" required>
+            </div>
     
             <div class="input-container">
                 <label for="description">Description of the Issue:</label>
@@ -1421,6 +1472,7 @@ function viewNewRequests(type) {
             
             const serviceType = document.getElementById('serviceType').value;   
             const description = document.getElementById('description').value;
+            const square_feet = document.getElementById('square_feet').value;
             const urgency = document.getElementById('urgency').value;
             const images = document.getElementById('images').files; // Get multiple files
             
@@ -1430,6 +1482,7 @@ function viewNewRequests(type) {
             formData.append('userType', userType);
             formData.append('serviceType', serviceType);
             formData.append('propertyAdress', description);
+            formData.append('square_feet', square_feet);
             formData.append('description', description);
             formData.append('urgency', urgency);
             
@@ -1596,6 +1649,7 @@ function viewNewRequests(type) {
                         <th>Order ID</th>
                         <th>Request No</th>
                         <th>Service</th>
+                        <th>Square feet</th>
                         <th>Proposed Price</th>
                         <th>Accepted Date</th>
                         <th>Status</th>
@@ -1609,6 +1663,7 @@ function viewNewRequests(type) {
                         <td>${order.order_id || 'N/A'}</td>
                         <td>${order.request_id || 'N/A'}</td>
                         <td>${order.service_name || 'N/A'}</td>
+                        <td>${order.square_feet || 'N/A'}</td>
                         <td>${order.proposed_price ? `$${order.proposed_price.toFixed(2)}` : "Not provided"}</td>
                         <td>${order.accepted_date ? new Date(order.accepted_date).toLocaleDateString() : 'N/A'}</td>
                         <td>${order.status || 'N/A'}</td>
@@ -2312,343 +2367,485 @@ function viewNewRequests(type) {
         window.open(pdfURL, '_blank');
     }
     
-    
-    
-    
-    
-    
-    
-    // Call the renderMenu function on page load
-    window.onload = renderMenu;
-    
-    
-    
-    
-    document.getElementById("contractor-btn").addEventListener("click", function() {
-        // Record the selected user type as '2' for Contractor
-        document.getElementById("user-type").value = "2";
-        
-        // Hide the user type selection and show the rest of the form
-        document.getElementById("user-type-selection").style.display = "none";
-        document.getElementById("sign-up-form").style.display = "block";
-    });
-    
-    document.getElementById("client-btn").addEventListener("click", function() {
-        // Record the selected user type as '3' for Client
-        const userType = document.getElementById("user-type").value = "3";
-        
-        // Hide the user type selection and show the rest of the form
-        document.getElementById("user-type-selection").style.display = "none";
-        document.getElementById("sign-up-form").style.display = "block";
-    });
-    
-    // Back to User Type Selection
-    document.getElementById("back-btn").addEventListener("click", function() {
-        // Show the user type selection again and hide the sign-up form
-        document.getElementById("user-type-selection").style.display = "block";
-        document.getElementById("sign-up-form").style.display = "none";
-    });
-    
-    
-    
-    // Sign-up action
-    document.getElementById('sign-up-form').addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent the default form submission
-        
-        // Collect data from form fields
-        const userType = document.getElementById('user-type').value;
-        const firstName = document.getElementById('first-name').value;
-        const lastName = document.getElementById('last-name').value;
-        const phone = document.getElementById('phone').value;
-        const email = document.getElementById('signup-email').value;
-        const password = document.getElementById('signup-password').value;
-        const address = document.getElementById('address').value;
-        
-        // Add validation
-        if (!firstName || !lastName || !email || !password || !phone || !address) {
-            showAlert('Please fill in all required fields.', 'failure');
-            return;
-        }
-        
-        // Email format validation
-        const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
-        if (!email.match(emailPattern)) {
-            showAlert('Please enter a valid email address.', 'failure');
-            return;
-        }
-        
-        // Password validation
-        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
-        if (!password.match(passwordPattern)) {
-            showAlert('Password must be between 8 and 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters.', 'failure');
-            return;
-        }
-        
-        // Create a user object without hashing the password client-side
-        const userData = {
-            user_type: userType,
-            first_name: firstName,
-            last_name: lastName,
-            email: email,
-            password: password, // Send plaintext password to the server
-            phone: phone,
-            address: address
-        };
-        
-        // Send user data to backend
-        try {
-            const response = await fetch(API_BASE_URL + '/insert', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
-            
-            const result = await response.json();
-            
-            if (response.ok) {
-                showAlert('Sign up successful!', 'success'); 
-                document.getElementById('sign-up-modal').style.display = 'none';
-            } else {
-                showAlert('Sign up failed: ' + result.error, 'failure');
-            }
-        } catch (error) {
-            console.error('Error during sign up:', error);
-        }
-    });
-    
-    // Sign-in action
-    document.getElementById('sign-in-form').addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent the default form submission
-        
-        // Collect data from form fields
-        const email = document.getElementById('signin-email').value;
-        const password = document.getElementById('signin-password').value;
-        
-        // Add validation
-        if (!email || !password) {
-            showAlert('Please fill in all required fields.', 'failure');
-            return;
-        }
-        
-        // Send login request to backend
-        try {
-            const response = await fetch(API_BASE_URL + '/signin', {
-                method: 'POST',
-                credentials: 'include', // If you are using cookies for session management
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password }) // Send plaintext password
-            });
-            
-            const result = await response.json();
-            // alert(JSON.stringify(result))
-            
-            if (response.ok) {
-                // Store JWT in localStorage or sessionStorage
-                localStorage.setItem('authToken', result.token); // Store JWT token
-                
-                // Update UI elements based on sign-in status
-                document.getElementById('sign-in-modal').style.display = 'none';
-                document.getElementById('sign-up-btn').style.display = 'none';
-                document.getElementById('sign-in-btn').style.display = 'none';
-                document.getElementById('sign-out-btn').style.display = 'block';
-                
-                // Optionally, reload the page or redirect
-                toggleSignInStatus(true);  // Update the UI sign-in state
-                localStorage.setItem('reloadFlag', 'true');
-                location.reload();
-            } else {
-                showAlert('Sign in failed: ' + result.error, 'failure');
-            }
-        } catch (error) {
-            console.error('Error during sign in:', error);
-            showAlert("An error occurred during sign in. Please try again.", "failure");
-        }
-    });
-    
-    // Check if the flag is set on page load
-    window.addEventListener('load', () => {
-        const reloadFlag = localStorage.getItem('reloadFlag');
-        
-        if (reloadFlag === 'true') {
-            // Reset the flag
-            localStorage.removeItem('reloadFlag');
-            
-            // Trigger the second reload after a short delay
-            setTimeout(() => {
-                location.reload();
-            }, 100); // 100ms delay before the second reload
-            
-            setTimeout(() => {
-                location.reload();
-            }, 100);
-        }
-    });
-    
-    
-    
-    //sign-out action
-    document.getElementById('sign-out-btn').addEventListener('click', async () => {
-        try {
-            // Get the JWT token from localStorage
-            const authToken = localStorage.getItem('authToken');
-            
-            if (!authToken) {
-                console.error('No token found');
-                showAlert('You are not logged in.', 'failure');
-                return;
-            }
-            
-            // Send request to logout route with the token in the Authorization header
-            const response = await fetch(API_BASE_URL + '/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authToken}`, // Add token to Authorization header
-                },
-                credentials: 'include', // Ensure session cookies are included if used
-            });
-            
-            // Check if the logout was successful
-            if (response.ok) {
-                // Clear the JWT token from localStorage
-                localStorage.removeItem('authToken');
-                toggleSignInStatus(false);  // Update the UI sign-in state
-                showAlert('Successfully logged out.', 'success');  // Inform user of success
-                location.reload();
-            } else {
-                // Handle error during logout
-                const errorData = await response.json();
-                console.error('Logout error:', errorData);
-                showAlert('Logout failed. Please try again.', 'failure');
-            }
-        } catch (error) {
-            // Catch any network or other errors
-            console.error('Error during logout:', error);
-            showAlert("An error occurred during logout. Please try again.", "failure");
-        }
-    });
-    
-    
-    
-    //not exactly deleting
-    function deleteRowById(request_id) {
-        console.log("Attempting to delete row with Request ID:", request_id);
-        
-        fetch(API_BASE_URL + '/delete/' + request_id, {
-            method: 'DELETE',
+    // Function to fetch report data dynamically using POST
+    function fetchReportData(reportType) {
+        fetch(API_BASE_URL + '/report', {
+            method: 'POST',
             headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Ensure you are passing the correct token
-            }
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('authToken')
+            },
+            body: JSON.stringify({ reportType: reportType }) // Sending reportType in the body
         })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                console.log("Row marked as deleted successfully");
-                location.reload(); // Or update the UI dynamically
-            } else {
-                console.log("Error deleting row:", data.message || "Unknown error");
-            }
+            buildDynamicTable(reportType, data);
         })
         .catch(error => {
-            console.error("Error during the fetch operation:", error);
+            console.error('Error fetching report data:', error);
+            showAlert('Error', 'There was an error fetching the report data. Please try again later.', 'failure');
         });
     }
     
-    
-    
-    
-    
-    
-    function displayResults(results) {
-        if(results){
-            loadHTMLTable(results);
+    // Function to build a table dynamically based on report type
+    function viewReport(reportType, data) {
+        const table = document.getElementById('table');
+        document.getElementById('formContainer').style.display = 'none';
+        document.getElementById('table').style.display = 'block';
+        
+        if (!data || data.length === 0) {
+            table.innerHTML = '<tr><td colspan="6">No data available for this report.</td></tr>';
+            return;
         }
-    }
-    
-    // this function is used for debugging only, and should be deleted afterwards
-    function debug(data)
-    {
-        fetch(API_BASE_URL + '/debug', {
-            headers: {
-                'Content-type': 'application/json'
-            },
-            method: 'POST',
-            body: JSON.stringify({debug: data})
-        })
-    }
-    
-    // Get modal elements
-    const signUpModal = document.getElementById('sign-up-modal');
-    const signInModal = document.getElementById('sign-in-modal');
-    const closeSignUp = document.getElementById('close-sign-up');
-    const closeSignIn = document.getElementById('close-sign-in');
-    const signUpBtn = document.getElementById('sign-up-btn');
-    const signInBtn = document.getElementById('sign-in-btn');
-    const signOutBtn = document.getElementById('sign-out-btn');
-    const updateModal = document.getElementById('update-row-modal');
-    const closeUpdateRow = document.getElementById('close-update-row');
-    const manageQuoteModal = document.getElementById('manage-quote-modal');
-    const closeManageQuote = document.getElementById('close-manage-quote');
-    const chatModal = document.getElementById('chat-modal');
-    const closeChatModal = document.getElementById('close-chat-modal');
-    const generateBillModal = document.getElementById('generate-bill-modal');
-    const closeGenerateBill = document.getElementById('close-generate-bill');
-    const payBillModal = document.getElementById('pay-bill-modal');
-    const closePayBillModal = document.getElementById('close-pay-bill-modal');
-    const disputeBillModal = document.getElementById('dispute-bill-modal');
-    const closeDisputeBill = document.getElementById('close-dispute-bill');
-    
-    // Elements for sign-in status
-    const signedInSection = document.getElementById('signed-in-section');
-    const guestSection = document.getElementById('guest-section');
-    
-    // Function to close modals
-    const closeModal = (modal) => {
-        modal.style.display = "none";
-    };
-    
-    // Event listeners for modal buttons
-    closeUpdateRow.addEventListener('click', () => closeModal(updateModal));
-    signUpBtn.addEventListener('click', () => signUpModal.style.display = "flex");
-    signInBtn.addEventListener('click', () => signInModal.style.display = "flex");
-    closeSignUp.addEventListener('click', () => closeModal(signUpModal));
-    closeSignIn.addEventListener('click', () => closeModal(signInModal));
-    closeManageQuote.addEventListener('click', () => closeModal(manageQuoteModal));
-    closeChatModal.addEventListener('click', () => closeModal(chatModal));
-    closeGenerateBill.addEventListener('click', () => closeModal(generateBillModal));
-    closePayBillModal.addEventListener('click', () => closeModal(payBillModal));
-    closeDisputeBill.addEventListener('click', () => closeModal(disputeBillModal));
-    
-    
-    // Close modal when clicking outside of the modal content
-    window.addEventListener('click', (event) => {
-        if (event.target === signUpModal) closeModal(signUpModal);
-        if (event.target === signInModal) closeModal(signInModal);
-        if (event.target === updateModal) closeModal(updateModal);
-        if (event.target === manageQuoteModal) closeModal(manageQuoteModal);
-        if (event.target === chatModal) closeModal(chatModal);  
-        if (event.target === generateBillModal) closeModal(generateBillModal);
-        if (event.target === payBillModal) closeModal(payBillModal);
-        if (event.target === disputeBillModal) closeModal(disputeBillModal);
         
-    });
-    
-    // Function to toggle sign-in status
-    const toggleSignInStatus = (isLoggedIn) => {
+        let tableHTML = `<thead><tr>`;
+        let rowsHTML = '';
         
-        const welcomeMessage = document.getElementById('welcome-message');
-        signInBtn.style.display = isLoggedIn ? 'none' : 'inline';
-        signUpBtn.style.display = isLoggedIn ? 'none' : 'inline';
-        signOutBtn.style.display = isLoggedIn ? 'inline' : 'none';
-        signedInSection.classList.toggle('disabled', !isLoggedIn);
-        guestSection.style.display = isLoggedIn ? 'none' : 'block';
-        welcomeMessage.hidden = !isLoggedIn;
-        
-    };
-    
-    
-    
-    
+        if (reportType === 'bigClients') {
+            // Columns specific to Big Clients
+            tableHTML += `
+            <th>Client Name</th>
+            <th>Total Orders</th>
+        </tr></thead>`;
+            rowsHTML = data.map(client => `
+            <tr>
+                <td>${client.client_name || 'N/A'}</td>
+                <td>${client.total_orders || 'N/A'}</td>
+            </tr>
+        `).join('');
+            } else if (reportType === 'difficultClients') {
+                // Columns specific to Difficult Clients
+                tableHTML += `
+            <th>Client Name</th>
+            <th>Complaints</th>
+        </tr></thead>`;
+                rowsHTML = data.map(client => `
+            <tr>
+                <td>${client.client_name || 'N/A'}</td>
+                <td>${client.complaints || 'N/A'}</td>
+            </tr>
+        `).join('');
+                } else if (reportType === 'thisMonthQuotes') {
+                    // Columns specific to This Month's Quotes
+                    tableHTML += `
+            <th>Quote Id</th>
+            <th>Client Name</th>
+            <th>Service</th>
+            <th>Quote Amount</th>
+        </tr></thead>`;
+                    rowsHTML = data.map(quote => `
+            <tr>
+                <td>${quote.quote_id || 'N/A'}</td>
+                <td>${quote.client_name || 'N/A'}</td>
+                <td>${quote.service_name || 'N/A'}</td>
+                <td>${quote.quote_amount || 'N/A'}</td>
+            </tr>
+        `).join('');
+                    } else if (reportType === 'prospectiveQuotes') {
+                        // Columns specific to Prospective Quotes
+                        tableHTML += `
+            <th>Client Name</th>
+            <th>Potential Revenue</th>
+        </tr></thead>`;
+                        rowsHTML = data.map(quote => `
+            <tr>
+                <td>${quote.client_name || 'N/A'}</td>
+                <td>${quote.potential_revenue || 'N/A'}</td>
+            </tr>
+        `).join('');
+                        } else if (reportType === 'largestDriveway') {
+                            // Columns specific to Largest Driveway
+                            tableHTML += `
+            <th>Client Name</th>
+            <th>Driveway Size</th>
+        </tr></thead>`;
+                            rowsHTML = data.map(client => `
+            <tr>
+                <td>${client.client_name || 'N/A'}</td>
+                <td>${client.driveway_size || 'N/A'}</td>
+            </tr>
+        `).join('');
+                            } else if (reportType === 'overdueBills') {
+                                // Columns specific to Overdue Bills
+                                tableHTML += `
+            <th>Client Name</th>
+            <th>Overdue Amount</th>
+            <th>Due Date</th>
+        </tr></thead>`;
+                                rowsHTML = data.map(bill => `
+            <tr>
+                <td>${bill.client_name || 'N/A'}</td>
+                <td>${bill.overdue_amount || 'N/A'}</td>
+                <td>${bill.due_date || 'N/A'}</td>
+            </tr>
+        `).join('');
+                                } else if (reportType === 'badClients') {
+                                    // Columns specific to Bad Clients
+                                    tableHTML += `
+            <th>Client Name</th>
+            <th>Negative Feedbacks</th>
+        </tr></thead>`;
+                                    rowsHTML = data.map(client => `
+            <tr>
+                <td>${client.client_name || 'N/A'}</td>
+                <td>${client.negative_feedbacks || 'N/A'}</td>
+            </tr>
+        `).join('');
+                                    } else if (reportType === 'goodClients') {
+                                        // Columns specific to Good Clients
+                                        tableHTML += `
+            <th>Client Name</th>
+            <th>Positive Feedbacks</th>
+        </tr></thead>`;
+                                        rowsHTML = data.map(client => `
+            <tr>
+                <td>${client.client_name || 'N/A'}</td>
+                <td>${client.positive_feedbacks || 'N/A'}</td>
+            </tr>
+        `).join('');
+                                        } else {
+                                            tableHTML = '<tr><td colspan="6">Invalid report type.</td></tr>';
+                                        }
+                                        
+                                        tableHTML += `<tbody>${rowsHTML}</tbody>`;
+                                        table.innerHTML = tableHTML;
+                                    }
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    // Call the renderMenu function on page load
+                                    window.onload = renderMenu;
+                                    
+                                    
+                                    
+                                    
+                                    document.getElementById("contractor-btn").addEventListener("click", function() {
+                                        // Record the selected user type as '2' for Contractor
+                                        document.getElementById("user-type").value = "2";
+                                        
+                                        // Hide the user type selection and show the rest of the form
+                                        document.getElementById("user-type-selection").style.display = "none";
+                                        document.getElementById("sign-up-form").style.display = "block";
+                                    });
+                                    
+                                    document.getElementById("client-btn").addEventListener("click", function() {
+                                        // Record the selected user type as '3' for Client
+                                        const userType = document.getElementById("user-type").value = "3";
+                                        
+                                        // Hide the user type selection and show the rest of the form
+                                        document.getElementById("user-type-selection").style.display = "none";
+                                        document.getElementById("sign-up-form").style.display = "block";
+                                    });
+                                    
+                                    // Back to User Type Selection
+                                    document.getElementById("back-btn").addEventListener("click", function() {
+                                        // Show the user type selection again and hide the sign-up form
+                                        document.getElementById("user-type-selection").style.display = "block";
+                                        document.getElementById("sign-up-form").style.display = "none";
+                                    });
+                                    
+                                    
+                                    
+                                    // Sign-up action
+                                    document.getElementById('sign-up-form').addEventListener('submit', async (event) => {
+                                        event.preventDefault(); // Prevent the default form submission
+                                        
+                                        // Collect data from form fields
+                                        const userType = document.getElementById('user-type').value;
+                                        const firstName = document.getElementById('first-name').value;
+                                        const lastName = document.getElementById('last-name').value;
+                                        const phone = document.getElementById('phone').value;
+                                        const email = document.getElementById('signup-email').value;
+                                        const password = document.getElementById('signup-password').value;
+                                        const address = document.getElementById('address').value;
+                                        
+                                        // Add validation
+                                        if (!firstName || !lastName || !email || !password || !phone || !address) {
+                                            showAlert('Please fill in all required fields.', 'failure');
+                                            return;
+                                        }
+                                        
+                                        // Email format validation
+                                        const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+                                        if (!email.match(emailPattern)) {
+                                            showAlert('Please enter a valid email address.', 'failure');
+                                            return;
+                                        }
+                                        
+                                        // Password validation
+                                        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,12}$/;
+                                        if (!password.match(passwordPattern)) {
+                                            showAlert('Password must be between 8 and 12 characters long and include a mix of uppercase letters, lowercase letters, numbers, and special characters.', 'failure');
+                                            return;
+                                        }
+                                        
+                                        // Create a user object without hashing the password client-side
+                                        const userData = {
+                                            user_type: userType,
+                                            first_name: firstName,
+                                            last_name: lastName,
+                                            email: email,
+                                            password: password, // Send plaintext password to the server
+                                            phone: phone,
+                                            address: address
+                                        };
+                                        
+                                        // Send user data to backend
+                                        try {
+                                            const response = await fetch(API_BASE_URL + '/insert', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify(userData)
+                                            });
+                                            
+                                            const result = await response.json();
+                                            
+                                            if (response.ok) {
+                                                showAlert('Sign up successful!', 'success'); 
+                                                document.getElementById('sign-up-modal').style.display = 'none';
+                                            } else {
+                                                showAlert('Sign up failed: ' + result.error, 'failure');
+                                            }
+                                        } catch (error) {
+                                            console.error('Error during sign up:', error);
+                                        }
+                                    });
+                                    
+                                    // Sign-in action
+                                    document.getElementById('sign-in-form').addEventListener('submit', async (event) => {
+                                        event.preventDefault(); // Prevent the default form submission
+                                        
+                                        // Collect data from form fields
+                                        const email = document.getElementById('signin-email').value;
+                                        const password = document.getElementById('signin-password').value;
+                                        
+                                        // Add validation
+                                        if (!email || !password) {
+                                            showAlert('Please fill in all required fields.', 'failure');
+                                            return;
+                                        }
+                                        
+                                        // Send login request to backend
+                                        try {
+                                            const response = await fetch(API_BASE_URL + '/signin', {
+                                                method: 'POST',
+                                                credentials: 'include', // If you are using cookies for session management
+                                                headers: {
+                                                    'Content-Type': 'application/json'
+                                                },
+                                                body: JSON.stringify({ email, password }) // Send plaintext password
+                                            });
+                                            
+                                            const result = await response.json();
+                                            // alert(JSON.stringify(result))
+                                            
+                                            if (response.ok) {
+                                                // Store JWT in localStorage or sessionStorage
+                                                localStorage.setItem('authToken', result.token); // Store JWT token
+                                                
+                                                // Update UI elements based on sign-in status
+                                                document.getElementById('sign-in-modal').style.display = 'none';
+                                                document.getElementById('sign-up-btn').style.display = 'none';
+                                                document.getElementById('sign-in-btn').style.display = 'none';
+                                                document.getElementById('sign-out-btn').style.display = 'block';
+                                                
+                                                // Optionally, reload the page or redirect
+                                                toggleSignInStatus(true);  // Update the UI sign-in state
+                                                localStorage.setItem('reloadFlag', 'true');
+                                                location.reload();
+                                            } else {
+                                                showAlert('Sign in failed: ' + result.error, 'failure');
+                                            }
+                                        } catch (error) {
+                                            console.error('Error during sign in:', error);
+                                            showAlert("An error occurred during sign in. Please try again.", "failure");
+                                        }
+                                    });
+                                    
+                                    // Check if the flag is set on page load
+                                    window.addEventListener('load', () => {
+                                        const reloadFlag = localStorage.getItem('reloadFlag');
+                                        
+                                        if (reloadFlag === 'true') {
+                                            // Reset the flag
+                                            localStorage.removeItem('reloadFlag');
+                                            
+                                            // Trigger the second reload after a short delay
+                                            setTimeout(() => {
+                                                location.reload();
+                                            }, 100); // 100ms delay before the second reload
+                                            
+                                            setTimeout(() => {
+                                                location.reload();
+                                            }, 100);
+                                        }
+                                    });
+                                    
+                                    
+                                    
+                                    //sign-out action
+                                    document.getElementById('sign-out-btn').addEventListener('click', async () => {
+                                        try {
+                                            // Get the JWT token from localStorage
+                                            const authToken = localStorage.getItem('authToken');
+                                            
+                                            if (!authToken) {
+                                                console.error('No token found');
+                                                showAlert('You are not logged in.', 'failure');
+                                                return;
+                                            }
+                                            
+                                            // Send request to logout route with the token in the Authorization header
+                                            const response = await fetch(API_BASE_URL + '/logout', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Authorization': `Bearer ${authToken}`, // Add token to Authorization header
+                                                },
+                                                credentials: 'include', // Ensure session cookies are included if used
+                                            });
+                                            
+                                            // Check if the logout was successful
+                                            if (response.ok) {
+                                                // Clear the JWT token from localStorage
+                                                localStorage.removeItem('authToken');
+                                                toggleSignInStatus(false);  // Update the UI sign-in state
+                                                showAlert('Successfully logged out.', 'success');  // Inform user of success
+                                                location.reload();
+                                            } else {
+                                                // Handle error during logout
+                                                const errorData = await response.json();
+                                                console.error('Logout error:', errorData);
+                                                showAlert('Logout failed. Please try again.', 'failure');
+                                            }
+                                        } catch (error) {
+                                            // Catch any network or other errors
+                                            console.error('Error during logout:', error);
+                                            showAlert("An error occurred during logout. Please try again.", "failure");
+                                        }
+                                    });
+                                    
+                                    
+                                    
+                                    //not exactly deleting
+                                    function deleteRowById(request_id) {
+                                        console.log("Attempting to delete row with Request ID:", request_id);
+                                        
+                                        fetch(API_BASE_URL + '/delete/' + request_id, {
+                                            method: 'DELETE',
+                                            headers: {
+                                                'Authorization': 'Bearer ' + localStorage.getItem('authToken') // Ensure you are passing the correct token
+                                            }
+                                        })
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                console.log("Row marked as deleted successfully");
+                                                location.reload(); // Or update the UI dynamically
+                                            } else {
+                                                console.log("Error deleting row:", data.message || "Unknown error");
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error("Error during the fetch operation:", error);
+                                        });
+                                    }
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    function displayResults(results) {
+                                        if(results){
+                                            loadHTMLTable(results);
+                                        }
+                                    }
+                                    
+                                    // this function is used for debugging only, and should be deleted afterwards
+                                    function debug(data)
+                                    {
+                                        fetch(API_BASE_URL + '/debug', {
+                                            headers: {
+                                                'Content-type': 'application/json'
+                                            },
+                                            method: 'POST',
+                                            body: JSON.stringify({debug: data})
+                                        })
+                                    }
+                                    
+                                    // Get modal elements
+                                    const signUpModal = document.getElementById('sign-up-modal');
+                                    const signInModal = document.getElementById('sign-in-modal');
+                                    const closeSignUp = document.getElementById('close-sign-up');
+                                    const closeSignIn = document.getElementById('close-sign-in');
+                                    const signUpBtn = document.getElementById('sign-up-btn');
+                                    const signInBtn = document.getElementById('sign-in-btn');
+                                    const signOutBtn = document.getElementById('sign-out-btn');
+                                    const updateModal = document.getElementById('update-row-modal');
+                                    const closeUpdateRow = document.getElementById('close-update-row');
+                                    const manageQuoteModal = document.getElementById('manage-quote-modal');
+                                    const closeManageQuote = document.getElementById('close-manage-quote');
+                                    const chatModal = document.getElementById('chat-modal');
+                                    const closeChatModal = document.getElementById('close-chat-modal');
+                                    const generateBillModal = document.getElementById('generate-bill-modal');
+                                    const closeGenerateBill = document.getElementById('close-generate-bill');
+                                    const payBillModal = document.getElementById('pay-bill-modal');
+                                    const closePayBillModal = document.getElementById('close-pay-bill-modal');
+                                    const disputeBillModal = document.getElementById('dispute-bill-modal');
+                                    const closeDisputeBill = document.getElementById('close-dispute-bill');
+                                    
+                                    // Elements for sign-in status
+                                    const signedInSection = document.getElementById('signed-in-section');
+                                    const guestSection = document.getElementById('guest-section');
+                                    
+                                    // Function to close modals
+                                    const closeModal = (modal) => {
+                                        modal.style.display = "none";
+                                    };
+                                    
+                                    // Event listeners for modal buttons
+                                    closeUpdateRow.addEventListener('click', () => closeModal(updateModal));
+                                    signUpBtn.addEventListener('click', () => signUpModal.style.display = "flex");
+                                    signInBtn.addEventListener('click', () => signInModal.style.display = "flex");
+                                    closeSignUp.addEventListener('click', () => closeModal(signUpModal));
+                                    closeSignIn.addEventListener('click', () => closeModal(signInModal));
+                                    closeManageQuote.addEventListener('click', () => closeModal(manageQuoteModal));
+                                    closeChatModal.addEventListener('click', () => closeModal(chatModal));
+                                    closeGenerateBill.addEventListener('click', () => closeModal(generateBillModal));
+                                    closePayBillModal.addEventListener('click', () => closeModal(payBillModal));
+                                    closeDisputeBill.addEventListener('click', () => closeModal(disputeBillModal));
+                                    
+                                    
+                                    // Close modal when clicking outside of the modal content
+                                    window.addEventListener('click', (event) => {
+                                        if (event.target === signUpModal) closeModal(signUpModal);
+                                        if (event.target === signInModal) closeModal(signInModal);
+                                        if (event.target === updateModal) closeModal(updateModal);
+                                        if (event.target === manageQuoteModal) closeModal(manageQuoteModal);
+                                        if (event.target === chatModal) closeModal(chatModal);  
+                                        if (event.target === generateBillModal) closeModal(generateBillModal);
+                                        if (event.target === payBillModal) closeModal(payBillModal);
+                                        if (event.target === disputeBillModal) closeModal(disputeBillModal);
+                                        
+                                    });
+                                    
+                                    // Function to toggle sign-in status
+                                    const toggleSignInStatus = (isLoggedIn) => {
+                                        
+                                        const welcomeMessage = document.getElementById('welcome-message');
+                                        signInBtn.style.display = isLoggedIn ? 'none' : 'inline';
+                                        signUpBtn.style.display = isLoggedIn ? 'none' : 'inline';
+                                        signOutBtn.style.display = isLoggedIn ? 'inline' : 'none';
+                                        signedInSection.classList.toggle('disabled', !isLoggedIn);
+                                        guestSection.style.display = isLoggedIn ? 'none' : 'block';
+                                        welcomeMessage.hidden = !isLoggedIn;
+                                        
+                                    };
+                                    
+                                    
+                                    
+                                    
