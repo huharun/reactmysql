@@ -2403,7 +2403,7 @@ function viewNewRequests(type) {
             return;
         }
         
-        let tableHTML = `<thead><tr>`;
+        let tableHTML = `<h2>${reportType.replace(/\b\w/g, char => char.toUpperCase())}</h2><thead><tr>`;
         let rowsHTML = '';
         
         if (reportType === 'bigClients') {
@@ -2443,6 +2443,7 @@ function viewNewRequests(type) {
             <th>Client Name</th>
             <th>Service</th>
             <th>Quote Amount</th>
+            <th>Date</th>
             </tr></thead>`;
                     rowsHTML = data.map(quote => `
             <tr>
@@ -2450,6 +2451,7 @@ function viewNewRequests(type) {
                 <td>${quote.client_name || 'N/A'}</td>
                 <td>${quote.service_name || 'N/A'}</td>
                 <td>${quote.amount || 'N/A'}</td>
+                <td>${quote.accepted_date ? new Date(quote.accepted_date).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
             `).join('');
         } else if (reportType === 'prospectiveQuotes') {
@@ -2492,12 +2494,14 @@ function viewNewRequests(type) {
             tableHTML += `
             <th>Client Name</th>
             <th>Overdue Amount</th>
+            <th>Generated Date</th>
             <th>Due Date</th>
             </tr></thead>`;
                                 rowsHTML = data.map(bill => `
             <tr>
                 <td>${bill.client_name || 'N/A'}</td>
                 <td>${bill.amount || 'N/A'}</td>
+                <td>${bill.generated_date ? new Date(bill.generated_date).toLocaleDateString('en-US') : 'N/A'}</td>
                 <td>${bill.due_date ? new Date(bill.due_date).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
             `).join('');
@@ -2506,11 +2510,15 @@ function viewNewRequests(type) {
             tableHTML += `
             <th>Client Name</th>
             <th>Total Overdue Bills</th>
+            <th>Generated Date</th>
+            <th>Due Date</th>
             </tr></thead>`;
                                     rowsHTML = data.map(client => `
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
                 <td>${client.total_overdue_bills || 'N/A'}</td>
+                <td>${client.generated_dates ? new Date(client.generated_dates).toLocaleDateString('en-US') : 'N/A'}</td>
+                <td>${client.due_dates ? new Date(client.due_dates).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
             `).join('');
         } else if (reportType === 'goodClients') {
@@ -2518,11 +2526,15 @@ function viewNewRequests(type) {
             tableHTML += `
             <th>Client Name</th>
             <th>Timely Payments</th>
+            <th>Due Date</th>
+            <th>Payment Date</th>
             </tr></thead>`;
                                         rowsHTML = data.map(client => `
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
                 <td>${client.timely_payments || 'N/A'}</td>
+                <td>${client.due_dates ? new Date(client.due_dates).toLocaleDateString('en-US') : 'N/A'}</td>
+                <td>${client.payment_dates ? new Date(client.payment_dates).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
             `).join('');
         } else {

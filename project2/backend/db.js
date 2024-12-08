@@ -230,7 +230,7 @@
                  `;
             } else if (type === 'thisMonthQuotes') {
                query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, O.order_id, S.service_name, O.accepted_date, QR.counter_price as amount
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, O.order_id, S.service_name, O.accepted_date, QR.counter_price as amount, O.accepted_date
                      FROM orderofwork O
                      JOIN requestforquote R ON R.request_id = O.request_id
                      JOIN quoteresponse QR ON QR.request_id = O.request_id
@@ -272,42 +272,41 @@
                    SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
                           B.bill_id, 
                           B.amount, 
+                          B.generated_date, 
                           B.due_date
                    FROM bill B
-                   JOIN payment P ON P.bill_id = B.bill_id
                    JOIN orderofwork O ON O.order_id = B.order_id
                    JOIN requestforquote R ON R.request_id = O.request_id
                    JOIN users U ON U.id = R.client_id
+                   LEFT JOIN payment P ON P.bill_id = B.bill_id
                    WHERE B.due_date < CURRENT_DATE() 
-                   AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.generated_date, INTERVAL 1 WEEK))
-                   AND R.is_deleted = 0
+                     AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.generated_date, INTERVAL 1 WEEK))
+                     AND R.is_deleted = 0
                    ORDER BY B.due_date ASC;
                `;
-           } else if (type === 'badClients') {
+           }else if (type === 'badClients') {
             query = `
                 SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
-                       COUNT(B.bill_id) AS total_overdue_bills
+                       COUNT(B.bill_id) AS total_overdue_bills, 
+                       GROUP_CONCAT(B.generated_date) AS generated_dates, 
+                       GROUP_CONCAT(B.due_date) AS due_dates
                 FROM users U
                 JOIN requestforquote R ON R.client_id = U.id
                 JOIN orderofwork O ON O.request_id = R.request_id
                 JOIN bill B ON B.order_id = O.order_id
                 LEFT JOIN payment P ON P.bill_id = B.bill_id
                 WHERE R.is_deleted = 0
-                AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.generated_date, INTERVAL 1 WEEK))
+                  AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.generated_date, INTERVAL 1 WEEK))
                 GROUP BY U.id
-                HAVING COUNT(B.bill_id) = 
-                       (SELECT COUNT(B1.bill_id) 
-                        FROM bill B1 
-                        JOIN orderofwork O1 ON O1.order_id = B1.order_id 
-                        JOIN requestforquote R1 ON R1.request_id = O1.request_id 
-                        WHERE R1.client_id = U.id
-                          AND R1.is_deleted = 0)
+                HAVING total_overdue_bills > 0
                 ORDER BY total_overdue_bills DESC;
             `;
-           }  else if (type === 'goodClients') {
+        }
+        
+          else if (type === 'goodClients') {
             query = `
                 SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
-                       COUNT(B.bill_id) AS timely_payments
+                       COUNT(B.bill_id) AS timely_payments, GROUP_CONCAT(B.due_date) as due_dates, GROUP_CONCAT(P.payment_date) AS payment_dates
                 FROM users U
                 JOIN requestforquote R ON R.client_id = U.id
                 JOIN orderofwork O ON O.request_id = R.request_id
@@ -320,7 +319,7 @@
                 HAVING COUNT(B.bill_id) > 0
                 ORDER BY timely_payments DESC;
             `;
-            }  else {
+               }  else {
                return reject(new Error("Invalid report type"));
             }
             
