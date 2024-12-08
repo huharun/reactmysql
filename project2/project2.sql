@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2024 at 09:06 PM
+-- Generation Time: Dec 08, 2024 at 05:44 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,10 +44,12 @@ CREATE TABLE `bill` (
 --
 
 INSERT INTO `bill` (`bill_id`, `order_id`, `amount`, `discount`, `generated_date`, `due_date`, `status`, `dispute_reason`, `dispute_resolve`) VALUES
-(1, 12, 1100.00, 100, '2024-11-28', '2024-11-30', 'Disputed', 'noo', 'yess'),
-(2, 9, 330000.00, 3333, '2024-11-28', '2024-12-06', 'Resolved', 'i want to less the price more', 'cant'),
+(1, 12, 1100.00, 100, '2024-12-02', '2024-11-30', 'Disputed', 'noo', 'yess'),
+(2, 9, 330000.00, 3333, '2024-11-28', '2024-12-06', 'Paid', 'i want to less the price more', 'cant'),
 (3, 10, 399556.00, 444, '2024-11-28', '2024-12-26', 'Paid', NULL, ''),
-(4, 13, 11000.00, 2000, '2024-11-29', '2024-12-03', 'Paid', NULL, NULL);
+(4, 13, 11000.00, 2000, '2024-11-29', '2024-12-03', 'Paid', NULL, NULL),
+(5, 14, 69999.00, 1, '2024-12-06', '2024-12-27', 'Disputed', 'expensive', NULL),
+(6, 16, 11800.00, 200, '2024-11-20', '2024-10-29', 'Pending', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -90,7 +92,14 @@ INSERT INTO `chat_messages` (`chat_id`, `order_id`, `sender_id`, `receiver_id`, 
 (19, 13, 8, 1, 'yes you we can', '2024-11-29 18:06:14'),
 (20, 13, 1, 8, 'thank you', '2024-11-29 18:06:22'),
 (21, 13, 8, 1, 'discount will be available after the bill generated', '2024-11-29 18:07:01'),
-(22, 13, 1, 8, 'oh okay', '2024-11-29 18:07:07');
+(22, 13, 1, 8, 'oh okay', '2024-11-29 18:07:07'),
+(23, 14, 12, 8, 'hey kid\n', '2024-12-06 19:48:41'),
+(24, 14, 8, 12, 'jii joker', '2024-12-06 19:48:56'),
+(25, 14, 12, 8, 'give me a discount', '2024-12-06 19:49:25'),
+(26, 14, 8, 12, 'no way', '2024-12-06 19:49:35'),
+(27, 14, 12, 8, 'please sir\n', '2024-12-06 19:49:51'),
+(28, 14, 8, 12, 'okay ill give you $1 discount', '2024-12-06 19:50:13'),
+(29, 14, 12, 8, 'screw you\n', '2024-12-06 19:50:24');
 
 -- --------------------------------------------------------
 
@@ -123,7 +132,16 @@ INSERT INTO `images` (`image_id`, `request_id`, `image_url`) VALUES
 (12, 8, 'uploads\\1732627433948-cracked-concrete-driveways-nz-8-1024x683.webp'),
 (13, 9, 'uploads\\1732902616643-download.jpg'),
 (14, 9, 'uploads\\1732902616650-images (1).jpg'),
-(15, 9, 'uploads\\1732902616651-images.jpg');
+(15, 9, 'uploads\\1732902616651-images.jpg'),
+(16, 10, 'uploads\\1733513688907-43188945_l-1024x683.webp'),
+(17, 11, 'uploads\\1733523156122-download.jpg'),
+(18, 12, 'uploads\\1733523157325-paving-repair-Toronto.jpg'),
+(19, 13, 'uploads\\1733525977714-cracked-driveway.jpg'),
+(20, 14, 'uploads\\1733526382566-sinkholes.jpg'),
+(21, 15, 'uploads\\1733526732821-cracks.jpg'),
+(22, 16, 'uploads\\1733527369756-driveway sealing.jpeg'),
+(23, 17, 'uploads\\1733527566619-driveway sealing.jpeg'),
+(24, 18, 'uploads\\1733527703179-holes and cracks.jpg');
 
 -- --------------------------------------------------------
 
@@ -146,10 +164,17 @@ CREATE TABLE `orderofwork` (
 INSERT INTO `orderofwork` (`order_id`, `request_id`, `accepted_date`, `status`, `is_deleted`) VALUES
 (8, 8, '2024-11-29 17:54:25', 'In Progress', 0),
 (9, 7, '2024-11-26 16:51:43', 'Completed', 0),
-(10, 6, '2024-11-26 21:16:53', 'In Progress', 0),
+(10, 6, '2024-11-26 21:16:53', 'Completed', 0),
 (11, 5, '2024-11-29 00:07:57', 'In Progress', 0),
 (12, 2, '2024-11-28 21:22:23', 'In Progress', 0),
-(13, 9, '2024-11-29 18:00:27', 'In Progress', 0);
+(13, 9, '2024-11-29 18:00:27', 'In Progress', 1),
+(14, 10, '2024-12-06 19:35:06', 'Completed', 0),
+(15, 11, '2024-12-06 22:13:31', 'In Progress', 0),
+(16, 12, '2024-12-06 22:13:32', 'In Progress', 0),
+(17, 18, '2024-12-08 04:24:55', 'In Progress', 0),
+(18, 17, '2024-12-08 04:24:56', 'In Progress', 0),
+(19, 16, '2024-12-08 04:24:56', 'In Progress', 0),
+(20, 15, '2024-12-08 04:24:57', 'In Progress', 0);
 
 -- --------------------------------------------------------
 
@@ -180,7 +205,9 @@ INSERT INTO `payment` (`payment_id`, `bill_id`, `payment_date`, `amount`, `user_
 (2, 2, '2024-11-29', 330000.00, 3, '2342234123423542', '0000-', '234', 'successful', 'card', 'TX-1732863927690-bno7tq9k'),
 (3, 3, '2024-11-29', 399556.00, 3, '2342234123423542', '0000-', '234', 'successful', 'card', 'TX-1732864746552-wwo99vtn'),
 (4, 3, '2024-11-29', 399556.00, 3, '2342234123423542', '0000-', '232', 'successful', 'card', 'TX-1732864947856-4bjkz0w5'),
-(5, 4, '2024-11-29', 11000.00, 1, '3294819273648721', '0000-', '222', 'successful', 'card', 'TX-1732903756297-si06t1sc');
+(5, 4, '2024-11-29', 11000.00, 1, '3294819273648721', '0000-', '222', 'successful', 'card', 'TX-1732903756297-si06t1sc'),
+(6, 2, '2024-12-06', 330000.00, 3, '2342234123423542', '23/34', '234', 'successful', 'card', 'TX-1733512829029-be8ibv3n'),
+(7, 5, '2024-12-06', 69999.00, 12, '123456789012345', '0939', '123', 'successful', 'card', 'TX-1733514691430-x5g5p5v2');
 
 -- --------------------------------------------------------
 
@@ -206,8 +233,11 @@ INSERT INTO `quoteresponse` (`response_id`, `request_id`, `counter_price`, `time
 (1, 2, 1200.00, '2024-11-12', '2024-11-27', 'DER', 'Accepted'),
 (2, 7, 333333.00, '2024-11-28', '2024-12-10', 'new', 'Accepted'),
 (4, 6, 400000.00, '2024-11-20', '2024-11-30', 'final\n\nupdated after request', 'Accepted'),
-(5, 5, 300000.00, '2024-11-29', '2024-11-30', 'new', 'Accepted'),
-(6, 9, 13000.00, '2024-12-06', '2024-12-11', 'new price', 'Accepted');
+(5, 5, 300000.00, '2024-11-29', '2024-11-30', 'new', 'Rejected'),
+(6, 9, 13000.00, '2024-12-06', '2024-12-11', 'new price', 'Accepted'),
+(7, 10, 70000.00, '2024-12-26', '2025-01-11', 'price', 'Accepted'),
+(8, 11, 126531.00, '2024-12-27', '2025-01-11', 'asd', 'Accepted'),
+(9, 12, 12000.00, '2024-12-12', '2024-12-28', 'new', 'Accepted');
 
 -- --------------------------------------------------------
 
@@ -235,15 +265,24 @@ CREATE TABLE `requestforquote` (
 --
 
 INSERT INTO `requestforquote` (`request_id`, `client_id`, `service_id`, `owned_by`, `property_address`, `square_feet`, `note`, `urgency`, `status`, `created_at`, `updated_at`, `is_deleted`) VALUES
-(1, 3, 1, 0, 'sa', 0, 'note', 'Low', '', '2024-11-18 06:11:23', '2024-11-25 15:25:38', 1),
-(2, 3, 1, 8, 'sa', 0, 'note', 'Low', '', '2024-11-18 06:12:16', '2024-11-28 21:22:23', 0),
-(3, 3, 1, 0, 'ADS', 0, 'note', 'Low', '', '2024-11-18 06:21:36', '2024-11-25 17:25:24', 1),
-(4, 3, 1, 0, 'awefvawd', 0, 'awefvawd', 'High', 'Pending', '2024-11-25 15:33:09', '2024-11-26 16:44:18', 0),
-(5, 3, 1, 8, 'wqeqd', 0, 'wqeqd', 'Medium', 'Pending', '2024-11-25 15:42:12', '2024-11-29 00:07:57', 0),
-(6, 3, 1, 8, 'af', 0, 'af', 'Low', 'Pending', '2024-11-25 15:58:29', '2024-11-26 21:16:53', 0),
+(1, 3, 1, 0, 'sa', 300, 'note', 'Low', '', '2024-11-18 06:11:23', '2024-12-08 02:09:16', 1),
+(2, 3, 1, 8, 'sa', 1200, 'note', 'Low', '', '2024-11-18 06:12:16', '2024-12-06 22:04:07', 0),
+(3, 3, 1, 0, 'ADS', 344, 'note', 'Low', '', '2024-11-18 06:21:36', '2024-12-08 02:09:22', 1),
+(4, 3, 1, 0, 'awefvawd', 1000, 'awefvawd', 'High', 'Pending', '2024-11-25 15:33:09', '2024-12-08 02:09:26', 0),
+(5, 3, 1, 8, 'wqeqd', 1000, 'wqeqd', 'Medium', 'Pending', '2024-11-25 15:42:12', '2024-12-08 02:09:30', 0),
+(6, 3, 1, 8, 'af', 1000, 'af', 'Low', 'Pending', '2024-11-25 15:58:29', '2024-12-08 03:07:14', 0),
 (7, 3, 1, 8, 'sf', 0, 'sf', 'Low', 'Pending', '2024-11-25 16:53:46', '2024-11-26 16:51:43', 0),
 (8, 1, 1, 9, 'hole', 0, 'hole', 'High', 'Pending', '2024-11-26 13:23:53', '2024-11-29 17:54:25', 0),
-(9, 1, 7, 8, 'regrav', 0, 'regrav', 'High', 'Pending', '2024-11-29 17:50:16', '2024-11-29 18:00:27', 0);
+(9, 1, 7, 0, 'regrav', 0, 'regrav', 'High', 'Pending', '2024-11-29 17:50:16', '2024-12-06 22:13:01', 0),
+(10, 12, 1, 8, 'cracks on drive way', 1000, 'cracks on drive way', 'Medium', 'Pending', '2024-12-06 19:34:49', '2024-12-08 03:07:02', 0),
+(11, 3, 6, 8, 'no', 2342, 'no', 'Medium', 'Pending', '2024-12-06 22:12:36', '2024-12-06 22:13:31', 0),
+(12, 11, 1, 8, 'holes and cracks', 2342, 'holes and cracks', 'High', 'Pending', '2024-12-06 22:12:38', '2024-12-08 03:05:57', 0),
+(13, 13, 8, 0, 'cracks in driveway', 2342, 'cracks in driveway', 'Medium', 'Pending', '2024-12-06 22:59:38', '2024-12-08 03:06:05', 0),
+(14, 14, 1, 0, 'holes ', 3452, 'holes ', 'Medium', 'Pending', '2024-12-06 23:06:22', '2024-12-06 23:06:22', 0),
+(15, 15, 1, 8, 'cracks and pits in driveway', 33, 'cracks and pits in driveway', 'Low', 'Pending', '2024-12-06 23:12:13', '2024-12-08 04:24:57', 0),
+(16, 16, 1, 8, 'driveway sealing', 454, 'driveway sealing', 'High', 'Pending', '2024-12-06 23:22:50', '2024-12-08 04:24:56', 0),
+(17, 11, 1, 8, 'sealing', 238, 'sealing', 'Medium', 'Pending', '2024-12-06 23:26:07', '2024-12-08 04:24:56', 0),
+(18, 11, 1, 8, 'small holes and cracks', 33, 'small holes and cracks', 'Low', 'Pending', '2024-12-06 23:28:24', '2024-12-08 04:24:55', 0);
 
 -- --------------------------------------------------------
 
@@ -301,14 +340,21 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `first_name`, `last_name`, `phone`, `email`, `password`, `address`, `credit_card`, `registration_date`, `last_sign_in`, `failed_attempts`, `locked`, `user_type`, `is_deleted`) VALUES
 (1, 'Arun', 'T', '3136397215', 'arunramkrishna997@gmail.com', '$2b$10$HCU/BZhiwwVh4p1yW8MP7ufc0ie89gG2oDUGnGED4fIt5jAKGFYjy', 'University Tower, 4500, Cass Avenue, Midtown, Detroit, Wayne County, Michigan, 48201, United States', '3294819273648721', '2024-11-11 17:21:01', '2024-11-29 19:33:58', 0, 0, 3, 0),
-(2, 'as', 'as', 'as', 'asas@gmail.co', '$2b$10$vr41rjxNMOWBAWRDuhw8c.HcrTjoNSdYekLQxXMZDUU85CgtjkJR.', 'Ads, Fourth Estate, San Antonio, Parañaque, Southern Manila District, Metro Manila, 1700, Philippines', '', '2024-11-11 17:22:27', '2024-11-11 17:22:27', 0, 0, 0, 0),
-(3, 'lion', 'king', '3136397215', 'lion@gmail.com', '$2b$10$Ymh7pd61XujSkYMMuObxguh5k2FA5qhsOmQVw4Mye9at9kHQW2kkS', 'University Tower, 4500, Cass Avenue, Midtown, Detroit, Wayne County, Michigan, 48201, United States', '2342234123423542', '2024-11-11 17:48:19', '2024-11-29 18:43:32', 0, 0, 3, 0),
+(2, 'as', 'as', '372461824', 'asas@gmail.co', '$2b$10$vr41rjxNMOWBAWRDuhw8c.HcrTjoNSdYekLQxXMZDUU85CgtjkJR.', 'Ads, Fourth Estate, San Antonio, Parañaque, Southern Manila District, Metro Manila, 1700, Philippines', '', '2024-11-11 17:22:27', '2024-11-11 17:22:27', 0, 0, 0, 0),
+(3, 'lion', 'king', '3136397215', 'lion@gmail.com', '$2b$10$Ymh7pd61XujSkYMMuObxguh5k2FA5qhsOmQVw4Mye9at9kHQW2kkS', 'University Tower, 4500, Cass Avenue, Midtown, Detroit, Wayne County, Michigan, 48201, United States', '2342234123423542', '2024-11-11 17:48:19', '2024-12-08 02:45:17', 0, 0, 3, 0),
 (4, 'Arun', 'Ramkrishna', '+918072087295', 'arunramkrishna997@gmail.co', '$2b$10$g58EdAIl3C4w9D0Jog6.JOmJR6jwlDLidk4o6LvQdqv7dPprH9.sO', 'Ligne 15 Ouest, Avenue Laurent Cély, Les Grésillons, Gennevilliers, Arrondissement of Nanterre, Hauts-de-Seine, Ile-de-France, Metropolitan France, 92230, France', '', '2024-11-11 17:50:46', '2024-11-11 17:50:46', 0, 0, 0, 0),
 (5, 'Arun', 'Thangapalam', '+918072087295', 'arunramkrishna997@il.com', '$2b$10$/npe8TYpeCpKzq3lkGN5buJV9YnV/SGIjM5WVmjOQueIw1ymFWEUa', '15 3/10 Road, Mesa County, Colorado, United States', '', '2024-11-11 19:17:26', '2024-11-11 19:17:26', 0, 0, 0, 0),
 (6, 'Arun', 'Ramkrishna', '+918072087295', 'arunramkris997@gmail.com', '$2b$10$pk2W7hVT58tgCVmrTQDuHeAKbhpXiKNtvKbo4K.46/C5hd0owi5S6', '15-3-60', '', '2024-11-18 01:21:07', '2024-11-18 01:21:07', 0, 0, 3, 0),
 (7, 'Arun', 'Ramkrishna', '+918072087295', 'arunramkri997@gmail.com', '$2b$10$lPtla4OBTrmcF..wVHvpxORT.qUY9Y4SmpXEmat4k1LcH2KUy99nC', '15-3-60', '', '2024-11-18 01:21:20', '2024-11-18 01:21:20', 0, 0, 3, 0),
-(8, 'Joker', 'folie', '3452435234', 'joker@gmail.com', '$2b$10$xb2OBsFuzJbQnVH2NPUNJOvUFFpSXUq8MQorflpE4wn6jU2EdP.ee', '4500 fass ave madras', '', '2024-11-26 13:17:49', '2024-11-29 19:51:39', 0, 0, 2, 0),
-(9, 'ani', 'ru', '34532424', 'ani@gmail.com', '$2b$10$4ri/2yR9CXlUfmVmDg517.jdANZwavaUVTUmmjuk3Q339qstRKtCO', '456 dsfg ert', '', '2024-11-26 15:10:36', '2024-11-29 17:53:34', 0, 0, 2, 0);
+(8, 'Joker', 'folie', '3452435234', 'joker@gmail.com', '$2b$10$xb2OBsFuzJbQnVH2NPUNJOvUFFpSXUq8MQorflpE4wn6jU2EdP.ee', '4500 fass ave madras', '', '2024-11-26 13:17:49', '2024-12-08 03:54:54', 0, 0, 2, 0),
+(9, 'ani', 'ru', '34532424', 'ani@gmail.com', '$2b$10$4ri/2yR9CXlUfmVmDg517.jdANZwavaUVTUmmjuk3Q339qstRKtCO', '456 dsfg ert', '', '2024-11-26 15:10:36', '2024-11-29 17:53:34', 0, 0, 2, 0),
+(10, 'Emma', 'werson', '13134557867', 'emma@234gmail.com', '$2b$10$Nb7tXua0LQmIj3pdRBSSh.mefUgus3BVtBS4N1Ja5IHDjRo5.99Aq', '5673 cass', '', '2024-12-06 19:23:21', '2024-12-06 19:25:13', 3, 0, 2, 0),
+(11, 'ame', 'kirson', '13134557999', 'ema@234gmail.com', '$2b$10$hCK46zxn2OQJ5f.l0neFTuXUA9/6qmHMEuPlqr6q5z9ETM5TmUVLi', '5673 cass ', '456789012345', '2024-12-06 19:26:50', '2024-12-06 23:26:29', 0, 0, 3, 0),
+(12, 'ame', 'kirson', '13134557999', 'ame@1234gmail.com', '$2b$10$UVkbyHiaSvpYdEwAs5I6ruEqXlagpYkfxE2Ka/c9CnbeJ.RjF7/8a', '5673 cass', '123456789012345', '2024-12-06 19:28:47', '2024-12-06 19:29:16', 0, 0, 3, 0),
+(13, 'tom', 'webster', '+1 989 765 4567', 'webster@345gmail.com', '$2b$10$ljWp9zHntWB0aAN3tzQR.uBZoiH6KR6FxAJcEPpS3S55rEezC5tSq', '6789 lenova lane', '890078652345', '2024-12-06 22:42:11', '2024-12-06 22:42:55', 0, 0, 3, 0),
+(14, 'sam', 'jose', '+1 9198796788', 'sam@gmail.com', '$2b$10$z6SXzMYtkx1FOslTWH8VNeS2pn0yxM7ctLnpwBBJuoNEGmqiyrYW.', '2345 hans lane', '', '2024-12-06 23:03:23', '2024-12-06 23:03:55', 0, 0, 3, 0),
+(15, 'luke', 'jackson', '+1517 678 5643', 'luke@517gmail.com', '$2b$10$sVNkDZD0BuAjrYHPlWKJte3YlYt7yuuLEANIQAysK7quEAfGLo9LO', '5172 kanes city', '456789012345', '2024-12-06 23:08:32', '2024-12-06 23:09:09', 0, 0, 3, 0),
+(16, 'bheem', 'chota', '+1 2345678900', 'bheem@gmail.com', '$2b$10$XuNTZ8wseydqxZ7cELv.C.wH.geJ2IQHmfc3L4gVZDDfeeaz/LcGu', '4545 flyine ave', '', '2024-12-06 23:14:02', '2024-12-06 23:14:29', 0, 0, 3, 0);
 
 -- --------------------------------------------------------
 
@@ -442,7 +488,41 @@ INSERT INTO `user_login` (`id`, `user_id`, `login_time`, `status`, `ip_address`)
 (111, 8, '2024-11-29 17:54:40', 'success', '::ffff:35.16.1.228'),
 (112, 3, '2024-11-29 18:43:32', 'success', '::ffff:35.16.1.228'),
 (113, 1, '2024-11-29 19:33:58', 'success', '::ffff:35.16.1.228'),
-(114, 8, '2024-11-29 19:51:39', 'success', '::ffff:35.16.1.228');
+(114, 8, '2024-11-29 19:51:39', 'success', '::ffff:35.16.1.228'),
+(115, 8, '2024-12-01 23:15:14', 'success', '::ffff:35.16.1.228'),
+(116, 8, '2024-12-01 23:17:01', 'success', '::ffff:35.16.72.137'),
+(117, 8, '2024-12-01 23:18:00', 'success', '::ffff:35.16.1.228'),
+(118, 3, '2024-12-02 20:24:50', 'success', '::ffff:35.16.81.183'),
+(119, 8, '2024-12-02 20:25:47', 'success', '::ffff:35.16.81.183'),
+(120, 3, '2024-12-02 20:26:28', 'success', '::ffff:35.16.81.183'),
+(121, 8, '2024-12-06 19:16:22', 'success', '::ffff:35.16.81.183'),
+(122, 3, '2024-12-06 19:16:32', 'success', '::ffff:35.16.81.183'),
+(123, 10, '2024-12-06 19:24:53', 'failure', '::ffff:35.16.70.116'),
+(124, 10, '2024-12-06 19:25:01', 'failure', '::ffff:35.16.70.116'),
+(125, 10, '2024-12-06 19:25:13', 'failure', '::ffff:35.16.70.116'),
+(126, 12, '2024-12-06 19:29:02', 'failure', '::ffff:35.16.70.116'),
+(127, 12, '2024-12-06 19:29:16', 'success', '::ffff:35.16.70.116'),
+(128, 8, '2024-12-06 20:16:32', 'success', '::ffff:35.16.81.183'),
+(129, 8, '2024-12-06 21:29:45', 'success', '::ffff:35.16.81.183'),
+(130, 3, '2024-12-06 21:51:51', 'success', '::ffff:35.16.81.183'),
+(131, 11, '2024-12-06 22:02:18', 'success', '::ffff:35.16.70.116'),
+(132, 8, '2024-12-06 22:38:34', 'success', '::ffff:35.16.81.183'),
+(133, 13, '2024-12-06 22:42:55', 'success', '::ffff:35.16.70.116'),
+(134, 14, '2024-12-06 23:03:55', 'success', '::ffff:35.16.70.116'),
+(135, 15, '2024-12-06 23:09:09', 'success', '::ffff:35.16.70.116'),
+(136, 16, '2024-12-06 23:14:29', 'success', '::ffff:35.16.70.116'),
+(137, 11, '2024-12-06 23:24:17', 'success', '::ffff:35.16.70.116'),
+(138, 11, '2024-12-06 23:26:29', 'success', '::ffff:35.16.70.116'),
+(139, 8, '2024-12-06 23:43:41', 'success', '::ffff:35.16.81.183'),
+(140, 3, '2024-12-07 22:53:36', 'success', '::ffff:35.16.81.183'),
+(141, 8, '2024-12-07 22:53:51', 'success', '::ffff:35.16.81.183'),
+(142, 8, '2024-12-07 23:09:38', 'success', '::ffff:35.16.81.183'),
+(143, 3, '2024-12-08 00:08:50', 'success', '::ffff:35.16.81.183'),
+(144, 8, '2024-12-08 00:14:18', 'success', '::ffff:35.16.81.183'),
+(145, 8, '2024-12-08 01:51:35', 'success', '::ffff:35.16.81.183'),
+(146, 3, '2024-12-08 02:45:17', 'success', '::ffff:35.16.81.183'),
+(147, 8, '2024-12-08 02:52:26', 'success', '::ffff:35.16.81.183'),
+(148, 8, '2024-12-08 03:54:54', 'success', '::ffff:35.16.81.183');
 
 -- --------------------------------------------------------
 
@@ -552,43 +632,43 @@ ALTER TABLE `user_type`
 -- AUTO_INCREMENT for table `bill`
 --
 ALTER TABLE `bill`
-  MODIFY `bill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `bill_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `chat_messages`
 --
 ALTER TABLE `chat_messages`
-  MODIFY `chat_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `chat_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `images`
 --
 ALTER TABLE `images`
-  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `image_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `orderofwork`
 --
 ALTER TABLE `orderofwork`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `payment`
 --
 ALTER TABLE `payment`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `quoteresponse`
 --
 ALTER TABLE `quoteresponse`
-  MODIFY `response_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `response_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `requestforquote`
 --
 ALTER TABLE `requestforquote`
-  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `request_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `service_types`
@@ -600,13 +680,13 @@ ALTER TABLE `service_types`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `user_login`
 --
 ALTER TABLE `user_login`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
 
 --
 -- AUTO_INCREMENT for table `user_type`

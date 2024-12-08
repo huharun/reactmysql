@@ -195,14 +195,14 @@ function renderMenu() {
                 </li>
                 <li><a href="#" onclick="toggleSubMenu(event, 'reports')">Reports</a>
                     <ul class="submenu" id="reports">
-                        <li><a href="#" onclick="viewReport('bigClients')">List of Big Clients</a></li>
-                        <li><a href="#" onclick="viewReport('difficultClients')">Difficult Clients</a></li>
-                        <li><a href="#" onclick="viewReport('thisMonthQuotes')">This Month Quotes</a></li>
-                        <li><a href="#" onclick="viewReport('prospectiveQuotes')">Prospective Quotes</a></li>
-                        <li><a href="#" onclick="viewReport('largestDriveway')">Largest Driveway</a></li>
-                        <li><a href="#" onclick="viewReport('overdueBills')">Overdue Bills</a></li>
-                        <li><a href="#" onclick="viewReport('badClients')">Bad Clients</a></li>
-                        <li><a href="#" onclick="viewReport('goodClients')">Good Clients</a></li>
+                        <li><a href="#" onclick="fetchReportData('bigClients')">List of Big Clients</a></li>
+                        <li><a href="#" onclick="fetchReportData('difficultClients')">Difficult Clients</a></li>
+                        <li><a href="#" onclick="fetchReportData('thisMonthQuotes')">This Month Quotes</a></li>
+                        <li><a href="#" onclick="fetchReportData('prospectiveQuotes')">Prospective Quotes</a></li>
+                        <li><a href="#" onclick="fetchReportData('largestDriveway')">Largest Driveway</a></li>
+                        <li><a href="#" onclick="fetchReportData('overdueBills')">Overdue Bills</a></li>
+                        <li><a href="#" onclick="fetchReportData('badClients')">Bad Clients</a></li>
+                        <li><a href="#" onclick="fetchReportData('goodClients')">Good Clients</a></li>
                     </ul>
                 </li>
             </ul>
@@ -2369,17 +2369,21 @@ function viewNewRequests(type) {
     
     // Function to fetch report data dynamically using POST
     function fetchReportData(reportType) {
+        console.log("Viewing report..." + reportType);
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+
         fetch(API_BASE_URL + '/report', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + localStorage.getItem('authToken')
             },
-            body: JSON.stringify({ reportType: reportType }) // Sending reportType in the body
+            body: JSON.stringify({ reportType: reportType, userId: userId }) // Sending reportType in the body
         })
         .then(response => response.json())
         .then(data => {
-            buildDynamicTable(reportType, data);
+            viewReport(reportType, data);
         })
         .catch(error => {
             console.error('Error fetching report data:', error);
@@ -2389,6 +2393,7 @@ function viewNewRequests(type) {
     
     // Function to build a table dynamically based on report type
     function viewReport(reportType, data) {
+        console.log("Viewing report..." + reportType);
         const table = document.getElementById('table');
         document.getElementById('formContainer').style.display = 'none';
         document.getElementById('table').style.display = 'block';
@@ -2405,118 +2410,135 @@ function viewNewRequests(type) {
             // Columns specific to Big Clients
             tableHTML += `
             <th>Client Name</th>
+            <th>Services</th>
             <th>Total Orders</th>
-        </tr></thead>`;
+            <th>Completed Orders</th>
+            </tr></thead>`;
             rowsHTML = data.map(client => `
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
+                <td>${client.service_name || 'N/A'}</td>
                 <td>${client.total_orders || 'N/A'}</td>
+                <td>${client.completed_orders || 'N/A'}</td>
             </tr>
-        `).join('');
-            } else if (reportType === 'difficultClients') {
-                // Columns specific to Difficult Clients
-                tableHTML += `
+            `).join('');
+        } else if (reportType === 'difficultClients') {
+            // Columns specific to Difficult Clients
+            tableHTML += `
             <th>Client Name</th>
-            <th>Complaints</th>
-        </tr></thead>`;
+            <th>Total Orders</th>
+            <th>Not Followed Orders</th>
+            </tr></thead>`;
                 rowsHTML = data.map(client => `
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
-                <td>${client.complaints || 'N/A'}</td>
+                <td>${client.total_orders || 'N/A'}</td>
+                <td>${client.difficult_orders || 'N/A'}</td>
             </tr>
-        `).join('');
-                } else if (reportType === 'thisMonthQuotes') {
+            `).join('');
+        } else if (reportType === 'thisMonthQuotes') {
                     // Columns specific to This Month's Quotes
                     tableHTML += `
-            <th>Quote Id</th>
+            <th>Order Id</th>
             <th>Client Name</th>
             <th>Service</th>
             <th>Quote Amount</th>
-        </tr></thead>`;
+            </tr></thead>`;
                     rowsHTML = data.map(quote => `
             <tr>
-                <td>${quote.quote_id || 'N/A'}</td>
+                <td>${quote.order_id || 'N/A'}</td>
                 <td>${quote.client_name || 'N/A'}</td>
                 <td>${quote.service_name || 'N/A'}</td>
-                <td>${quote.quote_amount || 'N/A'}</td>
+                <td>${quote.amount || 'N/A'}</td>
             </tr>
-        `).join('');
-                    } else if (reportType === 'prospectiveQuotes') {
-                        // Columns specific to Prospective Quotes
-                        tableHTML += `
+            `).join('');
+        } else if (reportType === 'prospectiveQuotes') {
+            // Columns specific to Prospective Quotes
+            tableHTML += `
             <th>Client Name</th>
-            <th>Potential Revenue</th>
-        </tr></thead>`;
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Last Sign In    </th>
+            </tr></thead>`;
                         rowsHTML = data.map(quote => `
             <tr>
                 <td>${quote.client_name || 'N/A'}</td>
-                <td>${quote.potential_revenue || 'N/A'}</td>
+                <td>${quote.email || 'N/A'}</td>
+                <td>${quote.phone || 'N/A'}</td>
+                <td>${quote.last_sign_in ? new Date(quote.last_sign_in).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
-        `).join('');
-                        } else if (reportType === 'largestDriveway') {
-                            // Columns specific to Largest Driveway
-                            tableHTML += `
+            `).join('');
+        } else if (reportType === 'largestDriveway') {
+            // Columns specific to Largest Driveway
+            tableHTML += `
             <th>Client Name</th>
             <th>Driveway Size</th>
-        </tr></thead>`;
+            <th>Request ID</th>
+            <th>Location</th>
+            <th>Images</th>
+            </tr></thead>`;
                             rowsHTML = data.map(client => `
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
-                <td>${client.driveway_size || 'N/A'}</td>
+                <td>${client.square_feet + ' sqft' || 'N/A'}</td>
+                <td>${client.request_id || 'N/A'}</td>
+                <td>${client.property_address || 'N/A'}</td>
+                <td>${client.image_urls ? client.image_urls.split(', ').map(url => `<a href="${url}" target="_blank"><img src="${url}" alt="Request Image" style="width: 100px; height: 100px; display: inline; margin-right: 10px;" /></a>`).join('') : 'No Images'}</td>
+
             </tr>
-        `).join('');
-                            } else if (reportType === 'overdueBills') {
-                                // Columns specific to Overdue Bills
-                                tableHTML += `
+            `).join('');
+        } else if (reportType === 'overdueBills') {
+            // Columns specific to Overdue Bills
+            tableHTML += `
             <th>Client Name</th>
             <th>Overdue Amount</th>
             <th>Due Date</th>
-        </tr></thead>`;
+            </tr></thead>`;
                                 rowsHTML = data.map(bill => `
             <tr>
                 <td>${bill.client_name || 'N/A'}</td>
-                <td>${bill.overdue_amount || 'N/A'}</td>
-                <td>${bill.due_date || 'N/A'}</td>
+                <td>${bill.amount || 'N/A'}</td>
+                <td>${bill.due_date ? new Date(bill.due_date).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
-        `).join('');
-                                } else if (reportType === 'badClients') {
-                                    // Columns specific to Bad Clients
-                                    tableHTML += `
+            `).join('');
+        } else if (reportType === 'badClients') {
+            // Columns specific to Bad Clients
+            tableHTML += `
             <th>Client Name</th>
-            <th>Negative Feedbacks</th>
-        </tr></thead>`;
+            <th>Total Overdue Bills</th>
+            </tr></thead>`;
                                     rowsHTML = data.map(client => `
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
-                <td>${client.negative_feedbacks || 'N/A'}</td>
+                <td>${client.total_overdue_bills || 'N/A'}</td>
             </tr>
-        `).join('');
-                                    } else if (reportType === 'goodClients') {
-                                        // Columns specific to Good Clients
-                                        tableHTML += `
+            `).join('');
+        } else if (reportType === 'goodClients') {
+             // Columns specific to Good Clients
+            tableHTML += `
             <th>Client Name</th>
-            <th>Positive Feedbacks</th>
-        </tr></thead>`;
+            <th>Timely Payments</th>
+            </tr></thead>`;
                                         rowsHTML = data.map(client => `
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
-                <td>${client.positive_feedbacks || 'N/A'}</td>
+                <td>${client.timely_payments || 'N/A'}</td>
             </tr>
-        `).join('');
-                                        } else {
-                                            tableHTML = '<tr><td colspan="6">Invalid report type.</td></tr>';
-                                        }
+            `).join('');
+        } else {
+            tableHTML = '<tr><td colspan="6">Invalid report type.</td></tr>';
+        }
                                         
-                                        tableHTML += `<tbody>${rowsHTML}</tbody>`;
-                                        table.innerHTML = tableHTML;
-                                    }
+            tableHTML += `<tbody>${rowsHTML}</tbody>`;
+            table.innerHTML = tableHTML;
+    }
                                     
                                     
                                     
                                     
                                     
-                                    // Call the renderMenu function on page load
-                                    window.onload = renderMenu;
+    // Call the renderMenu function on page load
+    window.onload = renderMenu;
                                     
                                     
                                     

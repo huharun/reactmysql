@@ -838,14 +838,30 @@ app.post('/view_payment_history', async (req, res) => {
 
 
 // Endpoint to fetch reports based on the report type
-app.get('/report/:type', async (req, res) => {
-    const type = req.params.type;
+app.post('/report', async (req, res) => {
+    const { reportType, userId } = req.body;
+
+    if (!reportType) {
+        return res.status(400).json({ error: 'Report type is required' });
+    }
+
     try {
         const db = dbService.getDbServiceInstance();
-        const reportData = await db.getReport(type);
+        const requests = await db.getReport(reportType, userId);
+        // Add full URLs for images
+        const baseUrl =  "/reactmysql/project2/backend/"; 
         
-        // Return the list of report data as JSON
-        res.status(200).json(reportData);
+        const updatedRequests = requests.map(request => {
+            // Prepend the base URL to each image URL
+            if (request.image_urls) {
+                request.image_urls = request.image_urls.split(', ').map(url => baseUrl + url).join(', ');
+            }
+            return request;
+        });
+        
+
+        // Send the fetched report data back as a JSON response
+        res.status(200).json(updatedRequests);
     } catch (error) {
         console.error('Error fetching report data:', error);
         res.status(500).json({ error: 'Failed to fetch report data', details: error.message });

@@ -187,114 +187,153 @@
          });
       }
       
-      async getReport(type) {
+      async getReport(type, userId) {
          return new Promise((resolve, reject) => {
-             let query = "";
-     
-             // Define queries based on the report type
-             if (type === 'bigClients') {
-                 query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, COUNT(O.order_id) AS total_orders
+            let query = "";
+            
+            // Define queries based on the report type
+            if (type === 'bigClients') {
+               query = `SELECT 
+                        CONCAT(U.first_name, ' ', U.last_name) AS client_name,
+                        GROUP_CONCAT(DISTINCT CONCAT(S.service_name, ' (', service_counts.service_count, ')') SEPARATOR ', ') AS service_name,
+                        COUNT(O.order_id) AS total_orders,
+                        SUM(CASE WHEN O.status = 'Completed' THEN 1 ELSE 0 END) AS completed_orders
+                        FROM orderofwork O
+                        JOIN requestforquote R ON R.request_id = O.request_id
+                        JOIN service_types S ON S.service_id = R.service_id
+                        JOIN users U ON U.id = R.client_id
+                        JOIN (
+                           SELECT R.client_id, R.service_id, COUNT(O.order_id) AS service_count
+                           FROM orderofwork O
+                           JOIN requestforquote R ON R.request_id = O.request_id
+                           WHERE R.is_deleted = 0
+                           GROUP BY R.client_id, R.service_id
+                           ) AS service_counts ON service_counts.client_id = U.id AND service_counts.service_id = S.service_id
+                        WHERE R.owned_by = ${userId}
+                        AND R.is_deleted = 0
+                        GROUP BY U.id
+                        ORDER BY total_orders DESC;
+               `;
+            } else if (type === 'difficultClients') {
+               query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+                     COUNT(CASE WHEN QR.status = 'Accepted' AND B.status IN ('Pending', 'Disputed') THEN O.order_id END) AS difficult_orders,
+                     COUNT(O.order_id) AS total_orders
                      FROM orderofwork O
                      JOIN requestforquote R ON R.request_id = O.request_id
+                     LEFT JOIN quoteresponse QR ON QR.request_id = O.request_id
+                     LEFT JOIN bill B ON B.order_id = O.order_id
                      JOIN users U ON U.id = R.client_id
-                     WHERE O.status = 'Completed' AND R.is_deleted = 0
+                     WHERE R.owned_by = ${userId} AND R.is_deleted = 0
                      GROUP BY U.id
-                     HAVING total_orders = (
-                         SELECT MAX(client_orders) 
-                         FROM (
-                             SELECT COUNT(O.order_id) AS client_orders 
-                             FROM orderofwork O
-                             JOIN requestforquote R ON R.request_id = O.request_id
-                             JOIN users U ON U.id = R.client_id
-                             WHERE O.status = 'Completed' AND R.is_deleted = 0
-                             GROUP BY U.id
-                         ) subquery
-                     );
+                     ORDER BY total_orders DESC;
                  `;
-             } else if (type === 'difficultClients') {
-                 query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, COUNT(O.order_id) AS difficult_orders
+            } else if (type === 'thisMonthQuotes') {
+               query = `
+                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, O.order_id, S.service_name, O.accepted_date, QR.counter_price as amount
                      FROM orderofwork O
                      JOIN requestforquote R ON R.request_id = O.request_id
-                     JOIN users U ON U.id = R.client_id
-                     WHERE O.status = 'Difficult' AND R.is_deleted = 0
-                     GROUP BY U.id
-                     ORDER BY difficult_orders DESC;
-                 `;
-             } else if (type === 'thisMonthQuotes') {
-                 query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, O.order_id, S.service_name, O.order_date
-                     FROM orderofwork O
-                     JOIN requestforquote R ON R.request_id = O.request_id
+                     JOIN quoteresponse QR ON QR.request_id = O.request_id
                      JOIN users U ON U.id = R.client_id
                      JOIN service_types S ON S.service_id = R.service_id
-                     WHERE MONTH(O.order_date) = MONTH(CURRENT_DATE()) AND R.is_deleted = 0
-                     ORDER BY O.order_date DESC;
+                     WHERE R.owned_by = ${userId} AND MONTH(O.accepted_date) = MONTH(CURRENT_DATE()) AND R.is_deleted = 0
+                     ORDER BY O.accepted_date DESC;
                  `;
-             } else if (type === 'prospectiveQuotes') {
-                 query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, R.request_id, S.service_name, R.status
-                     FROM requestforquote R
-                     JOIN users U ON U.id = R.client_id
-                     JOIN service_types S ON S.service_id = R.service_id
-                     WHERE R.status = 'Prospective' AND R.is_deleted = 0
-                     ORDER BY R.request_id DESC;
-                 `;
-             } else if (type === 'largestDriveway') {
-                 query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, R.request_id, R.driveway_size, S.service_name
-                     FROM requestforquote R
-                     JOIN users U ON U.id = R.client_id
-                     JOIN service_types S ON S.service_id = R.service_id
-                     WHERE R.driveway_size = (
-                         SELECT MAX(driveway_size) FROM requestforquote WHERE is_deleted = 0
-                     ) AND R.is_deleted = 0;
-                 `;
-             } else if (type === 'overdueBills') {
-                 query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, B.bill_id, B.amount, B.due_date
-                     FROM bill B
-                     JOIN orderofwork O ON O.order_id = B.order_id
-                     JOIN requestforquote R ON R.request_id = O.request_id
-                     JOIN users U ON U.id = R.client_id
-                     WHERE B.due_date < CURRENT_DATE() AND B.status != 'Paid' AND R.is_deleted = 0
-                     ORDER BY B.due_date ASC;
-                 `;
-             } else if (type === 'badClients') {
-                 query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, COUNT(O.order_id) AS bad_orders
-                     FROM orderofwork O
-                     JOIN requestforquote R ON R.request_id = O.request_id
-                     JOIN users U ON U.id = R.client_id
-                     WHERE O.status = 'Bad' AND R.is_deleted = 0
-                     GROUP BY U.id
-                     ORDER BY bad_orders DESC;
-                 `;
-             } else if (type === 'goodClients') {
-                 query = `
-                     SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, COUNT(O.order_id) AS good_orders
-                     FROM orderofwork O
-                     JOIN requestforquote R ON R.request_id = O.request_id
-                     JOIN users U ON U.id = R.client_id
-                     WHERE O.status = 'Good' AND R.is_deleted = 0
-                     GROUP BY U.id
-                     ORDER BY good_orders DESC;
-                 `;
-             } else {
-                 return reject(new Error("Invalid report type"));
-             }
-     
-             // Execute the query
-             connection.query(query, (err, results) => {
-                 if (err) {
-                     return reject(err);
-                 }
-                 resolve(results);
-             });
+            } else if (type === 'prospectiveQuotes') {
+               query = `
+                   SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, U.email, U.phone, U.last_sign_in
+                   FROM users U
+                   LEFT JOIN requestforquote R ON U.id = R.client_id
+                   WHERE R.request_id IS NULL;
+               `;
+           }else if (type === 'largestDriveway') {
+               query = `
+               SELECT GROUP_CONCAT((CONCAT(U.first_name, ' ', U.last_name))) AS client_name,
+               MAX(R.square_feet) AS square_feet,
+		         GROUP_CONCAT(R.request_id) as request_id,
+		         GROUP_CONCAT(R.property_address) as property_address,
+               GROUP_CONCAT(I.image_url SEPARATOR ', ') AS image_urls
+               FROM requestforquote R
+               JOIN images I ON I.request_id = R.request_id
+               JOIN users U ON U.id = R.client_id
+               JOIN service_types S ON S.service_id = R.service_id
+               WHERE R.is_deleted = 0
+               AND R.owned_by = 8
+               AND R.square_feet = (
+                  SELECT MAX(square_feet)
+                  FROM requestforquote
+                  WHERE is_deleted = 0
+                  AND owned_by = 8
+               )
+               GROUP BY R.owned_by;
+               `;
+            } else if (type === 'overdueBills') {
+               query = `
+                   SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+                          B.bill_id, 
+                          B.amount, 
+                          B.due_date
+                   FROM bill B
+                   JOIN payment P ON P.bill_id = B.bill_id
+                   JOIN orderofwork O ON O.order_id = B.order_id
+                   JOIN requestforquote R ON R.request_id = O.request_id
+                   JOIN users U ON U.id = R.client_id
+                   WHERE B.due_date < CURRENT_DATE() 
+                   AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.generated_date, INTERVAL 1 WEEK))
+                   AND R.is_deleted = 0
+                   ORDER BY B.due_date ASC;
+               `;
+           } else if (type === 'badClients') {
+            query = `
+                SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+                       COUNT(B.bill_id) AS total_overdue_bills
+                FROM users U
+                JOIN requestforquote R ON R.client_id = U.id
+                JOIN orderofwork O ON O.request_id = R.request_id
+                JOIN bill B ON B.order_id = O.order_id
+                LEFT JOIN payment P ON P.bill_id = B.bill_id
+                WHERE R.is_deleted = 0
+                AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.generated_date, INTERVAL 1 WEEK))
+                GROUP BY U.id
+                HAVING COUNT(B.bill_id) = 
+                       (SELECT COUNT(B1.bill_id) 
+                        FROM bill B1 
+                        JOIN orderofwork O1 ON O1.order_id = B1.order_id 
+                        JOIN requestforquote R1 ON R1.request_id = O1.request_id 
+                        WHERE R1.client_id = U.id
+                          AND R1.is_deleted = 0)
+                ORDER BY total_overdue_bills DESC;
+            `;
+           }  else if (type === 'goodClients') {
+            query = `
+                SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+                       COUNT(B.bill_id) AS timely_payments
+                FROM users U
+                JOIN requestforquote R ON R.client_id = U.id
+                JOIN orderofwork O ON O.request_id = R.request_id
+                JOIN bill B ON B.order_id = O.order_id
+                LEFT JOIN payment P ON P.bill_id = B.bill_id
+                WHERE R.is_deleted = 0
+                  AND P.payment_date IS NOT NULL
+                  AND P.payment_date <= DATE_ADD(B.generated_date, INTERVAL 1 DAY)
+                GROUP BY U.id
+                HAVING COUNT(B.bill_id) > 0
+                ORDER BY timely_payments DESC;
+            `;
+            }  else {
+               return reject(new Error("Invalid report type"));
+            }
+            
+            // Execute the query
+            connection.query(query, (err, results) => {
+               if (err) {
+                  return reject(err);
+               }
+               resolve(results);
+            });
          });
-     }
-     
+      }
+      
       
       async takeOwnership(requestId, userId, action_type) {
          return new Promise((resolve, reject) => {
