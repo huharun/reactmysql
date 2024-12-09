@@ -162,12 +162,15 @@
                  SELECT R.*, 
                         CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
                         CONCAT(O.first_name, ' ', O.last_name) AS owner_name, 
-                        S.service_name
+                        S.service_name,
+                        GROUP_CONCAT(I.image_url SEPARATOR ', ') AS image_urls
                  FROM requestforquote R
                  JOIN users U ON U.id = R.client_id
                  LEFT JOIN users O ON O.id = R.owned_by 
                  JOIN service_types S ON S.service_id = R.service_id
+                 LEFT JOIN images I ON I.request_id = R.request_id
                  WHERE R.is_deleted = 0
+                 GROUP BY R.request_id
              `;
             
             // Append condition based on urgency type
@@ -246,7 +249,7 @@
                    LEFT JOIN requestforquote R ON U.id = R.client_id
                    WHERE R.request_id IS NULL;
                `;
-           }else if (type === 'largestDriveway') {
+            }else if (type === 'largestDriveway') {
                query = `
                SELECT GROUP_CONCAT((CONCAT(U.first_name, ' ', U.last_name))) AS client_name,
                MAX(R.square_feet) AS square_feet,
@@ -284,11 +287,13 @@
                      AND R.is_deleted = 0
                    ORDER BY B.due_date ASC;
                `;
-           }else if (type === 'badClients') {
-            query = `
+            }else if (type === 'badClients') {
+               query = `
                 SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
                        COUNT(B.bill_id) AS total_overdue_bills, 
+                       GROUP_CONCAT(B.bill_id) AS bill_id, 
                        GROUP_CONCAT(B.generated_date) AS generated_dates, 
+                       GROUP_CONCAT(P.payment_date) AS payment_date, 
                        GROUP_CONCAT(B.due_date) AS due_dates
                 FROM users U
                 JOIN requestforquote R ON R.client_id = U.id
@@ -296,30 +301,33 @@
                 JOIN bill B ON B.order_id = O.order_id
                 LEFT JOIN payment P ON P.bill_id = B.bill_id
                 WHERE R.is_deleted = 0
-                  AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.generated_date, INTERVAL 1 WEEK))
+                  AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.due_date, INTERVAL 1 WEEK))
                 GROUP BY U.id
                 HAVING total_overdue_bills > 0
                 ORDER BY total_overdue_bills DESC;
             `;
-        }
-        
-          else if (type === 'goodClients') {
-            query = `
+            }
+            
+            else if (type === 'goodClients') {
+               query = `
                 SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
-                       COUNT(B.bill_id) AS timely_payments, GROUP_CONCAT(B.due_date) as due_dates, GROUP_CONCAT(P.payment_date) AS payment_dates
-                FROM users U
-                JOIN requestforquote R ON R.client_id = U.id
-                JOIN orderofwork O ON O.request_id = R.request_id
-                JOIN bill B ON B.order_id = O.order_id
-                LEFT JOIN payment P ON P.bill_id = B.bill_id
-                WHERE R.is_deleted = 0
-                  AND P.payment_date IS NOT NULL
-                  AND P.payment_date <= DATE_ADD(B.generated_date, INTERVAL 1 DAY)
-                GROUP BY U.id
-                HAVING COUNT(B.bill_id) > 0
-                ORDER BY timely_payments DESC;
+       COUNT(DISTINCT B.bill_id) AS timely_payments, 
+       GROUP_CONCAT(DISTINCT CONCAT('(bill_id:', B.bill_id,')', ' ( ', DATE_FORMAT(B.generated_date, '%m/%d/%Y'), ')')) AS due_dates,
+       GROUP_CONCAT(DISTINCT CONCAT('(bill_id:', B.bill_id,')', ' ( ', DATE_FORMAT(P.payment_date, '%m/%d/%Y'), ')')) AS payment_dates
+FROM users U
+JOIN requestforquote R ON R.client_id = U.id
+JOIN orderofwork O ON O.request_id = R.request_id
+JOIN bill B ON B.order_id = O.order_id
+LEFT JOIN payment P ON P.bill_id = B.bill_id
+WHERE R.is_deleted = 0
+  AND P.payment_date IS NOT NULL
+  AND P.payment_date <= DATE_ADD(B.generated_date, INTERVAL 1 DAY)
+GROUP BY U.id
+HAVING COUNT(DISTINCT B.bill_id) > 0
+ORDER BY timely_payments DESC;
+;
             `;
-               }  else {
+            }  else {
                return reject(new Error("Invalid report type"));
             }
             
@@ -805,6 +813,25 @@
             });
          });
       }
+      
+      // Function to get property address for a given userId
+      async getPropertyAddress(userId) {
+         return new Promise((resolve, reject) => {
+            const query = `SELECT address FROM users WHERE id = ?`; // Assuming properties table has user_id and address columns
+            connection.query(query, [userId], (err, results) => {
+               if (err) {
+                  console.error('Database error:', err);
+                  return reject(err);
+               }
+               if (results.length > 0) {
+                  resolve(results[0].address);  // Return the address if found
+               } else {
+                  resolve(null); // No address found for the user
+               }
+            });
+         });
+      }
+      
       
       
       

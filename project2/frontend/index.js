@@ -4,7 +4,7 @@
 
 // Constants for API base URLs
 const LOCAL_API_BASE_URL = 'http://localhost:5050';
-// const PUBLIC_API_BASE_URL = 'http://141.217.210.187:5050';
+// const PUBLIC_API_BASE_URL = 'http://141.217.211.213:5050';
 const PUBLIC_API_BASE_URL = 'http://35.16.81.183:5050';
 
 // Choose the API base URL based on the environment
@@ -81,27 +81,33 @@ function initAutocomplete() {
         
         suggestionsContainer.innerHTML = '<div>Loading...</div>';
         
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`)
+        // Make sure to add a user-agent header to the request for Nominatim
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`, {
+            method: 'GET',
+            headers: {
+                'User-Agent': 'MyApp/1.0 (your-email@example.com)' // Add your own email or app identifier
+            }
+        })
         .then(response => response.json())
         .then(data => {
             suggestionsContainer.innerHTML = '';
-            data.forEach(item => {
-                const suggestion = document.createElement("div");
-                suggestion.textContent = item.display_name;
-                suggestion.style.fontSize = '12px'; 
-                suggestion.style.cursor = 'pointer';
-                suggestion.style.padding = '4px';
-                suggestion.style.borderBottom = '1px solid #ddd';
-                
-                suggestion.addEventListener("click", () => {
-                    addressInput.value = item.display_name;
-                    suggestionsContainer.innerHTML = '';
+            if (data && data.length > 0) {
+                data.forEach(item => {
+                    const suggestion = document.createElement("div");
+                    suggestion.textContent = item.display_name;
+                    suggestion.style.fontSize = '12px'; 
+                    suggestion.style.cursor = 'pointer';
+                    suggestion.style.padding = '4px';
+                    suggestion.style.borderBottom = '1px solid #ddd';
+                    
+                    suggestion.addEventListener("click", () => {
+                        addressInput.value = item.display_name;
+                        suggestionsContainer.innerHTML = '';
+                    });
+                    
+                    suggestionsContainer.appendChild(suggestion);
                 });
-                
-                suggestionsContainer.appendChild(suggestion);
-            });
-            
-            if (data.length === 0) {
+            } else {
                 suggestionsContainer.innerHTML = '<div>No suggestions found</div>';
             }
         })
@@ -109,9 +115,18 @@ function initAutocomplete() {
             suggestionsContainer.innerHTML = '<div>Error fetching suggestions</div>';
         });
     });
+    
+    // Close suggestions when clicking outside the address input field
+    document.addEventListener("click", function (event) {
+        if (!addressInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+            suggestionsContainer.innerHTML = '';
+        }
+    });
 }
 
-window.onload = initAutocomplete;
+// Initialize the autocomplete on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', initAutocomplete);
+
 
 
 // Show alert function
@@ -350,6 +365,7 @@ function viewNewRequests(type) {
                         <th>Service</th>
                         <th>Urgency</th>
                         <th>Status</th>
+                        <th>Images</th>
                         <th>Owned by</th>
                         <th>Actions</th>
                     </tr>
@@ -365,6 +381,7 @@ function viewNewRequests(type) {
                         <td>${request.service_name || 'N/A'}</td>
                         <td>${request.urgency || 'N/A'}</td>
                         <td>${request.status || 'N/A'}</td>
+                        <td>${request.image_urls ? request.image_urls.split(', ').map(url => `<a href="${url}" target="_blank"><img src="${url}" alt="Request Image" style="width: 100px; height: 100px; display: inline; margin-right: 10px;" /></a>`).join('') : 'No Images'}</td>
                         <td>${request.owner_name || 'No Owner'}</td>
                         <td>
                 ${!request.owner_name ? 
@@ -1387,6 +1404,34 @@ function viewNewRequests(type) {
         });
     }
     
+    // Function to fetch the property address from the backend
+    function fetchPropertyAddress() {
+        const userData = JSON.parse(sessionStorage.getItem('user'));
+        const userId = userData?.userId;
+    
+        if (!userId) {
+            console.error('User is not authenticated');
+            return;
+        }
+    
+        fetch(API_BASE_URL + '/viewPropertyAddress', {  // Corrected route to '/viewPropertyAddress'
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            const address = data.address || 'No address found for this user';
+            document.getElementById('propertyAdress').value = address;
+        })
+        .catch(error => {
+            console.error('Error fetching property address:', error);
+            showAlert('There was an error fetching the property address. Please try again later.', 'failure');
+        });
+    }
+    
     
     
     
@@ -1431,10 +1476,12 @@ function viewNewRequests(type) {
                 </select>
             </div>
             
-            <div class="input-container">
-                <label for="description">Property Adress:</label>
-                <textarea id="propertyAdress" name="propertyAdress" placeholder="Adress of the property.." required></textarea>
+           <div class="input-container">
+                <label for="description">Property Address:</label>
+                <textarea id="propertyAdress" name="propertyAdress" placeholder="Location of the property..." required></textarea>
+                <a href="javascript:void(0);" onclick="fetchPropertyAddress()" id="fetchAddressLink" style="font-size: 12px; color: blue; text-decoration: underline; display: block; margin-top: 25px; margin-left: -120px; margin-right: 30px;">[Use my address]</a>
             </div>
+        
         
             <div class="input-container">
                 <label for="description">Square Feet:</label>
@@ -1472,6 +1519,7 @@ function viewNewRequests(type) {
             
             const serviceType = document.getElementById('serviceType').value;   
             const description = document.getElementById('description').value;
+            const propertyAdress = document.getElementById('propertyAdress').value;
             const square_feet = document.getElementById('square_feet').value;
             const urgency = document.getElementById('urgency').value;
             const images = document.getElementById('images').files; // Get multiple files
@@ -1481,7 +1529,7 @@ function viewNewRequests(type) {
             formData.append('clientName', clientName);
             formData.append('userType', userType);
             formData.append('serviceType', serviceType);
-            formData.append('propertyAdress', description);
+            formData.append('propertyAdress', propertyAdress);
             formData.append('square_feet', square_feet);
             formData.append('description', description);
             formData.append('urgency', urgency);
@@ -2372,7 +2420,7 @@ function viewNewRequests(type) {
         console.log("Viewing report..." + reportType);
         const userData = JSON.parse(sessionStorage.getItem('user'));
         const userId = userData?.userId;
-
+        
         fetch(API_BASE_URL + '/report', {
             method: 'POST',
             headers: {
@@ -2422,9 +2470,9 @@ function viewNewRequests(type) {
                 <td>${client.completed_orders || 'N/A'}</td>
             </tr>
             `).join('');
-        } else if (reportType === 'difficultClients') {
-            // Columns specific to Difficult Clients
-            tableHTML += `
+            } else if (reportType === 'difficultClients') {
+                // Columns specific to Difficult Clients
+                tableHTML += `
             <th>Client Name</th>
             <th>Total Orders</th>
             <th>Not Followed Orders</th>
@@ -2436,7 +2484,7 @@ function viewNewRequests(type) {
                 <td>${client.difficult_orders || 'N/A'}</td>
             </tr>
             `).join('');
-        } else if (reportType === 'thisMonthQuotes') {
+                } else if (reportType === 'thisMonthQuotes') {
                     // Columns specific to This Month's Quotes
                     tableHTML += `
             <th>Order Id</th>
@@ -2454,9 +2502,9 @@ function viewNewRequests(type) {
                 <td>${quote.accepted_date ? new Date(quote.accepted_date).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
             `).join('');
-        } else if (reportType === 'prospectiveQuotes') {
-            // Columns specific to Prospective Quotes
-            tableHTML += `
+                    } else if (reportType === 'prospectiveQuotes') {
+                        // Columns specific to Prospective Quotes
+                        tableHTML += `
             <th>Client Name</th>
             <th>Email</th>
             <th>Phone</th>
@@ -2470,9 +2518,9 @@ function viewNewRequests(type) {
                 <td>${quote.last_sign_in ? new Date(quote.last_sign_in).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
             `).join('');
-        } else if (reportType === 'largestDriveway') {
-            // Columns specific to Largest Driveway
-            tableHTML += `
+                        } else if (reportType === 'largestDriveway') {
+                            // Columns specific to Largest Driveway
+                            tableHTML += `
             <th>Client Name</th>
             <th>Driveway Size</th>
             <th>Request ID</th>
@@ -2486,12 +2534,12 @@ function viewNewRequests(type) {
                 <td>${client.request_id || 'N/A'}</td>
                 <td>${client.property_address || 'N/A'}</td>
                 <td>${client.image_urls ? client.image_urls.split(', ').map(url => `<a href="${url}" target="_blank"><img src="${url}" alt="Request Image" style="width: 100px; height: 100px; display: inline; margin-right: 10px;" /></a>`).join('') : 'No Images'}</td>
-
+                                
             </tr>
             `).join('');
-        } else if (reportType === 'overdueBills') {
-            // Columns specific to Overdue Bills
-            tableHTML += `
+                            } else if (reportType === 'overdueBills') {
+                                // Columns specific to Overdue Bills
+                                tableHTML += `
             <th>Client Name</th>
             <th>Overdue Amount</th>
             <th>Generated Date</th>
@@ -2505,25 +2553,29 @@ function viewNewRequests(type) {
                 <td>${bill.due_date ? new Date(bill.due_date).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
             `).join('');
-        } else if (reportType === 'badClients') {
-            // Columns specific to Bad Clients
-            tableHTML += `
+                                } else if (reportType === 'badClients') {
+                                    // Columns specific to Bad Clients
+                                    tableHTML += `
             <th>Client Name</th>
             <th>Total Overdue Bills</th>
+            <th>Bill ID</th>
             <th>Generated Date</th>
             <th>Due Date</th>
+            <th>Payment Date</th>
             </tr></thead>`;
                                     rowsHTML = data.map(client => `
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
                 <td>${client.total_overdue_bills || 'N/A'}</td>
+                <td>${client.bill_id || 'N/A'}</td>
                 <td>${client.generated_dates ? new Date(client.generated_dates).toLocaleDateString('en-US') : 'N/A'}</td>
                 <td>${client.due_dates ? new Date(client.due_dates).toLocaleDateString('en-US') : 'N/A'}</td>
+                <td>${client.payment_date ? new Date(client.payment_date).toLocaleDateString('en-US') : 'N/A'}</td>
             </tr>
             `).join('');
-        } else if (reportType === 'goodClients') {
-             // Columns specific to Good Clients
-            tableHTML += `
+                                    } else if (reportType === 'goodClients') {
+                                        // Columns specific to Good Clients
+                                        tableHTML += `
             <th>Client Name</th>
             <th>Timely Payments</th>
             <th>Due Date</th>
@@ -2533,24 +2585,24 @@ function viewNewRequests(type) {
             <tr>
                 <td>${client.client_name || 'N/A'}</td>
                 <td>${client.timely_payments || 'N/A'}</td>
-                <td>${client.due_dates ? new Date(client.due_dates).toLocaleDateString('en-US') : 'N/A'}</td>
-                <td>${client.payment_dates ? new Date(client.payment_dates).toLocaleDateString('en-US') : 'N/A'}</td>
+                <td>${client.due_dates || 'N/A'}</td>
+                <td>${client.payment_dates || 'N/A'}</td>
             </tr>
             `).join('');
-        } else {
-            tableHTML = '<tr><td colspan="6">Invalid report type.</td></tr>';
-        }
+                                        } else {
+                                            tableHTML = '<tr><td colspan="6">Invalid report type.</td></tr>';
+                                        }
                                         
-            tableHTML += `<tbody>${rowsHTML}</tbody>`;
-            table.innerHTML = tableHTML;
-    }
+                                        tableHTML += `<tbody>${rowsHTML}</tbody>`;
+                                        table.innerHTML = tableHTML;
+                                    }
                                     
                                     
                                     
                                     
                                     
-    // Call the renderMenu function on page load
-    window.onload = renderMenu;
+                                    // Call the renderMenu function on page load
+                                    window.onload = renderMenu;
                                     
                                     
                                     

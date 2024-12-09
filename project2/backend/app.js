@@ -226,8 +226,19 @@ app.get('/new_requests/:type', async (req, res) => {
         const db = dbService.getDbServiceInstance();
         const requests = await db.getNewRequests(type);
         
+         // Add full URLs for images
+         const baseUrl =  "/reactmysql/project2/backend/"; 
+ 
+         const updatedRequests = requests.map(request => {
+             // Prepend the base URL to each image URL
+             if (request.image_urls) {
+                 request.image_urls = request.image_urls.split(', ').map(url => baseUrl + url).join(', ');
+             }
+             return request;
+         });
+        
         // Return the list of new requests as JSON
-        res.status(200).json(requests);
+        res.status(200).json(updatedRequests);
     } catch (error) {
         console.error('Error fetching new requests:', error);
         res.status(500).json({ error: 'Failed to fetch new requests', details: error.message });
@@ -618,6 +629,35 @@ app.post('/client_ratings', async (req, res) => {
     }
 });
 
+// Route to view the property address for a user
+app.post('/viewPropertyAddress', async (req, res) => {
+    try {
+        const { userId } = req.body;
+        
+        // Validate userId
+        if (!userId || isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid userId provided' });
+        }
+        
+        // Fetch property address from the database
+        const db = dbService.getDbServiceInstance();
+        const address = await db.getPropertyAddress(userId);
+        
+        // Check if address was found and send appropriate response
+        if (!address) {
+            return res.status(200).json({ address: 'No address found for this user' });
+        }
+        
+        // If address is found, return it in the response
+        res.status(200).json({ address });
+    } catch (error) {
+        console.error('Error fetching property address:', error);
+        // Return error details if something goes wrong
+        res.status(500).json({ error: 'Failed to fetch property address', details: error.message });
+    }
+});
+
+
 
 
 // Route to view all bills for a user
@@ -840,11 +880,11 @@ app.post('/view_payment_history', async (req, res) => {
 // Endpoint to fetch reports based on the report type
 app.post('/report', async (req, res) => {
     const { reportType, userId } = req.body;
-
+    
     if (!reportType) {
         return res.status(400).json({ error: 'Report type is required' });
     }
-
+    
     try {
         const db = dbService.getDbServiceInstance();
         const requests = await db.getReport(reportType, userId);
@@ -859,7 +899,7 @@ app.post('/report', async (req, res) => {
             return request;
         });
         
-
+        
         // Send the fetched report data back as a JSON response
         res.status(200).json(updatedRequests);
     } catch (error) {
