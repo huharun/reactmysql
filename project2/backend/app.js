@@ -364,10 +364,6 @@ app.get('/get_chat', async (req, res) => {
 });
 
 
-
-
-
-
 // API route for submitting a new service request
 app.post('/submit_request', upload.array('images', 5), async (req, res) => {
     try {
@@ -499,9 +495,6 @@ app.post('/updateOrderStatus', async (req, res) => {
 });
 
 
-
-
-
 app.post('/manage_negotiations', async (req, res) => {
     try {
         const userId = req.body.userId;
@@ -594,8 +587,6 @@ app.post('/viewPropertyAddress', async (req, res) => {
 });
 
 
-
-
 // Route to view all bills for a user
 app.post('/viewAllBills', async (req, res) => {
     try {
@@ -647,11 +638,6 @@ app.post('/resolveDispute', async (req, res) => {
         res.status(500).json({ error: 'Failed to manage disputes', details: error.message });
     }
 });
-
-
-
-
-
 
 // API route to fetch user bill details
 app.post('/getBill', async (req, res) => {
@@ -735,11 +721,6 @@ app.post('/disputeBill', async (req, res) => {
 });
 
 
-
-
-
-
-
 // API route for fetching user profile
 app.post('/view_profile', async (req, res) => {
     try {
@@ -792,10 +773,6 @@ app.post('/update_profile', async (req, res) => {
     }
 });
 
-
-
-
-
 // API route for fetching payment history
 app.post('/view_payment_history', async (req, res) => {
     try {
@@ -843,9 +820,6 @@ app.post('/report', async (req, res) => {
         res.status(500).json({ error: 'Failed to fetch report data', details: error.message });
     }
 });
-
-
-
 
 
 // Autocomplete search
@@ -911,7 +885,6 @@ app.delete('/delete/:request_id', authenticateJWT, async (req, res) => {
         res.status(500).json({ success: false, error: err.message });
     }
 });
-
 
 
 // Debug function, will be deleted later

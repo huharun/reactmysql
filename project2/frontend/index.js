@@ -613,11 +613,6 @@ function viewNewRequests(type) {
     }
     
     
-    
-    
-    
-    
-    
     function manageQuote(requestId, quoteNote, counterPrice, timeWindowStart, timeWindowEnd) {
         // Show the Manage Quote modal
         manageQuoteModal.style.display = 'flex';
@@ -1165,20 +1160,16 @@ function viewNewRequests(type) {
     }
     
     
-    
-    
-    
-    
     // Function to fetch the property address from the backend
     function fetchPropertyAddress() {
         const userData = JSON.parse(sessionStorage.getItem('user'));
         const userId = userData?.userId;
-    
+        
         if (!userId) {
             console.error('User is not authenticated');
             return;
         }
-    
+        
         fetch(API_BASE_URL + '/viewPropertyAddress', {  // Corrected route to '/viewPropertyAddress'
             method: 'POST',
             headers: {
@@ -1196,7 +1187,6 @@ function viewNewRequests(type) {
             showAlert('There was an error fetching the property address. Please try again later.', 'failure');
         });
     }
-    
     
     
     
@@ -1748,8 +1738,6 @@ function viewNewRequests(type) {
     
     
     
-    
-    
     function disputeBill() {
         console.log("Disputing Bill...");
         viewAllBills('dispute')
@@ -2093,8 +2081,6 @@ function viewNewRequests(type) {
     
     
     
-    
-    
     function printPayment(paymentId, transactionId, amount, paymentDate, paymentMethod, paymentStatus, clientName, serviceName, proposedPrice, contractorName, email, creditCard) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -2364,11 +2350,8 @@ function viewNewRequests(type) {
                                     
                                     
                                     
-                                    
-                                    
                                     // Call the renderMenu function on page load
                                     window.onload = renderMenu;
-                                    
                                     
                                     
                                     
@@ -2604,8 +2587,6 @@ function viewNewRequests(type) {
                                             console.error("Error during the fetch operation:", error);
                                         });
                                     }
-                                    
-                                    
                                     
                                     
                                     
