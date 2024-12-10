@@ -5,7 +5,7 @@
 
 To clone the repository and get the project up and running, follow these steps:
 
-### 1. Clone the Repository and Fork (Optional)
+1. **Clone the Repository and Fork (Optional)**
 To clone the repository and get the project up and running, follow these steps:
 
 #### Fork the Repository (Optional)
