@@ -109,32 +109,106 @@ frontend/
 - Clients can delete requested quotes.
 
 ### 4. Client Dashboard
-- Implemented a dashboard for clients to manage their activities.
+- Implemented a dynamic dashboard for clients to manage their activities, with the following navigation:
+
+  1. **Request a Quote**
+     - View My Requests
+     - Submit New Request
+  2. **Orders**
+     - View My Orders
+     - Manage Order Negotiations
+  3. **Billing**
+     - View Bills
+     - Dispute Bill
+  4. **Account Management**
+     - View Profile
+     - View Payment History
 
 ### 5. Contractor Dashboard
-- Implemented a dashboard for contractors to view and manage their requests.
+- Implemented a dynamic dashboard for contractors to manage their requests, with the following navigation:
+
+  1. **Quote Requests**
+     - View Urgency Requests
+     - View All Requests
+  2. **Work Orders**
+     - Manage Orders
+     - View Active Orders
+     - View Completed Orders
+  3. **Billing**
+     - View All Bills
+     - Manage Disputes
+  4. **Reports**
+     - List of Big Clients
+     - Difficult Clients
+     - This Month Quotes
+     - Prospective Quotes
+     - Largest Driveway
+     - Overdue Bills
+     - Bad Clients
+     - Good Clients
+
 
 ### 6. Reports for Contractors
-- Developed functionality to provide reports, such as a list of users who registered today.
+- Implemented a comprehensive set of reports for contractors, with the following queries and explanations:
+
+  1. **Big Clients**
+     - Lists the clients that David Smith completed the most number of orders. 
+     - If there is a tie, all the top clients are listed; if there is no tie, only the top client is displayed.
+     - **Submission Requirement**: After performing the query, verify that the result is correct. Show the result and explain why it is accurate. Then, modify the database and explain the new result that appears after the change, including the reason behind the change.
+  
+  2. **Difficult Clients**
+     - Lists clients who sent three different requests to David Smith but never followed up after the requests.
+  
+  3. **This Month Quotes**
+     - Lists all the AGREED quotes for the current month (e.g., December 2024).
+  
+  4. **Prospective Clients**
+     - Lists all clients who have registered but never submitted any request for quotes.
+  
+  5. **Largest Driveway**
+     - Lists the locations of the driveways with the largest square footage that David Smith ever worked on.
+     - If there is a tie, all locations are listed; if there is no tie, only the top location is displayed.
+  
+  6. **Overdue Bills**
+     - Lists all bills that have not been paid one week after they are generated.
+  
+  7. **Bad Clients**
+     - Lists clients who have never paid a bill after its due date (i.e., one week after the bill is generated).
+     - A client is not considered "bad" if no bill has been generated for them.
+  
+  8. **Good Clients**
+     - Lists clients who have paid their bills within 24 hours after the bills are generated.
+
 
 ---
 
 ## Additional Key Features
 
 ### 1. Autofetch Address Function
-- Integrated address fetching functionality using OpenStreetMap API:
-  ```javascript
-  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`)
-  ```
+- Implemented an address fetching feature using the OpenStreetMap API, which allows users to automatically retrieve accurate addresses based on their input. The system provides autocomplete functionality to enhance user experience and ensure accuracy when entering addresses.
+  - **Example Code:**
+    ```javascript
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&addressdetails=1&limit=5`)
+    ```
 
-### 2. Session Management
-- Developed session functionality using JWT authentication tokens to temporarily store user details, enhancing the user experience during interactions with the application.
+### 2. Customized Alerts
+- Developed a versatile `showAlert` function to handle various types of alert notifications across the application. This ensures that users receive clear, consistent feedback for both successful actions and error handling.
 
-### 3. PDF Export
-- Integrated **jsPDF** for exporting bills and payment receipts as PDF files.
+### 3. Pop-up Modals
+- Integrated pop-up modals for specific tasks, offering a more interactive way to present crucial information, confirm actions, or provide options without navigating away from the current page. These modals improve user engagement by keeping the interface dynamic and efficient.
 
-### 4. Image Upload
-- Enabled image uploading functionality in the backend, with a dedicated folder for storing uploaded images.
+### 4. Chat Section
+- Incorporated a dedicated chat section that facilitates real-time communication between contractors and clients. This feature enables users to negotiate prices, discuss project details, and resolve issues directly within the platform, enhancing collaboration and workflow.
+
+### 5. Session Management
+- Implemented session management using JSON Web Tokens (JWT) to store user authentication details temporarily. This functionality ensures that users remain logged in throughout their interaction with the application, streamlining the user experience and enhancing security.
+
+### 6. PDF Export
+- Integrated **jsPDF**, a library for generating PDF documents, to enable clients and contractors to export their bills, payment receipts, and other important documents in a downloadable and printable format. This feature ensures that users have easy access to essential records in a convenient format.
+
+### 7. Image Upload
+- Developed functionality for image uploads within the backend, providing users with the ability to submit visual content alongside their requests. Images are stored in a dedicated folder for easy management and retrieval, enabling clients to provide visual documentation for their project needs.
+
 
 ---
 
@@ -143,6 +217,3 @@ frontend/
 All SQL statements used in this project are documented in the file named **`sql_pr2_arun.txt`**.
 
 ---
-```
-
-This version improves readability and organization, making it more structured and clear.
