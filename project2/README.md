@@ -8,6 +8,7 @@ To clone the repository and get the project up and running, follow these steps:
 1. **Clone the Repository and Fork (Optional)**
 
     **Fork the Repository (Optional)**
+
     If you'd like to contribute or customize the project, you can fork the repository:
 
     - Go to the [GitHub repository](https://github.com/huharun/reactmysql).
@@ -15,6 +16,7 @@ To clone the repository and get the project up and running, follow these steps:
     - This creates a personal copy of the repository under your own GitHub account.
 
     **Clone the Repository**
+    
     After forking (if desired), clone it to your local machine. Open your terminal or command prompt and run the following command:
     ```bash
     git clone https://github.com/your-username/reactmysql.git
