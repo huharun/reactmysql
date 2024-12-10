@@ -750,70 +750,7 @@ ORDER BY timely_payments DESC;
          });
       }
       
-      // Get revenue report by userId
-      async getRevenueReport(userId) {
-         return new Promise((resolve, reject) => {
-            const query = `SELECT month, total_revenue, new_clients 
-                      FROM revenue_reports 
-                      WHERE user_id = ?`;
-            connection.query(query, [userId], (err, results) => {
-               if (err) {
-                  console.error('Database error:', err);
-                  return reject(err);
-               }
-               resolve(results);
-            });
-         });
-      }
-      
-      // Get big clients by userId
-      async getBigClients(userId) {
-         return new Promise((resolve, reject) => {
-            const query = `SELECT name, revenue, last_purchase 
-                      FROM big_clients 
-                      WHERE user_id = ?`;
-            connection.query(query, [userId], (err, results) => {
-               if (err) {
-                  console.error('Database error:', err);
-                  return reject(err);
-               }
-               resolve(results);
-            });
-         });
-      }
-      
-      // Get overdue bills by userId
-      async getOverdueBills(userId) {
-         return new Promise((resolve, reject) => {
-            const query = `SELECT bill_id, amount, due_date, status 
-                      FROM overdue_bills 
-                      WHERE user_id = ?`;
-            connection.query(query, [userId], (err, results) => {
-               if (err) {
-                  console.error('Database error:', err);
-                  return reject(err);
-               }
-               resolve(results);
-            });
-         });
-      }
-      
-      // Get client ratings by userId
-      async getClientRatings(userId) {
-         return new Promise((resolve, reject) => {
-            const query = `SELECT name, rating, feedback 
-                      FROM client_ratings 
-                      WHERE user_id = ?`;
-            connection.query(query, [userId], (err, results) => {
-               if (err) {
-                  console.error('Database error:', err);
-                  return reject(err);
-               }
-               resolve(results);
-            });
-         });
-      }
-      
+       
       // Function to get property address for a given userId
       async getPropertyAddress(userId) {
          return new Promise((resolve, reject) => {
