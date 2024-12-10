@@ -170,7 +170,7 @@
                  JOIN service_types S ON S.service_id = R.service_id
                  LEFT JOIN images I ON I.request_id = R.request_id
                  WHERE R.is_deleted = 0
-                 GROUP BY R.request_id
+                 
              `;
             
             // Append condition based on urgency type
@@ -179,7 +179,7 @@
             }
             
             // Finalize the query
-            query += ` ORDER BY R.request_id DESC;`;
+            query += ` GROUP BY R.request_id ORDER BY R.request_id DESC;`;
             
             connection.query(query, (err, results) => {
                if (err) {
