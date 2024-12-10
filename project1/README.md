@@ -7,7 +7,7 @@ To clone the repository and get the project up and running, follow these steps:
 1. **Clone the Repository**:  
    Open your terminal or command prompt and run the following command:
    ```bash
-   git clone https://github.com/huharun/dbms1_project1.git
+   git clone https://github.com/huharun/reactmysql.git
    ```
 
 2. **Database and Setup environment**:  
@@ -18,7 +18,7 @@ To clone the repository and get the project up and running, follow these steps:
 3. **Navigate to the Project Directory and Backend**:  
    Open terminal inside htdocs and locate to the project directory:
    ```bash
-   cd C:\xampp\htdocs\database_javascript\project1\Backend
+   cd C:\xampp\htdocs\reactmysql\project1\Backend
    ```
 
 4. **Run the Project**:  

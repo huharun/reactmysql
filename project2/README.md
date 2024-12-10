@@ -19,7 +19,7 @@ To clone the repository and get the project up and running, follow these steps:
 3. **Navigate to the Project Directory and Backend**:  
    Open terminal inside `htdocs` and navigate to the project directory:
    ```bash
-   cd C:\xampp\htdocs\project2\Backend
+   cd C:\xampp\htdocs\reactmysql\project2\backend
    ```
 
 4. **Run the Project**:  
