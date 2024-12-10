@@ -1,6 +1,4 @@
-Here's an improved version of your **Project 2** README file in markdown format, based on the details you provided:
-
-```markdown
+<!-- # Project 2 -->
 # Project 2
 
 ## Cloning the Repository and Running the Project
