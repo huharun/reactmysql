@@ -1169,8 +1169,6 @@ function viewNewRequests(type) {
     
     
     
-    
-    
     // Function to fetch the property address from the backend
     function fetchPropertyAddress() {
         const userData = JSON.parse(sessionStorage.getItem('user'));
