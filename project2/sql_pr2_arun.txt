@@ -1,1 +1,120 @@
 // sql with sample inputs
+
+
+1. Big Clients Report:
+   SELECT 
+       CONCAT(U.first_name, ' ', U.last_name) AS client_name,
+       GROUP_CONCAT(DISTINCT CONCAT(S.service_name, ' (', service_counts.service_count, ')') SEPARATOR ', ') AS service_name,
+       COUNT(O.order_id) AS total_orders,
+       SUM(CASE WHEN O.status = 'Completed' THEN 1 ELSE 0 END) AS completed_orders
+   FROM orderofwork O
+   JOIN requestforquote R ON R.request_id = O.request_id
+   JOIN service_types S ON S.service_id = R.service_id
+   JOIN users U ON U.id = R.client_id
+   JOIN (
+      SELECT R.client_id, R.service_id, COUNT(O.order_id) AS service_count
+      FROM orderofwork O
+      JOIN requestforquote R ON R.request_id = O.request_id
+      WHERE R.is_deleted = 0
+      GROUP BY R.client_id, R.service_id
+      ) AS service_counts ON service_counts.client_id = U.id AND service_counts.service_id = S.service_id
+   WHERE R.owned_by = 8
+   AND R.is_deleted = 0
+   GROUP BY U.id
+   ORDER BY total_orders DESC;
+
+2. Difficult Clients Report:
+   SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+       COUNT(CASE WHEN QR.status = 'Accepted' AND B.status IN ('Pending', 'Disputed') THEN O.order_id END) AS difficult_orders,
+       COUNT(O.order_id) AS total_orders
+   FROM orderofwork O
+   JOIN requestforquote R ON R.request_id = O.request_id
+   LEFT JOIN quoteresponse QR ON QR.request_id = O.request_id
+   LEFT JOIN bill B ON B.order_id = O.order_id
+   JOIN users U ON U.id = R.client_id
+   WHERE R.owned_by = 8 AND R.is_deleted = 0
+   GROUP BY U.id
+   ORDER BY total_orders DESC;
+
+3. This Month's Quotes:
+   SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, O.order_id, S.service_name, O.accepted_date, QR.counter_price as amount, O.accepted_date
+   FROM orderofwork O
+   JOIN requestforquote R ON R.request_id = O.request_id
+   JOIN quoteresponse QR ON QR.request_id = O.request_id
+   JOIN users U ON U.id = R.client_id
+   JOIN service_types S ON S.service_id = R.service_id
+   WHERE R.owned_by = 8 AND MONTH(O.accepted_date) = MONTH(CURRENT_DATE()) AND R.is_deleted = 0
+   ORDER BY O.accepted_date DESC;
+
+4. Prospective Quotes:
+   SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, U.email, U.phone, U.last_sign_in
+   FROM users U
+   LEFT JOIN requestforquote R ON U.id = R.client_id
+   WHERE R.request_id IS NULL;
+
+5. Largest Driveway:
+   SELECT GROUP_CONCAT((CONCAT(U.first_name, ' ', U.last_name))) AS client_name,
+           MAX(R.square_feet) AS square_feet,
+           GROUP_CONCAT(R.request_id) as request_id,
+           GROUP_CONCAT(R.property_address) as property_address,
+           GROUP_CONCAT(I.image_url SEPARATOR ', ') AS image_urls
+   FROM requestforquote R
+   JOIN images I ON I.request_id = R.request_id
+   JOIN users U ON U.id = R.client_id
+   JOIN service_types S ON S.service_id = R.service_id
+   WHERE R.is_deleted = 0
+   AND R.owned_by = 8
+   AND R.square_feet = (
+       SELECT MAX(square_feet)
+       FROM requestforquote
+       WHERE is_deleted = 0
+       AND owned_by = 8
+   )
+   GROUP BY R.owned_by;
+
+6. Overdue Bills:
+   SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, B.bill_id, B.amount, B.generated_date, B.due_date
+   FROM bill B
+   JOIN orderofwork O ON O.order_id = B.order_id
+   JOIN requestforquote R ON R.request_id = O.request_id
+   JOIN users U ON U.id = R.client_id
+   LEFT JOIN payment P ON P.bill_id = B.bill_id
+   WHERE B.due_date < CURRENT_DATE() 
+   AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.generated_date, INTERVAL 1 WEEK))
+   AND R.is_deleted = 0
+   ORDER BY B.due_date ASC;
+
+7. Bad Clients:
+   SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+           COUNT(B.bill_id) AS total_overdue_bills, 
+           GROUP_CONCAT(B.bill_id) AS bill_id, 
+           GROUP_CONCAT(B.generated_date) AS generated_dates, 
+           GROUP_CONCAT(P.payment_date) AS payment_date, 
+           GROUP_CONCAT(B.due_date) AS due_dates
+   FROM users U
+   JOIN requestforquote R ON R.client_id = U.id
+   JOIN orderofwork O ON O.request_id = R.request_id
+   JOIN bill B ON B.order_id = O.order_id
+   LEFT JOIN payment P ON P.bill_id = B.bill_id
+   WHERE R.is_deleted = 0
+   AND (P.payment_date IS NULL OR P.payment_date > DATE_ADD(B.due_date, INTERVAL 1 WEEK))
+   GROUP BY U.id
+   HAVING total_overdue_bills > 0
+   ORDER BY total_overdue_bills DESC;
+
+8. Good Clients:
+   SELECT CONCAT(U.first_name, ' ', U.last_name) AS client_name, 
+           COUNT(DISTINCT B.bill_id) AS timely_payments, 
+           GROUP_CONCAT(DISTINCT CONCAT('(bill_id:', B.bill_id,')', ' ( ', DATE_FORMAT(B.generated_date, '%m/%d/%Y'), ')')) AS due_dates,
+           GROUP_CONCAT(DISTINCT CONCAT('(bill_id:', B.bill_id,')', ' ( ', DATE_FORMAT(P.payment_date, '%m/%d/%Y'), ')')) AS payment_dates
+   FROM users U
+   JOIN requestforquote R ON R.client_id = U.id
+   JOIN orderofwork O ON O.request_id = R.request_id
+   JOIN bill B ON B.order_id = O.order_id
+   LEFT JOIN payment P ON P.bill_id = B.bill_id
+   WHERE R.is_deleted = 0
+   AND P.payment_date IS NOT NULL
+   AND P.payment_date <= DATE_ADD(B.generated_date, INTERVAL 1 DAY)
+   GROUP BY U.id
+   HAVING COUNT(DISTINCT B.bill_id) > 0
+   ORDER BY timely_payments DESC;

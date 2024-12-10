@@ -859,12 +859,12 @@
                         JOIN users U ON U.id = R.client_id
                         JOIN service_types S ON S.service_id = R.service_id
                         WHERE R.is_deleted = 0
-                        AND R.owned_by = 8
+                        AND R.owned_by = ${userId}
                         AND R.square_feet = (
                            SELECT MAX(square_feet)
                            FROM requestforquote
                            WHERE is_deleted = 0
-                           AND owned_by = 8
+                           AND owned_by = ${userId}
                         )
                         GROUP BY R.owned_by;
                `;
