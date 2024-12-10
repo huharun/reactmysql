@@ -5,11 +5,21 @@
 
 To clone the repository and get the project up and running, follow these steps:
 
-1. **Clone the Repository**:  
-   Open your terminal or command prompt and run the following command:
-   ```bash
-   git clone https://github.com/huharun/reactmysql.git
-   ```
+### 1. Clone the Repository and Fork (Optional)
+To clone the repository and get the project up and running, follow these steps:
+
+#### Fork the Repository (Optional)
+If you'd like to contribute or customize the project, you can fork the repository:
+
+- Go to the [GitHub repository](https://github.com/huharun/reactmysql).
+- Click the **Fork** button in the top-right corner of the page.
+- This creates a personal copy of the repository under your own GitHub account.
+
+#### Clone the Repository
+After forking (if desired), clone it to your local machine. Open your terminal or command prompt and run the following command:
+```bash
+git clone https://github.com/your-username/reactmysql.git
+```
 
 2. **Database and Setup Environment**:  
    1. Create a new Database named **`project2`**.
@@ -214,6 +224,7 @@ frontend/
 
 ## SQL Statements
 
-All SQL statements used in this project are documented in the file named **`sql_pr2_arun.txt`**.
+All essential SQL queries and reports used in this project are documented in the file named **`sql_pr2_arun.txt`**. This file contains the full list of SQL statements executed for generating reports, and retrieving data, and interacting with the database in the project.
+
 
 ---
